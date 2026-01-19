@@ -1,5 +1,5 @@
 
-const CACHE_NAME='calendario-2026-v5';
+const CACHE_NAME='calendario-2026-v7';
 const CORE_ASSETS=['./Calendario.html','./manifest.json','./icons/icon-192.png','./icons/icon-512.png','./world/world.svg','./world/addon.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(CACHE_NAME).then(c=>c.addAll(CORE_ASSETS)));self.skipWaiting();});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{const keys=await caches.keys();await Promise.all(keys.filter(k=>k!==CACHE_NAME).map(k=>caches.delete(k)));await self.clients.claim();})());});

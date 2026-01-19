@@ -1189,7 +1189,12 @@
                 flex: 1;
             }
         }
-    </style>
+    
+/* Botones en paralelo */
+.botones-principales{display:grid;grid-template-columns:1fr;gap:10px}
+@media(min-width:560px){.botones-principales{grid-template-columns:1fr 1fr}}
+
+</style>
 </head>
 <body>
     <div class="container">
@@ -1225,9 +1230,10 @@
             </div>
             
             <!-- SOLO UN BOTÓN: MIS VIAJES -->
-            <button class="boton-principal" id="btnMisViajes">
+            <div class="botones-principales"><button class="boton-principal" id="btnMisViajes">
                 ✈️ GESTIONAR MIS VIAJES
             </button>
+  <button class="boton-principal" id="btnMapaMundial">🌍 MAPA MUNDIAL</button></div>
             
             <!-- Calendario -->
             <div class="months-container" id="calendar"></div>
