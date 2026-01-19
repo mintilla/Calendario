@@ -1,0 +1,2853 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calendario Torres de Elorz 2026</title>
+    <style>
+        :root {
+            --festivo: #FFD700;
+            --puente: #4FC3F7;
+            --vacacional: #FFB74D;
+            --previo: #81C784;
+            --personal-bg: #fce4ec;
+            --personal-border: #e91e63;
+            --viaje-color: #E1BEE7;  /* MORADO para viajes */
+            --viaje-borde: #9C27B0;  /* Borde morado */
+            --weekend: #e0e0e0;
+            --text-light: #666;
+            --text-dark: #333;
+            --shadow: 0 10px 30px rgba(0,0,0,0.15);
+            --card-bg: #ffffff;
+            --card-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            padding: 8px;
+            min-height: 100vh;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        
+        .container {
+            max-width: 100%;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            padding: 12px;
+            box-shadow: var(--shadow);
+        }
+        
+        h1 {
+            text-align: center;
+            color: var(--text-dark);
+            margin-bottom: 10px;
+            font-size: 18px;
+            line-height: 1.3;
+        }
+        
+        .legend {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 6px;
+            margin: 12px 0;
+            font-size: 9px;
+        }
+        
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        
+        .legend-color {
+            flex-shrink: 0;
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+        }
+        
+        /* Vistas */
+        #vistaCalendario {
+            display: block;
+        }
+        
+        #vistaViajes, #formularioViaje {
+            display: none;
+        }
+        
+        .boton-principal {
+            display: block;
+            width: 100%;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            text-align: center;
+            margin: 15px 0;
+        }
+        
+        .boton-principal:hover {
+            transform: scale(1.02);
+        }
+        
+        .months-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .months-row {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+        }
+        
+        .month {
+            background: #fafafa;
+            border-radius: 6px;
+            padding: 6px;
+            min-width: 0;
+            overflow: hidden;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+        }
+        
+        .month:hover {
+            transform: scale(1.02);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .month-header {
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-dark);
+            margin-bottom: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .calendar-grid {
+            display: grid;
+            grid-template-columns: 18px repeat(7, 1fr);
+            gap: 1px;
+            font-size: 9px;
+        }
+        
+        .week-header,
+        .day-header {
+            text-align: center;
+            font-weight: bold;
+            color: var(--text-light);
+            padding: 2px 1px;
+            font-size: 8px;
+        }
+        
+        .week-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            color: #999;
+            font-weight: bold;
+            padding: 2px 0;
+        }
+        
+        .day {
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 3px;
+            font-size: 9px;
+            cursor: pointer;
+            position: relative;
+            border: 1px solid transparent;
+            user-select: none;
+            min-height: 0;
+            min-width: 0;
+        }
+        
+        /* VIAJES EN MORADO */
+        .day.tiene-viaje {
+            background: var(--viaje-color) !important;
+            border: 1px solid var(--viaje-borde) !important;
+        }
+        
+        .day.empty {
+            cursor: default;
+            background: transparent;
+            visibility: hidden;
+        }
+        
+        .day.festivo {
+            background: var(--festivo);
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+        
+        .day.puente {
+            background: var(--puente);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .day.vacacional {
+            background: var(--vacacional);
+            color: white;
+        }
+        
+        .day.previo {
+            background: var(--previo);
+            color: white;
+        }
+        
+        .day.personal {
+            background: var(--personal-bg) !important;
+            border: 2px solid var(--personal-border) !important;
+            color: var(--text-dark) !important;
+            font-weight: bold;
+        }
+        
+        .day.weekend {
+            background: var(--weekend);
+            color: var(--text-light);
+        }
+        
+        /* Modal para vista ampliada */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.9);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+            padding: 10px;
+            overflow-y: auto;
+        }
+        
+        .modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 15px;
+            width: 100%;
+            max-width: 100%;
+            max-height: 90vh;
+            overflow-y: auto;
+            position: relative;
+        }
+        
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .modal-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        
+        .close-modal {
+            background: none;
+            border: none;
+            font-size: 28px;
+            cursor: pointer;
+            color: var(--text-light);
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-modal:hover {
+            background: #f5f5f5;
+        }
+        
+        /* Estilos para la vista modal */
+        .modal-calendar {
+            width: 100%;
+            overflow-x: auto;
+        }
+        
+        .modal-grid {
+            display: grid;
+            grid-template-columns: repeat(8, 1fr);
+            gap: 4px;
+            width: 100%;
+            min-width: 0;
+        }
+        
+        .modal-week-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 12px 6px;
+            font-size: 12px;
+            color: var(--text-light);
+            background: #f8f9fa;
+            border-radius: 6px;
+            min-width: 0;
+        }
+        
+        .modal-day-header {
+            text-align: center;
+            font-weight: bold;
+            padding: 12px 6px;
+            font-size: 14px;
+            color: var(--text-dark);
+            background: #f8f9fa;
+            border-radius: 6px;
+            min-width: 0;
+        }
+        
+        .modal-week-number {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #999;
+            font-weight: bold;
+            padding: 12px 6px;
+            background: #f8f9fa;
+            border-radius: 6px;
+            min-width: 0;
+        }
+        
+        .modal-day {
+            width: 100%;
+            min-height: 0;
+            aspect-ratio: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s ease;
+            user-select: none;
+            padding: 2px;
+            min-width: 0;
+            position: relative;
+        }
+        
+        .modal-day:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+            z-index: 10;
+        }
+        
+        .modal-day.empty {
+            background: transparent;
+            border: none;
+            cursor: default;
+            visibility: hidden;
+        }
+        
+        .modal-day.festivo {
+            background: var(--festivo);
+            color: var(--text-dark);
+            font-weight: bold;
+        }
+        
+        .modal-day.puente {
+            background: var(--puente);
+            color: white;
+            font-weight: bold;
+        }
+        
+        .modal-day.vacacional {
+            background: var(--vacacional);
+            color: white;
+        }
+        
+        .modal-day.previo {
+            background: var(--previo);
+            color: white;
+        }
+        
+        .modal-day.personal {
+            background: var(--personal-bg) !important;
+            border: 2px solid var(--personal-border) !important;
+            color: var(--text-dark) !important;
+            font-weight: bold;
+        }
+        
+        .modal-day.weekend {
+            background: var(--weekend);
+            color: var(--text-light);
+        }
+        
+        /* VIAJES EN MODAL - MORADO */
+        .modal-day.tiene-viaje {
+            background: var(--viaje-color) !important;
+            border: 2px solid var(--viaje-borde) !important;
+        }
+        
+        /* Info del día (popup) */
+        .day-info-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .day-info-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .day-info-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 2px solid #eee;
+        }
+        
+        .day-info-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--text-dark);
+        }
+        
+        .close-day-info {
+            background: none;
+            border: none;
+            font-size: 24px;
+            cursor: pointer;
+            color: var(--text-light);
+            width: 36px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+        }
+        
+        .close-day-info:hover {
+            background: #f5f5f5;
+        }
+        
+        .day-info-body {
+            margin-bottom: 15px;
+        }
+        
+        .info-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 12px;
+            padding: 8px;
+            border-radius: 6px;
+            background: #f9f9f9;
+        }
+        
+        .info-icon {
+            font-size: 18px;
+            width: 30px;
+            text-align: center;
+        }
+        
+        .info-text {
+            flex: 1;
+            font-size: 14px;
+        }
+        
+        .info-viaje {
+            background: #f3e5f5;
+            border-left: 4px solid var(--viaje-borde);
+        }
+        
+        .info-personal {
+            background: #fce4ec;
+            border-left: 4px solid var(--personal-border);
+        }
+        
+        .info-festivo {
+            background: #fffde7;
+            border-left: 4px solid var(--festivo);
+        }
+        
+        .info-puente {
+            background: #e3f2fd;
+            border-left: 4px solid var(--puente);
+        }
+        
+        .info-vacacional {
+            background: #fff3e0;
+            border-left: 4px solid var(--vacacional);
+        }
+        
+        .info-previo {
+            background: #e8f5e9;
+            border-left: 4px solid var(--previo);
+        }
+        
+        /* Gestión de viajes */
+        .viajes-container {
+            display: none;
+        }
+        
+        .viajes-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        
+        .volver-calendario {
+            background: none;
+            border: none;
+            font-size: 16px;
+            cursor: pointer;
+            color: var(--text-light);
+            padding: 8px;
+        }
+        
+        .lista-viajes {
+            margin-top: 15px;
+        }
+        
+        .viaje-card {
+            background: var(--card-bg);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+            box-shadow: var(--card-shadow);
+            border-left: 4px solid var(--viaje-borde);
+        }
+        
+        .viaje-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 8px;
+        }
+        
+        .viaje-destino-card {
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+        
+        .viaje-acciones {
+            display: flex;
+            gap: 8px;
+        }
+        
+        .btn-editar {
+            background: none;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            padding: 4px;
+            border-radius: 4px;
+            color: #2196F3;
+        }
+        
+        .viaje-cliente-card {
+            color: var(--text-light);
+            font-size: 12px;
+            margin-bottom: 6px;
+        }
+        
+        .viaje-fechas {
+            color: var(--text-dark);
+            font-size: 12px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        
+        .btn-nuevo-viaje {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s ease;
+            width: 100%;
+            margin-top: 15px;
+        }
+        
+        /* Formularios */
+        .formulario-viaje {
+            display: none;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+            color: var(--text-dark);
+            font-size: 14px;
+        }
+        
+        .form-input, .form-select {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-size: 14px;
+            background: white;
+        }
+        
+        .form-select {
+            appearance: none;
+            background-image: url("data:image/svg+xml;charset=UTF-8,%3csvg xmlns='https://eur02.safelinks.protection.outlook.com/?url=http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg&data=05%7C02%7CMikel.Intillaque%40mtorres.com%7Cb42b0cc2be8949d1330d08de55a0ce34%7C20ff5489ede44fb8a9c87f5aad56f6da%7C0%7C0%7C639042346309464134%7CUnknown%7CTWFpbGZsb3d8eyJFbXB0eU1hcGkiOnRydWUsIlYiOiIwLjAuMDAwMCIsIlAiOiJXaW4zMiIsIkFOIjoiTWFpbCIsIldUIjoyfQ%3D%3D%7C0%7C%7C%7C&sdata=ZlICX3mgjEYnnJarTu8KeuYGQepQkXExl96SjFe0%2FF8%3D&reserved=0' viewBox='0 0 24 24' fill='none' stroke='currentColor' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3e%3cpolyline points='6 9 12 15 18 9'%3e%3c/polyline%3e%3c/svg%3e");
+            background-repeat: no-repeat;
+            background-position: right 10px center;
+            background-size: 16px;
+        }
+        
+        .form-botones {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .btn-guardar {
+            flex: 1;
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-cancelar {
+            flex: 1;
+            background: #f5f5f5;
+            color: var(--text-dark);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* BOTÓN ELIMINAR EN FORMULARIO */
+        .btn-eliminar-viaje {
+            width: 100%;
+            background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        /* MODAL DE CONFIRMACIÓN PERSONALIZADO */
+        .confirm-modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 3000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .confirm-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 300px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .confirm-modal-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .confirm-modal-message {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #666;
+            line-height: 1.4;
+        }
+        
+        .confirm-modal-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .confirm-btn-cancel {
+            flex: 1;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .confirm-btn-delete {
+            flex: 1;
+            background: linear-gradient(135deg, #f44336 0%, #c62828 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* SECCIÓN BACKUP */
+        .backup-section {
+            margin-top: 30px;
+            padding: 15px;
+            background: #f9f9f9;
+            border-radius: 10px;
+            border: 1px solid #eee;
+        }
+        
+        .backup-title {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 10px;
+            text-align: center;
+        }
+        
+        .backup-description {
+            font-size: 12px;
+            color: #888;
+            text-align: center;
+            margin-bottom: 15px;
+            line-height: 1.4;
+        }
+        
+        .backup-stats {
+            display: flex;
+            justify-content: space-around;
+            margin-bottom: 15px;
+            padding: 10px;
+            background: white;
+            border-radius: 8px;
+            border: 1px solid #eee;
+        }
+        
+        .stat-item {
+            text-align: center;
+        }
+        
+        .stat-number {
+            font-size: 18px;
+            font-weight: bold;
+            color: #667eea;
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: #888;
+            margin-top: 2px;
+        }
+        
+        .backup-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+        
+        .btn-exportar {
+            background: linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .btn-importar {
+            background: linear-gradient(135deg, #2196F3 0%, #1976D2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+        }
+        
+        .backup-note {
+            text-align: center;
+            margin-top: 10px;
+            font-size: 11px;
+            color: #999;
+        }
+
+        /* MODAL DE BACKUP */
+        .backup-modal-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .backup-modal-stats {
+            margin: 15px 0;
+            padding: 15px;
+            background: #f0f9ff;
+            border-radius: 8px;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .backup-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 20px 0;
+        }
+        
+        .backup-option-btn {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-weight: bold;
+        }
+        
+        .btn-copy {
+            background: #4CAF50;
+            color: white;
+        }
+        
+        .btn-share {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .btn-view {
+            background: #FF9800;
+            color: white;
+        }
+        
+        .btn-cancel {
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+        }
+
+        /* MODAL IMPORTACIÓN iOS SHORTCUTS */
+        .ios-import-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            z-index: 4000;
+            display: none;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+        }
+        
+        .ios-import-content {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            width: 100%;
+            max-width: 450px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .ios-import-title {
+            text-align: center;
+            margin-bottom: 15px;
+            color: #333;
+            font-size: 18px;
+        }
+        
+        .ios-textarea {
+            width: 100%;
+            height: 200px;
+            padding: 15px;
+            border: 2px dashed #9C27B0;
+            border-radius: 8px;
+            font-family: 'Menlo', 'Monaco', monospace;
+            font-size: 12px;
+            margin-bottom: 15px;
+            resize: none;
+            background: #fafafa;
+        }
+        
+        .ios-textarea::placeholder {
+            color: #9C27B0;
+            opacity: 0.7;
+        }
+        
+        .ios-import-buttons {
+            display: flex;
+            gap: 10px;
+        }
+        
+        .btn-ios-import {
+            flex: 1;
+            background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .btn-ios-cancel {
+            flex: 1;
+            background: #f5f5f5;
+            color: #333;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 12px;
+            font-size: 14px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Optimizaciones para iPhone */
+        @media only screen and (max-width: 428px) {
+            body {
+                padding: 6px;
+            }
+            
+            .container {
+                padding: 10px;
+                border-radius: 10px;
+            }
+            
+            h1 {
+                font-size: 16px;
+                margin-bottom: 8px;
+            }
+            
+            .months-row {
+                gap: 6px;
+            }
+            
+            .month {
+                padding: 5px;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: 16px repeat(7, 1fr);
+                gap: 0.5px;
+            }
+            
+            .day {
+                font-size: 8px;
+                border-radius: 2px;
+            }
+            
+            .legend {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 5px;
+                font-size: 8px;
+            }
+            
+            .modal-content {
+                padding: 10px;
+            }
+            
+            .modal-grid {
+                gap: 3px;
+            }
+            
+            .modal-day {
+                font-size: 13px;
+                border-radius: 6px;
+            }
+            
+            .modal-title {
+                font-size: 18px;
+            }
+            
+            .modal-day-header,
+            .modal-week-header,
+            .modal-week-number {
+                padding: 10px 4px;
+                font-size: 11px;
+                border-radius: 4px;
+            }
+            
+            .viaje-card {
+                padding: 10px;
+            }
+            
+            .form-input, .form-select {
+                padding: 8px;
+                font-size: 13px;
+            }
+            
+            .day-info-content {
+                padding: 15px;
+            }
+            
+            .info-item {
+                padding: 6px;
+                margin-bottom: 8px;
+            }
+            
+            .confirm-modal-content {
+                padding: 15px;
+                max-width: 280px;
+            }
+            
+            .backup-section {
+                padding: 12px;
+                margin-top: 20px;
+            }
+            
+            .backup-stats {
+                padding: 8px;
+            }
+            
+            .stat-number {
+                font-size: 16px;
+            }
+            
+            .backup-modal-content {
+                padding: 15px;
+                max-width: 320px;
+            }
+            
+            .ios-import-content {
+                padding: 15px;
+                max-width: 320px;
+            }
+            
+            .ios-textarea {
+                height: 180px;
+                font-size: 11px;
+            }
+        }
+
+        @media only screen and (max-width: 375px) {
+            .modal-day {
+                font-size: 12px;
+            }
+            
+            .calendar-grid {
+                grid-template-columns: 14px repeat(7, 1fr);
+            }
+            
+            .day {
+                font-size: 7px;
+            }
+            
+            .month-header {
+                font-size: 10px;
+            }
+            
+            .modal-day-header,
+            .modal-week-header,
+            .modal-week-number {
+                font-size: 10px;
+                padding: 8px 3px;
+            }
+            
+            .backup-title {
+                font-size: 13px;
+            }
+        }
+
+        @media only screen and (min-width: 768px) {
+            .container {
+                max-width: 768px;
+                padding: 20px;
+            }
+            
+            h1 {
+                font-size: 22px;
+            }
+            
+            .months-row {
+                gap: 12px;
+            }
+            
+            .month {
+                padding: 10px;
+            }
+            
+            .calendar-grid {
+                gap: 2px;
+            }
+            
+            .day {
+                font-size: 11px;
+            }
+            
+            .legend {
+                grid-template-columns: repeat(6, auto);
+                justify-content: center;
+                font-size: 10px;
+                gap: 12px;
+            }
+            
+            .modal-content {
+                max-width: 520px;
+                padding: 20px;
+            }
+            
+            .modal-grid {
+                gap: 5px;
+            }
+            
+            .modal-day {
+                font-size: 15px;
+            }
+            
+            .backup-section {
+                max-width: 500px;
+                margin: 30px auto 0;
+            }
+            
+            .backup-buttons {
+                flex-direction: row;
+            }
+            
+            .btn-exportar, .btn-importar {
+                flex: 1;
+            }
+        }
+    </style>
+
+  <!-- PWA -->
+  <meta name="theme-color" content="#667eea">
+  <link rel="manifest" href="./manifest.json">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <link rel="apple-touch-icon" href="icons/icon-192.png">
+</head>
+<body>
+    <div class="container">
+        <!-- VISTA PRINCIPAL DEL CALENDARIO -->
+        <div id="vistaCalendario">
+            <h1>📅 Calendario Laboral Torres de Elorz 2026</h1>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--festivo);"></div>
+                    <span>Festivo</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--puente);"></div>
+                    <span>Puente/Ajuste</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--vacacional);"></div>
+                    <span>Vacacional</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--previo);"></div>
+                    <span>Previo 6h</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--personal-bg); border: 2px solid var(--personal-border);"></div>
+                    <span>Mis vacaciones</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-color" style="background: var(--viaje-color); border: 1px solid var(--viaje-borde);"></div>
+                    <span>✈️ Mis viajes</span>
+                </div>
+            </div>
+            
+            <!-- SOLO UN BOTÓN: MIS VIAJES -->
+            <button class="boton-principal" id="btnMisViajes">
+                ✈️ GESTIONAR MIS VIAJES
+            </button>
+            
+            <!-- Calendario -->
+            <div class="months-container" id="calendar"></div>
+            
+            <!-- SECCIÓN BACKUP -->
+            <div class="backup-section">
+                <h3 class="backup-title">📁 Copia de seguridad</h3>
+                <p class="backup-description">
+                    Exporta tus datos para guardarlos en un lugar seguro o restaurarlos en otro dispositivo
+                </p>
+                
+                <div class="backup-stats">
+                    <div class="stat-item">
+                        <div class="stat-number" id="statViajes">0</div>
+                        <div class="stat-label">Viajes</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-number" id="statVacaciones">0</div>
+                        <div class="stat-label">Días vacaciones</div>
+                    </div>
+                </div>
+                
+                <div class="backup-buttons">
+                    <button class="btn-exportar" id="btnExportar">
+                        💾 EXPORTAR BACKUP
+                    </button>
+                    <button class="btn-importar" id="btnImportar">
+                        📂 IMPORTAR DESDE ARCHIVO
+                    </button>
+                    <button class="btn-importar" id="btnImportarIOS" style="background: linear-gradient(135deg, #9C27B0 0%, #7B1FA2 100%);">
+                        📝 PEGAR BACKUP (iOS Shortcuts)
+                    </button>
+                </div>
+                
+                <input type="file" id="fileImport" accept=".json" style="display: none;">
+                
+                <p class="backup-note">
+                    Tus datos se guardan automáticamente en este dispositivo
+                </p>
+            </div>
+        </div>
+        
+        <!-- VISTA DE GESTIÓN DE VIAJES -->
+        <div class="viajes-container" id="vistaViajes">
+            <div class="viajes-header">
+                <button class="volver-calendario" id="volverCalendario">← Volver</button>
+                <h2>✈️ Mis Viajes 2026</h2>
+                <div></div>
+            </div>
+            
+            <div class="lista-viajes" id="listaViajes">
+                <!-- Los viajes se cargarán aquí dinámicamente -->
+            </div>
+            
+            <button class="btn-nuevo-viaje" id="btnNuevoViaje">
+                ＋ AÑADIR NUEVO VIAJE
+            </button>
+        </div>
+        
+        <!-- FORMULARIO DE NUEVO/EDITAR VIAJE -->
+        <div class="formulario-viaje" id="formularioViaje">
+            <div class="viajes-header">
+                <button class="volver-calendario" id="volverListaViajes">← Cancelar</button>
+                <h2 id="tituloFormulario">NUEVO VIAJE</h2>
+                <div></div>
+            </div>
+            
+            <form id="formViaje">
+                <input type="hidden" id="viajeId">
+                
+                <div class="form-group">
+                    <label class="form-label" for="pais">🌍 País destino:</label>
+                    <select class="form-select" id="pais" required>
+                        <option value="">Selecciona un país</option>
+                        <!-- Los países se cargarán dinámicamente -->
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="ciudadDestino">📍 Ciudad destino (opcional):</label>
+                    <input type="text" class="form-input" id="ciudadDestino" placeholder="Ej: París, Frankfurt, Londres">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="fechaInicio">📅 Fecha inicio:</label>
+                    <input type="date" class="form-input" id="fechaInicio" required min="2026-01-01" max="2026-12-31">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="fechaFin">📅 Fecha fin:</label>
+                    <input type="date" class="form-input" id="fechaFin" required min="2026-01-01" max="2026-12-31">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="cliente">👤 Cliente:</label>
+                    <input type="text" class="form-input" id="cliente" required placeholder="Ej: Airbus, Siemens, Rolls-Royce">
+                </div>
+                
+                <div class="form-botones">
+                    <button type="button" class="btn-cancelar" id="cancelarViaje">Cancelar</button>
+                    <button type="submit" class="btn-guardar" id="guardarViaje">GUARDAR VIAJE</button>
+                </div>
+                
+                <!-- BOTÓN ELIMINAR (solo visible al editar) -->
+                <button type="button" class="btn-eliminar-viaje" id="btnEliminarViaje" style="display: none;">
+                    🗑️ ELIMINAR VIAJE
+                </button>
+            </form>
+        </div>
+    </div>
+    
+    <!-- Modal para vista ampliada del calendario -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal-content">
+            <div class="modal-header">
+                <div class="modal-title" id="modalTitle">ENERO 2026</div>
+                <button class="close-modal" id="closeModal">&times;</button>
+            </div>
+            <div class="modal-calendar" id="modalCalendar"></div>
+            <!-- Botón para gestionar vacaciones en esta vista -->
+            <button class="btn-nuevo-viaje" id="btnToggleVacaciones" style="margin-top: 15px; background: linear-gradient(135deg, #e91e63 0%, #c2185b 100%);">
+                🏖️ MARCAR/DESMARCAR VACACIONES
+            </button>
+        </div>
+    </div>
+    
+    <!-- Popup para información del día -->
+    <div class="day-info-overlay" id="dayInfoOverlay">
+        <div class="day-info-content">
+            <div class="day-info-header">
+                <div class="day-info-title" id="dayInfoTitle">15 de Enero 2026</div>
+                <button class="close-day-info" id="closeDayInfo">&times;</button>
+            </div>
+            <div class="day-info-body" id="dayInfoBody">
+                <!-- Información del día se cargará aquí -->
+            </div>
+            <div class="form-botones">
+                <button class="btn-cancelar" id="closeDayInfoBtn">Cerrar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para importación iOS Shortcuts -->
+    <div class="ios-import-overlay" id="iosImportOverlay">
+        <div class="ios-import-content">
+            <h3 class="ios-import-title">📝 IMPORTAR DESDE iOS SHORTCUTS</h3>
+            <textarea class="ios-textarea" id="iosImportTextarea" 
+                placeholder="Pega aquí el backup copiado previamente..."></textarea>
+            <div class="ios-import-buttons">
+                <button class="btn-ios-cancel" id="iosCancelBtn">❌ Cancelar</button>
+                <button class="btn-ios-import" id="iosImportBtn">✅ IMPORTAR</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        class CalendarioViajes {
+            constructor() {
+                this.meses = [
+                    'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 
+                    'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'
+                ];
+                
+                this.diasSemana = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+                
+                // DÍAS ESPECIALES
+                this.diasEspeciales = {
+                    festivos: new Set([
+                        '2026-01-01', '2026-01-06', '2026-03-19', '2026-04-02', '2026-04-03', 
+                        '2026-04-06', '2026-05-01', '2026-08-15', '2026-10-12', '2026-11-02', 
+                        '2026-12-03', '2026-12-08', '2026-12-25'
+                    ]),
+                    puentes: new Set([
+                        '2026-01-02', '2026-03-20', '2026-04-07', '2026-12-04', 
+                        '2026-12-07', '2026-12-24', '2026-12-28', '2026-12-29', 
+                        '2026-12-30', '2026-12-31'
+                    ]),
+                    vacacionales: new Set([
+                        '2026-02-01', '2026-02-08', '2026-03-01', '2026-03-08',
+                        '2026-04-05', '2026-05-01', '2026-07-06', '2026-07-07', 
+                        '2026-07-08', '2026-07-09', '2026-07-10', '2026-07-11', 
+                        '2026-07-12', '2026-07-13', '2026-07-14', '2026-08-01', 
+                        '2026-08-02', '2026-08-08', '2026-08-09', '2026-08-15', 
+                        '2026-08-16', '2026-08-22', '2026-08-23', '2026-11-01', 
+                        '2026-12-03', '2026-12-04', '2026-12-24', '2026-12-25', 
+                        '2026-12-31'
+                    ]),
+                    previos: new Set([
+                        '2026-12-23'  // 23.12 - ÚNICO día de 6h
+                    ])
+                };
+                
+                // LISTA DE PAÍSES COMPLETA (180 países)
+                this.paises = [
+                    // Europa
+                    "Alemania", "Austria", "Bélgica", "Bulgaria", "Chipre", "Croacia",
+                    "Dinamarca", "Eslovaquia", "Eslovenia", "España", "Estonia",
+                    "Finlandia", "Francia", "Grecia", "Hungría", "Irlanda", "Italia",
+                    "Letonia", "Lituania", "Luxemburgo", "Malta", "Países Bajos",
+                    "Polonia", "Portugal", "República Checa", "Rumanía", "Suecia",
+                    "Reino Unido", "Suiza", "Noruega", "Islandia", "Rusia", "Turquía",
+                    
+                    // Asia
+                    "Afganistán", "Arabia Saudita", "Armenia", "Azerbaiyán", "Bangladés",
+                    "Baréin", "Birmania (Myanmar)", "Brunei", "Bután", "Camboya",
+                    "Catar", "China", "Corea del Norte", "Corea del Sur", "Emiratos Árabes Unidos",
+                    "Filipinas", "Georgia", "India", "Indonesia", "Irak", "Irán",
+                    "Israel", "Japón", "Jordania", "Kazajistán", "Kirguistán",
+                    "Kuwait", "Laos", "Líbano", "Malasia", "Maldivas", "Mongolia",
+                    "Nepal", "Omán", "Pakistán", "Palestina", "Singapur", "Siria",
+                    "Sri Lanka", "Tailandia", "Taiwán", "Tayikistán", "Timor Oriental",
+                    "Turkmenistán", "Uzbekistán", "Vietnam", "Yemen",
+                    
+                    // América
+                    "Argentina", "Bahamas", "Barbados", "Belice", "Bolivia", "Brasil",
+                    "Canadá", "Chile", "Colombia", "Costa Rica", "Cuba", "Dominica",
+                    "Ecuador", "El Salvador", "Estados Unidos", "Granada", "Guatemala",
+                    "Guyana", "Haití", "Honduras", "Jamaica", "México", "Nicaragua",
+                    "Panamá", "Paraguay", "Perú", "República Dominicana", "San Cristóbal y Nieves",
+                    "San Vicente y las Granadinas", "Santa Lucía", "Surinam", "Trinidad y Tobago",
+                    "Uruguay", "Venezuela",
+                    
+                    // África
+                    "Angola", "Argelia", "Benín", "Botsuana", "Burkina Faso", "Burundi",
+                    "Cabo Verde", "Camerún", "Chad", "Comoras", "Congo", "Costa de Marfil",
+                    "Egipto", "Eritrea", "Esuatini (Suazilandia)", "Etiopía", "Gabón",
+                    "Gambia", "Ghana", "Guinea", "Guinea-Bisáu", "Guinea Ecuatorial",
+                    "Kenia", "Lesoto", "Liberia", "Libia", "Madagascar", "Malaui",
+                    "Mali", "Marruecos", "Mauricio", "Mauritania", "Mozambique",
+                    "Namibia", "Níger", "Nigeria", "República Centroafricana",
+                    "República Democrática del Congo", "Ruanda", "Santo Tomé y Príncipe",
+                    "Senegal", "Seychelles", "Sierra Leona", "Somalia", "Sudáfrica",
+                    "Sudán", "Sudán del Sur", "Tanzania", "Togo", "Túnez", "Uganda",
+                    "Yibuti", "Zambia", "Zimbabue",
+                    
+                    // Oceanía
+                    "Australia", "Fiyi", "Islas Marshall", "Islas Salomón", "Kiribati",
+                    "Micronesia", "Nauru", "Nueva Zelanda", "Palaos", "Papúa Nueva Guinea",
+                    "Samoa", "Tonga", "Tuvalu", "Vanuatu"
+                ].sort();
+                
+                this.vacacionesPersonales = new Set();
+                this.viajes = [];
+                this.viajeEditando = null;
+                this.modoVacaciones = false;
+                
+                // Claves de almacenamiento
+                this.STORAGE_VACACIONES = 'vacaciones-torres-2026';
+                this.STORAGE_VIAJES = 'viajes-torres-2026';
+                
+                this.init();
+            }
+            
+            init() {
+                this.cargarDatos();
+                this.renderizarCalendario();
+                this.setupEventListeners();
+                this.renderizarListaViajes();
+                this.cargarPaises();
+                this.actualizarEstadisticas();
+            }
+            
+            cargarDatos() {
+                // Cargar vacaciones
+                try {
+                    const saved = localStorage.getItem(this.STORAGE_VACACIONES);
+                    if (saved) {
+                        this.vacacionesPersonales = new Set(JSON.parse(saved));
+                    }
+                } catch (e) {
+                    this.vacacionesPersonales = new Set();
+                }
+                
+                // Cargar viajes
+                try {
+                    const saved = localStorage.getItem(this.STORAGE_VIAJES);
+                    if (saved) {
+                        this.viajes = JSON.parse(saved);
+                    }
+                } catch (e) {
+                    this.viajes = [];
+                }
+            }
+            
+            guardarVacaciones() {
+                try {
+                    localStorage.setItem(
+                        this.STORAGE_VACACIONES, 
+                        JSON.stringify(Array.from(this.vacacionesPersonales))
+                    );
+                    this.actualizarEstadisticas();
+                } catch (e) {
+                    console.error('Error guardando vacaciones:', e);
+                }
+            }
+            
+            guardarViajes() {
+                try {
+                    localStorage.setItem(
+                        this.STORAGE_VIAJES, 
+                        JSON.stringify(this.viajes)
+                    );
+                    this.actualizarEstadisticas();
+                } catch (e) {
+                    console.error('Error guardando viajes:', e);
+                }
+            }
+            
+            actualizarEstadisticas() {
+                document.getElementById('statViajes').textContent = this.viajes.length;
+                document.getElementById('statVacaciones').textContent = this.vacacionesPersonales.size;
+            }
+            
+            cargarPaises() {
+                const selectPais = document.getElementById('pais');
+                selectPais.innerHTML = '<option value="">Selecciona un país</option>';
+                
+                this.paises.forEach(pais => {
+                    const option = document.createElement('option');
+                    option.value = pais;
+                    option.textContent = pais;
+                    selectPais.appendChild(option);
+                });
+            }
+            
+            setupEventListeners() {
+                // Navegación entre vistas
+                document.getElementById('btnMisViajes').addEventListener('click', () => {
+                    this.mostrarVistaViajes();
+                });
+                
+                document.getElementById('volverCalendario').addEventListener('click', () => {
+                    this.mostrarVistaCalendario();
+                });
+                
+                document.getElementById('volverListaViajes').addEventListener('click', () => {
+                    this.mostrarListaViajes();
+                });
+                
+                document.getElementById('cancelarViaje').addEventListener('click', () => {
+                    this.mostrarListaViajes();
+                });
+                
+                // Formulario de viaje
+                document.getElementById('btnNuevoViaje').addEventListener('click', () => {
+                    this.mostrarFormularioViaje();
+                });
+                
+                document.getElementById('formViaje').addEventListener('submit', (e) => {
+                    e.preventDefault();
+                    this.guardarViajeFormulario();
+                });
+                
+                // BOTÓN ELIMINAR EN FORMULARIO - MODAL PERSONALIZADO
+                document.getElementById('btnEliminarViaje').addEventListener('click', () => {
+                    if (this.viajeEditando) {
+                        this.mostrarConfirmacionEliminar();
+                    }
+                });
+                
+                // Modal del calendario
+                document.getElementById('closeModal').addEventListener('click', () => {
+                    this.cerrarModal();
+                });
+                
+                document.getElementById('modalOverlay').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('modalOverlay')) {
+                        this.cerrarModal();
+                    }
+                });
+                
+                // Botón toggle vacaciones en modal
+                document.getElementById('btnToggleVacaciones').addEventListener('click', () => {
+                    this.modoVacaciones = !this.modoVacaciones;
+                    const btn = document.getElementById('btnToggleVacaciones');
+                    if (this.modoVacaciones) {
+                        btn.textContent = '✅ MODO VACACIONES ACTIVO (toca días)';
+                        btn.style.background = 'linear-gradient(135deg, #4CAF50 0%, #2E7D32 100%)';
+                    } else {
+                        btn.textContent = '🏖️ MARCAR/DESMARCAR VACACIONES';
+                        btn.style.background = 'linear-gradient(135deg, #e91e63 0%, #c2185b 100%)';
+                    }
+                    this.actualizarEventosDiasModal();
+                });
+                
+                // Info del día
+                document.getElementById('closeDayInfo').addEventListener('click', () => {
+                    this.cerrarInfoDia();
+                });
+                
+                document.getElementById('closeDayInfoBtn').addEventListener('click', () => {
+                    this.cerrarInfoDia();
+                });
+                
+                document.getElementById('dayInfoOverlay').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('dayInfoOverlay')) {
+                        this.cerrarInfoDia();
+                    }
+                });
+                
+                // Backup
+                document.getElementById('btnExportar').addEventListener('click', () => {
+                    this.exportarDatos();
+                });
+                
+                document.getElementById('btnImportar').addEventListener('click', () => {
+                    document.getElementById('fileImport').click();
+                });
+                
+                document.getElementById('btnImportarIOS').addEventListener('click', () => {
+                    this.mostrarModalImportacionIOS();
+                });
+                
+                document.getElementById('fileImport').addEventListener('change', (e) => {
+                    this.importarDatos(e);
+                });
+                
+                // iOS Shortcuts Import
+                document.getElementById('iosCancelBtn').addEventListener('click', () => {
+                    this.cerrarModalImportacionIOS();
+                });
+                
+                document.getElementById('iosImportBtn').addEventListener('click', () => {
+                    this.procesarImportacionIOS();
+                });
+                
+                document.getElementById('iosImportOverlay').addEventListener('click', (e) => {
+                    if (e.target === document.getElementById('iosImportOverlay')) {
+                        this.cerrarModalImportacionIOS();
+                    }
+                });
+                
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') {
+                        this.cerrarModal();
+                        this.cerrarInfoDia();
+                        this.cerrarConfirmacionEliminar();
+                        this.cerrarModalImportacionIOS();
+                    }
+                });
+                
+                // Eventos para abrir modal al hacer clic en cualquier parte del mes
+                document.getElementById('calendar').addEventListener('click', (e) => {
+                    let monthElement = e.target.closest('.month');
+                    
+                    if (monthElement) {
+                        const monthIndex = parseInt(monthElement.dataset.monthIndex);
+                        if (!isNaN(monthIndex)) {
+                            this.abrirVistaMes(monthIndex);
+                        }
+                    }
+                });
+            }
+            
+            // ==================== IMPORTACIÓN iOS SHORTCUTS ====================
+            
+            mostrarModalImportacionIOS() {
+                document.getElementById('iosImportTextarea').value = '';
+                document.getElementById('iosImportOverlay').style.display = 'flex';
+                setTimeout(() => {
+                    document.getElementById('iosImportTextarea').focus();
+                }, 100);
+            }
+            
+            cerrarModalImportacionIOS() {
+                document.getElementById('iosImportOverlay').style.display = 'none';
+            }
+            
+            procesarImportacionIOS() {
+                const texto = document.getElementById('iosImportTextarea').value.trim();
+                
+                if (!texto) {
+                    alert('❌ Por favor, pega el contenido del backup');
+                    return;
+                }
+                
+                try {
+                    const datos = JSON.parse(texto);
+                    
+                    // Validación básica
+                    if (!datos.viajes || !Array.isArray(datos.viajes)) {
+                        throw new Error('Formato de backup inválido');
+                    }
+                    
+                    // Mostrar confirmación
+                    const fechaBackup = datos.fechaExportacion ? 
+                        new Date(datos.fechaExportacion).toLocaleDateString('es-ES', {
+                            day: '2-digit',
+                            month: '2-digit',
+                            year: 'numeric'
+                        }) : 'Fecha desconocida';
+                    
+                    const mensaje = `¿IMPORTAR ESTE BACKUP?\n\n` +
+                                   `📅 Viajes: ${datos.viajes.length}\n` +
+                                   `🏖️ Días de vacaciones: ${datos.vacaciones?.length || 0}\n` +
+                                   `📆 Fecha backup: ${fechaBackup}\n\n` +
+                                   `⚠️ Esto REEMPLAZARÁ todos tus datos actuales.`;
+                    
+                    if (!confirm(mensaje)) {
+                        return;
+                    }
+                    
+                    // ===== LIMPIAR Y REEMPLAZAR DATOS =====
+                    
+                    // 1. Limpiar datos actuales
+                    this.viajes = [];
+                    this.vacacionesPersonales.clear();
+                    
+                    // 2. Importar viajes (con validación)
+                    if (datos.viajes && Array.isArray(datos.viajes)) {
+                        // Filtrar solo viajes válidos
+                        this.viajes = datos.viajes.filter(viaje => 
+                            viaje && 
+                            viaje.id && 
+                            viaje.pais && 
+                            viaje.fechaInicio && 
+                            viaje.fechaFin && 
+                            viaje.cliente
+                        );
+                        
+                        // Asegurar que cada viaje tiene el array de días
+                        this.viajes.forEach(viaje => {
+                            if (!viaje.dias || !Array.isArray(viaje.dias)) {
+                                // Recalcular días si faltan
+                                const diasViaje = [];
+                                const inicio = new Date(viaje.fechaInicio);
+                                const fin = new Date(viaje.fechaFin);
+                                
+                                for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
+                                    diasViaje.push(this.formatearFecha(d));
+                                }
+                                viaje.dias = diasViaje;
+                            }
+                        });
+                    }
+                    
+                    // 3. Importar vacaciones
+                    if (datos.vacaciones && Array.isArray(datos.vacaciones)) {
+                        // Filtrar solo fechas válidas
+                        const fechasValidas = datos.vacaciones.filter(fecha => 
+                            fecha && 
+                            typeof fecha === 'string' && 
+                            /^\d{4}-\d{2}-\d{2}$/.test(fecha)
+                        );
+                        this.vacacionesPersonales = new Set(fechasValidas);
+                    }
+                    
+                    // 4. GUARDAR INMEDIATAMENTE en localStorage
+                    this.guardarViajes();
+                    this.guardarVacaciones();
+                    
+                    // 5. REFRESCAR TODAS LAS VISTAS
+                    this.renderizarCalendario();
+                    this.renderizarListaViajes();
+                    this.actualizarEstadisticas();
+                    
+                    // 6. Cerrar modal
+                    this.cerrarModalImportacionIOS();
+                    
+                    // 7. Mostrar confirmación
+                    setTimeout(() => {
+                        alert(`✅ IMPORTACIÓN COMPLETADA\n\n` +
+                              `✈️ Viajes: ${this.viajes.length}\n` +
+                              `🏖️ Días de vacaciones: ${this.vacacionesPersonales.size}\n\n` +
+                              `Los datos se han cargado correctamente.`);
+                    }, 100);
+                    
+                } catch (error) {
+                    console.error('Error en importación iOS:', error);
+                    alert(`❌ Error al importar:\n${error.message}\n\nAsegúrate de que es un backup válido de esta aplicación.`);
+                }
+            }
+            
+            // ==================== BACKUP SYSTEM PARA iOS SHORTCUTS ====================
+            
+            exportarDatos() {
+                try {
+                    const datos = {
+                        vacaciones: Array.from(this.vacacionesPersonales),
+                        viajes: this.viajes,
+                        fechaExportacion: new Date().toISOString(),
+                        totalViajes: this.viajes.length,
+                        totalVacaciones: this.vacacionesPersonales.size,
+                        version: '1.0',
+                        tipo: 'Calendario Torres de Elorz 2026'
+                    };
+                    
+                    const datosStr = JSON.stringify(datos, null, 2);
+                    const fecha = new Date().toISOString().split('T')[0];
+                    
+                    // Mostrar modal con opciones para iOS Shortcuts
+                    this.mostrarModalExportacion(datosStr, fecha);
+                    
+                } catch (error) {
+                    alert('❌ Error al exportar datos: ' + error.message);
+                }
+            }
+            
+            mostrarModalExportacion(datosStr, fecha) {
+                const modalHTML = `
+                    <div class="confirm-modal-overlay" id="exportModal">
+                        <div class="backup-modal-content">
+                            <h3 class="confirm-modal-title">💾 EXPORTAR BACKUP</h3>
+                            
+                            <div class="backup-modal-stats">
+                                <div style="display: flex; justify-content: space-around; margin-bottom: 10px;">
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 24px; color: #2196F3;">${this.viajes.length}</div>
+                                        <div style="font-size: 12px; color: #666;">Viajes</div>
+                                    </div>
+                                    <div style="text-align: center;">
+                                        <div style="font-size: 24px; color: #4CAF50;">${this.vacacionesPersonales.size}</div>
+                                        <div style="font-size: 12px; color: #666;">Días vacaciones</div>
+                                    </div>
+                                </div>
+                                <div style="text-align: center; font-size: 12px; color: #888;">
+                                    Fecha: ${fecha}
+                                </div>
+                            </div>
+                            
+                            <div style="margin: 20px 0;">
+                                <p style="font-size: 14px; color: #666; margin-bottom: 15px; text-align: center;">
+                                    Elige cómo quieres guardar tu backup:
+                                </p>
+                                
+                                <div class="backup-options">
+                                    <button class="backup-option-btn btn-copy" id="copyToClipboardBtn">
+                                        📋 Copiar al portapapeles
+                                    </button>
+                                    
+                                    <button class="backup-option-btn btn-share" id="shareBtn">
+                                        📤 Compartir/Guardar en Archivos
+                                    </button>
+                                    
+                                    <button class="backup-option-btn btn-view" id="viewBtn">
+                                        👁️ Ver contenido
+                                    </button>
+                                    
+                                    <button class="backup-option-btn btn-cancel" id="cancelExportBtn">
+                                        Cancelar
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalHTML;
+                document.body.appendChild(modalContainer);
+                
+                // Event listeners
+                document.getElementById('copyToClipboardBtn').addEventListener('click', () => {
+                    this.copiarAlPortapapeles(datosStr, fecha);
+                    document.body.removeChild(modalContainer);
+                });
+                
+                document.getElementById('shareBtn').addEventListener('click', () => {
+                    this.compartirArchivo(datosStr, fecha);
+                    document.body.removeChild(modalContainer);
+                });
+                
+                document.getElementById('viewBtn').addEventListener('click', () => {
+                    this.mostrarContenidoBackup(datosStr, fecha);
+                    document.body.removeChild(modalContainer);
+                });
+                
+                document.getElementById('cancelExportBtn').addEventListener('click', () => {
+                    document.body.removeChild(modalContainer);
+                });
+                
+                document.getElementById('exportModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'exportModal') {
+                        document.body.removeChild(modalContainer);
+                    }
+                });
+            }
+            
+            copiarAlPortapapeles(datosStr, fecha) {
+                if (navigator.clipboard && window.isSecureContext) {
+                    navigator.clipboard.writeText(datosStr).then(() => {
+                        alert(`✅ BACKUP COPIADO AL PORTAPAPELES\n\n📅 Fecha: ${fecha}\n✈️ Viajes: ${this.viajes.length}\n🏖️ Días vacaciones: ${this.vacacionesPersonales.size}\n\nAhora puedes:\n1. Pegar en Notas\n2. Pegar en un mensaje\n3. Pegar en la app Archivos`);
+                    }).catch(err => {
+                        // Fallback para iOS antiguo
+                        const textarea = document.createElement('textarea');
+                        textarea.value = datosStr;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+                        alert(`✅ Backup copiado al portapapeles (método alternativo)`);
+                    });
+                } else {
+                    // Método alternativo
+                    const textarea = document.createElement('textarea');
+                    textarea.value = datosStr;
+                    document.body.appendChild(textarea);
+                    textarea.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(textarea);
+                    alert(`✅ Backup copiado al portapapeles`);
+                }
+            }
+            
+            compartirArchivo(datosStr, fecha) {
+                // Crear blob y archivo
+                const blob = new Blob([datosStr], { type: 'application/json' });
+                const file = new File([blob], `calendario-torres-backup-${fecha}.json`, { 
+                    type: 'application/json',
+                    lastModified: Date.now()
+                });
+                
+                // Intentar usar Web Share API (iOS 13+)
+                if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
+                    navigator.share({
+                        files: [file],
+                        title: 'Backup Calendario Torres',
+                        text: `Backup con ${this.viajes.length} viajes y ${this.vacacionesPersonales.size} días de vacaciones`
+                    }).then(() => {
+                        console.log('Backup compartido con éxito');
+                    }).catch((error) => {
+                        console.log('Error al compartir:', error);
+                        // Fallback: mostrar contenido
+                        this.mostrarContenidoBackup(datosStr, fecha);
+                    });
+                } else {
+                    // Fallback para iOS Shortcuts
+                    const mensaje = `📁 GUARDAR BACKUP EN ARCHIVOS\n\n` +
+                                  `En iOS Shortcuts, sigue estos pasos:\n\n` +
+                                  `1. Toca "Compartir" (icono cuadrado con flecha arriba)\n` +
+                                  `2. Desplázate y selecciona "Guardar en Archivos"\n` +
+                                  `3. Elige una carpeta (recomendado: iCloud Drive)\n` +
+                                  `4. Pulsa "Guardar"\n\n` +
+                                  `O también puedes:\n` +
+                                  `• Enviar por email a ti mismo\n` +
+                                  `• Guardar en Notas\n` +
+                                  `• Pegar en un mensaje\n\n` +
+                                  `¿Quieres copiar el contenido al portapapeles?`;
+                    
+                    if (confirm(mensaje)) {
+                        this.copiarAlPortapapeles(datosStr, fecha);
+                    }
+                }
+            }
+            
+            mostrarContenidoBackup(datosStr, fecha) {
+                const datos = JSON.parse(datosStr);
+                const modalHTML = `
+                    <div class="confirm-modal-overlay" id="contentModal">
+                        <div class="confirm-modal-content" style="max-width: 500px; max-height: 80vh; overflow: hidden;">
+                            <h3 class="confirm-modal-title">📄 CONTENIDO DEL BACKUP</h3>
+                            <div style="margin: 10px 0; font-size: 12px; color: #666; text-align: center;">
+                                Fecha: ${fecha} | Viajes: ${datos.totalViajes} | Días vacaciones: ${datos.totalVacaciones}
+                            </div>
+                            <textarea id="backupContent" 
+                                style="width: 100%; height: 300px; padding: 10px; border: 1px solid #ddd; 
+                                       border-radius: 6px; font-family: 'Menlo', 'Monaco', monospace; 
+                                       font-size: 11px; margin-bottom: 15px; resize: none;"
+                                readonly>${datosStr}</textarea>
+                            <div style="display: flex; gap: 10px;">
+                                <button id="copyContentBtn" style="flex: 1; padding: 10px; background: #4CAF50; 
+                                        color: white; border: none; border-radius: 6px; cursor: pointer;">
+                                    📋 Copiar todo
+                                </button>
+                                <button id="closeContentBtn" style="flex: 1; padding: 10px; background: #f5f5f5; 
+                                        color: #333; border: 1px solid #ddd; border-radius: 6px; cursor: pointer;">
+                                    Cerrar
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalHTML;
+                document.body.appendChild(modalContainer);
+                
+                // Auto-seleccionar texto
+                setTimeout(() => {
+                    const textarea = document.getElementById('backupContent');
+                    textarea.select();
+                }, 100);
+                
+                // Event listeners
+                document.getElementById('copyContentBtn').addEventListener('click', () => {
+                    const textarea = document.getElementById('backupContent');
+                    textarea.select();
+                    document.execCommand('copy');
+                    alert('✅ Contenido copiado al portapapeles');
+                });
+                
+                document.getElementById('closeContentBtn').addEventListener('click', () => {
+                    document.body.removeChild(modalContainer);
+                });
+                
+                document.getElementById('contentModal').addEventListener('click', (e) => {
+                    if (e.target.id === 'contentModal') {
+                        document.body.removeChild(modalContainer);
+                    }
+                });
+            }
+            
+            // ==================== IMPORTACIÓN CORREGIDA ====================
+            
+            importarDatos(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+                
+                // Limpiar input
+                event.target.value = '';
+                
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const datos = JSON.parse(e.target.result);
+                        
+                        // Validación básica
+                        if (!datos.viajes || !Array.isArray(datos.viajes)) {
+                            throw new Error('Formato de archivo inválido');
+                        }
+                        
+                        // Mostrar confirmación
+                        const fechaBackup = datos.fechaExportacion ? 
+                            new Date(datos.fechaExportacion).toLocaleDateString('es-ES', {
+                                day: '2-digit',
+                                month: '2-digit',
+                                year: 'numeric'
+                            }) : 'Fecha desconocida';
+                        
+                        const mensaje = `¿IMPORTAR ESTE BACKUP?\n\n` +
+                                       `📅 Viajes: ${datos.viajes.length}\n` +
+                                       `🏖️ Días de vacaciones: ${datos.vacaciones?.length || 0}\n` +
+                                       `📆 Fecha backup: ${fechaBackup}\n\n` +
+                                       `⚠️ Esto REEMPLAZARÁ todos tus datos actuales.`;
+                        
+                        if (!confirm(mensaje)) {
+                            return;
+                        }
+                        
+                        // ===== LIMPIAR Y REEMPLAZAR DATOS =====
+                        
+                        // 1. Limpiar datos actuales
+                        this.viajes = [];
+                        this.vacacionesPersonales.clear();
+                        
+                        // 2. Importar viajes (con validación)
+                        if (datos.viajes && Array.isArray(datos.viajes)) {
+                            // Filtrar solo viajes válidos
+                            this.viajes = datos.viajes.filter(viaje => 
+                                viaje && 
+                                viaje.id && 
+                                viaje.pais && 
+                                viaje.fechaInicio && 
+                                viaje.fechaFin && 
+                                viaje.cliente
+                            );
+                            
+                            // Asegurar que cada viaje tiene el array de días
+                            this.viajes.forEach(viaje => {
+                                if (!viaje.dias || !Array.isArray(viaje.dias)) {
+                                    // Recalcular días si faltan
+                                    const diasViaje = [];
+                                    const inicio = new Date(viaje.fechaInicio);
+                                    const fin = new Date(viaje.fechaFin);
+                                    
+                                    for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
+                                        diasViaje.push(this.formatearFecha(d));
+                                    }
+                                    viaje.dias = diasViaje;
+                                }
+                            });
+                        }
+                        
+                        // 3. Importar vacaciones
+                        if (datos.vacaciones && Array.isArray(datos.vacaciones)) {
+                            // Filtrar solo fechas válidas
+                            const fechasValidas = datos.vacaciones.filter(fecha => 
+                                fecha && 
+                                typeof fecha === 'string' && 
+                                /^\d{4}-\d{2}-\d{2}$/.test(fecha)
+                            );
+                            this.vacacionesPersonales = new Set(fechasValidas);
+                        }
+                        
+                        // 4. GUARDAR INMEDIATAMENTE en localStorage
+                        this.guardarViajes();
+                        this.guardarVacaciones();
+                        
+                        // 5. REFRESCAR TODAS LAS VISTAS
+                        this.renderizarCalendario();
+                        this.renderizarListaViajes();
+                        this.actualizarEstadisticas();
+                        
+                        // 6. Forzar recarga de la vista actual
+                        if (document.getElementById('vistaViajes').style.display === 'block') {
+                            // Si estamos en la vista de viajes, refrescar
+                            this.mostrarVistaCalendario();
+                            setTimeout(() => {
+                                this.mostrarVistaViajes();
+                            }, 50);
+                        } else {
+                            // Si estamos en vista calendario, forzar re-render
+                            this.mostrarVistaCalendario();
+                        }
+                        
+                        // 7. Mostrar confirmación
+                        setTimeout(() => {
+                            alert(`✅ IMPORTACIÓN COMPLETADA\n\n` +
+                                  `✈️ Viajes: ${this.viajes.length}\n` +
+                                  `🏖️ Días de vacaciones: ${this.vacacionesPersonales.size}\n\n` +
+                                  `Los datos se han cargado correctamente.`);
+                        }, 100);
+                        
+                    } catch (error) {
+                        console.error('Error en importación:', error);
+                        alert(`❌ Error al importar:\n${error.message}\n\nAsegúrate de que es un backup válido de esta aplicación.`);
+                    }
+                };
+                
+                reader.onerror = () => {
+                    alert('❌ Error al leer el archivo.');
+                };
+                
+                reader.readAsText(file);
+            }
+            
+            // ==================== MODAL DE CONFIRMACIÓN ====================
+            
+            mostrarConfirmacionEliminar() {
+                // Crear el modal
+                const modalHTML = `
+                    <div class="confirm-modal-overlay" id="confirmModalOverlay">
+                        <div class="confirm-modal-content">
+                            <h3 class="confirm-modal-title">🗑️ Eliminar viaje</h3>
+                            <p class="confirm-modal-message">
+                                ¿Estás seguro de que quieres eliminar este viaje?<br>
+                                Esta acción no se puede deshacer.
+                            </p>
+                            <div class="confirm-modal-buttons">
+                                <button class="confirm-btn-cancel" id="confirmCancel">Cancelar</button>
+                                <button class="confirm-btn-delete" id="confirmDelete">Eliminar</button>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                
+                // Añadir al body
+                const modalContainer = document.createElement('div');
+                modalContainer.innerHTML = modalHTML;
+                document.body.appendChild(modalContainer);
+                
+                // Event listeners
+                document.getElementById('confirmCancel').addEventListener('click', () => {
+                    this.cerrarConfirmacionEliminar();
+                });
+                
+                document.getElementById('confirmDelete').addEventListener('click', () => {
+                    if (this.viajeEditando) {
+                        this.eliminarViaje(this.viajeEditando.id);
+                    }
+                    this.cerrarConfirmacionEliminar();
+                });
+                
+                // Cerrar al hacer clic fuera
+                document.getElementById('confirmModalOverlay').addEventListener('click', (e) => {
+                    if (e.target.id === 'confirmModalOverlay') {
+                        this.cerrarConfirmacionEliminar();
+                    }
+                });
+            }
+            
+            cerrarConfirmacionEliminar() {
+                const modal = document.querySelector('.confirm-modal-overlay')?.parentElement;
+                if (modal) {
+                    document.body.removeChild(modal);
+                }
+            }
+            
+            // ==================== NAVEGACIÓN ENTRE VISTAS ====================
+            
+            mostrarVistaCalendario() {
+                document.getElementById('vistaCalendario').style.display = 'block';
+                document.getElementById('vistaViajes').style.display = 'none';
+                document.getElementById('formularioViaje').style.display = 'none';
+                this.renderizarCalendario();
+                this.actualizarEstadisticas();
+            }
+            
+            mostrarVistaViajes() {
+                document.getElementById('vistaCalendario').style.display = 'none';
+                document.getElementById('vistaViajes').style.display = 'block';
+                document.getElementById('formularioViaje').style.display = 'none';
+                this.renderizarListaViajes();
+            }
+            
+            mostrarListaViajes() {
+                document.getElementById('vistaViajes').style.display = 'block';
+                document.getElementById('formularioViaje').style.display = 'none';
+                this.renderizarListaViajes();
+            }
+            
+            mostrarFormularioViaje(viaje = null) {
+                this.viajeEditando = viaje;
+                document.getElementById('vistaViajes').style.display = 'none';
+                document.getElementById('formularioViaje').style.display = 'block';
+                
+                const titulo = document.getElementById('tituloFormulario');
+                const form = document.getElementById('formViaje');
+                const btnEliminar = document.getElementById('btnEliminarViaje');
+                
+                if (viaje) {
+                    titulo.textContent = 'EDITAR VIAJE';
+                    document.getElementById('viajeId').value = viaje.id;
+                    document.getElementById('pais').value = viaje.pais;
+                    document.getElementById('ciudadDestino').value = viaje.ciudadDestino || '';
+                    document.getElementById('fechaInicio').value = viaje.fechaInicio;
+                    document.getElementById('fechaFin').value = viaje.fechaFin;
+                    document.getElementById('cliente').value = viaje.cliente;
+                    btnEliminar.style.display = 'block';
+                } else {
+                    titulo.textContent = 'NUEVO VIAJE';
+                    form.reset();
+                    document.getElementById('viajeId').value = '';
+                    document.getElementById('fechaInicio').value = '';
+                    document.getElementById('fechaFin').value = '';
+                    btnEliminar.style.display = 'none';
+                }
+            }
+            
+            // ==================== GESTIÓN DE VIAJES ====================
+            
+            generarIdViaje() {
+                return 'viaje_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+            }
+            
+            guardarViajeFormulario() {
+                const id = document.getElementById('viajeId').value;
+                const pais = document.getElementById('pais').value;
+                const ciudadDestino = document.getElementById('ciudadDestino').value;
+                const fechaInicio = document.getElementById('fechaInicio').value;
+                const fechaFin = document.getElementById('fechaFin').value;
+                const cliente = document.getElementById('cliente').value;
+                
+                if (!pais || !fechaInicio || !fechaFin || !cliente) {
+                    alert('Por favor, completa todos los campos obligatorios');
+                    return;
+                }
+                
+                if (new Date(fechaFin) < new Date(fechaInicio)) {
+                    alert('La fecha de fin no puede ser anterior a la fecha de inicio');
+                    return;
+                }
+                
+                // Generar array de días del viaje
+                const diasViaje = [];
+                const inicio = new Date(fechaInicio);
+                const fin = new Date(fechaFin);
+                
+                for (let d = new Date(inicio); d <= fin; d.setDate(d.getDate() + 1)) {
+                    diasViaje.push(this.formatearFecha(d));
+                }
+                
+                const viaje = {
+                    id: id || this.generarIdViaje(),
+                    pais,
+                    ciudadDestino,
+                    fechaInicio,
+                    fechaFin,
+                    cliente,
+                    dias: diasViaje,
+                    fechaCreacion: new Date().toISOString()
+                };
+                
+                if (this.viajeEditando) {
+                    const index = this.viajes.findIndex(v => v.id === this.viajeEditando.id);
+                    if (index !== -1) {
+                        this.viajes[index] = viaje;
+                    }
+                } else {
+                    this.viajes.push(viaje);
+                }
+                
+                this.guardarViajes();
+                this.renderizarCalendario();
+                this.mostrarVistaCalendario();
+            }
+            
+            editarViaje(id) {
+                const viaje = this.viajes.find(v => v.id === id);
+                if (viaje) {
+                    this.mostrarFormularioViaje(viaje);
+                }
+            }
+            
+            eliminarViaje(id) {
+                this.viajes = this.viajes.filter(v => v.id !== id);
+                this.guardarViajes();
+                this.renderizarCalendario();
+                this.mostrarVistaCalendario();
+                this.cerrarConfirmacionEliminar();
+            }
+            
+            renderizarListaViajes() {
+                const lista = document.getElementById('listaViajes');
+                lista.innerHTML = '';
+                
+                if (this.viajes.length === 0) {
+                    lista.innerHTML = '<p style="text-align: center; color: #666; padding: 20px;">No hay viajes registrados</p>';
+                    return;
+                }
+                
+                // Agrupar viajes por mes
+                const viajesPorMes = {};
+                
+                this.viajes.forEach(viaje => {
+                    const mes = new Date(viaje.fechaInicio).getMonth();
+                    if (!viajesPorMes[mes]) {
+                        viajesPorMes[mes] = [];
+                    }
+                    viajesPorMes[mes].push(viaje);
+                });
+                
+                // Ordenar meses
+                const mesesOrdenados = Object.keys(viajesPorMes).sort((a, b) => a - b);
+                
+                mesesOrdenados.forEach(mesIndex => {
+                    const mesNombre = this.meses[parseInt(mesIndex)];
+                    const viajesMes = viajesPorMes[mesIndex];
+                    
+                    viajesMes.sort((a, b) => new Date(a.fechaInicio) - new Date(b.fechaInicio));
+                    
+                    const mesSection = document.createElement('div');
+                    mesSection.innerHTML = `<h3 style="margin: 15px 0 10px 0; color: #333;">🗓️ ${mesNombre} 2026</h3>`;
+                    lista.appendChild(mesSection);
+                    
+                    viajesMes.forEach(viaje => {
+                        const card = this.crearCardViaje(viaje);
+                        lista.appendChild(card);
+                    });
+                });
+            }
+            
+            crearCardViaje(viaje) {
+                const card = document.createElement('div');
+                card.className = 'viaje-card';
+                
+                const inicio = new Date(viaje.fechaInicio);
+                const fin = new Date(viaje.fechaFin);
+                const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                
+                const destino = viaje.ciudadDestino 
+                    ? `${viaje.ciudadDestino} (${viaje.pais})`
+                    : viaje.pais;
+                
+                card.innerHTML = `
+                    <div class="viaje-card-header">
+                        <div class="viaje-destino-card">🗺️ ${destino}</div>
+                        <div class="viaje-acciones">
+                            <button class="btn-editar" data-id="${viaje.id}">✏️ Editar</button>
+                        </div>
+                    </div>
+                    <div class="viaje-cliente-card">👤 ${viaje.cliente}</div>
+                    <div class="viaje-fechas">
+                        📅 ${this.formatearFechaVisual(inicio)} - ${this.formatearFechaVisual(fin)} (${dias} día${dias !== 1 ? 's' : ''})
+                    </div>
+                `;
+                
+                // Event listener para editar
+                const btnEditar = card.querySelector('.btn-editar');
+                btnEditar.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    this.editarViaje(viaje.id);
+                });
+                
+                return card;
+            }
+            
+            // ==================== FUNCIONES DEL CALENDARIO ====================
+            
+            getWeekNumber(date) {
+                const target = new Date(date.valueOf());
+                const dayNr = (date.getDay() + 6) % 7;
+                target.setDate(target.getDate() - dayNr + 3);
+                
+                const firstThursday = target.valueOf();
+                target.setMonth(0, 1);
+                
+                if (target.getDay() !== 4) {
+                    target.setMonth(0, 1 + ((4 - target.getDay()) + 7) % 7);
+                }
+                
+                return 1 + Math.ceil((firstThursday - target) / (86400000 * 7));
+            }
+            
+            formatearFecha(date) {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            }
+            
+            formatearFechaVisual(date) {
+                const day = date.getDate();
+                const month = date.getMonth() + 1;
+                return `${day}/${month}`;
+            }
+            
+            formatearFechaCompleta(date) {
+                const dias = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+                const meses = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 
+                              'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+                
+                const diaSemana = dias[date.getDay()];
+                const dia = date.getDate();
+                const mes = meses[date.getMonth()];
+                const año = date.getFullYear();
+                
+                return `${diaSemana}, ${dia} de ${mes} de ${año}`;
+            }
+            
+            getDayClass(dateStr, dayOfWeek) {
+                if (dayOfWeek === 0 || dayOfWeek === 6) return 'weekend';
+                if (this.diasEspeciales.festivos.has(dateStr)) return 'festivo';
+                if (this.diasEspeciales.puentes.has(dateStr)) return 'puente';
+                if (this.diasEspeciales.previos.has(dateStr)) return 'previo';
+                if (this.diasEspeciales.vacacionales.has(dateStr)) return 'vacacional';
+                return '';
+            }
+            
+            getDayType(dateStr) {
+                if (this.diasEspeciales.festivos.has(dateStr)) return 'Festivo';
+                if (this.diasEspeciales.puentes.has(dateStr)) return 'Puente/Ajuste';
+                if (this.diasEspeciales.previos.has(dateStr)) return 'Previo 6h';
+                if (this.diasEspeciales.vacacionales.has(dateStr)) return 'Vacacional (empresa)';
+                return 'Día laboral';
+            }
+            
+            tieneViaje(dateStr) {
+                for (const viaje of this.viajes) {
+                    if (viaje.dias && viaje.dias.includes(dateStr)) {
+                        return true;
+                    }
+                }
+                return false;
+            }
+            
+            obtenerInfoViajeParaFecha(dateStr) {
+                for (const viaje of this.viajes) {
+                    if (viaje.dias && viaje.dias.includes(dateStr)) {
+                        return viaje;
+                    }
+                }
+                return null;
+            }
+            
+            toggleVacacion(dateStr) {
+                if (this.vacacionesPersonales.has(dateStr)) {
+                    this.vacacionesPersonales.delete(dateStr);
+                } else {
+                    this.vacacionesPersonales.add(dateStr);
+                }
+                this.guardarVacaciones();
+                this.renderizarCalendario();
+            }
+            
+            mostrarInfoDia(dateStr) {
+                const fecha = new Date(dateStr);
+                const title = document.getElementById('dayInfoTitle');
+                const body = document.getElementById('dayInfoBody');
+                
+                title.textContent = this.formatearFechaCompleta(fecha);
+                body.innerHTML = '';
+                
+                // Información del tipo de día
+                const tipoDia = this.getDayType(dateStr);
+                const dayOfWeek = fecha.getDay();
+                const isWeekend = dayOfWeek === 0 || dayOfWeek === 6;
+                
+                let tipoIcono = '📅';
+                let tipoClase = '';
+                
+                if (this.diasEspeciales.festivos.has(dateStr)) {
+                    tipoIcono = '🎉';
+                    tipoClase = 'info-festivo';
+                } else if (this.diasEspeciales.puentes.has(dateStr)) {
+                    tipoIcono = '🌉';
+                    tipoClase = 'info-puente';
+                } else if (this.diasEspeciales.previos.has(dateStr)) {
+                    tipoIcono = '⏰';
+                    tipoClase = 'info-previo';
+                } else if (this.diasEspeciales.vacacionales.has(dateStr)) {
+                    tipoIcono = '🏢';
+                    tipoClase = 'info-vacacional';
+                } else if (isWeekend) {
+                    tipoIcono = '🌴';
+                    tipoClase = '';
+                }
+                
+                const tipoItem = document.createElement('div');
+                tipoItem.className = `info-item ${tipoClase}`;
+                tipoItem.innerHTML = `
+                    <div class="info-icon">${tipoIcono}</div>
+                    <div class="info-text"><strong>Tipo:</strong> ${tipoDia}</div>
+                `;
+                body.appendChild(tipoItem);
+                
+                // Información de vacaciones personales
+                if (this.vacacionesPersonales.has(dateStr)) {
+                    const vacacionesItem = document.createElement('div');
+                    vacacionesItem.className = 'info-item info-personal';
+                    vacacionesItem.innerHTML = `
+                        <div class="info-icon">🏖️</div>
+                        <div class="info-text"><strong>Vacaciones personales:</strong> SÍ</div>
+                    `;
+                    body.appendChild(vacacionesItem);
+                }
+                
+                // Información de viaje
+                const viaje = this.obtenerInfoViajeParaFecha(dateStr);
+                if (viaje) {
+                    const destino = viaje.ciudadDestino 
+                        ? `${viaje.ciudadDestino} (${viaje.pais})`
+                        : viaje.pais;
+                    
+                    const inicio = new Date(viaje.fechaInicio);
+                    const fin = new Date(viaje.fechaFin);
+                    const dias = Math.floor((fin - inicio) / (1000 * 60 * 60 * 24)) + 1;
+                    
+                    const viajeItem = document.createElement('div');
+                    viajeItem.className = 'info-item info-viaje';
+                    viajeItem.innerHTML = `
+                        <div class="info-icon">✈️</div>
+                        <div class="info-text">
+                            <strong>Viaje:</strong> ${destino}<br>
+                            <strong>Cliente:</strong> ${viaje.cliente}<br>
+                            <strong>Fechas:</strong> ${this.formatearFechaVisual(inicio)} - ${this.formatearFechaVisual(fin)}<br>
+                            <strong>Duración:</strong> ${dias} día${dias !== 1 ? 's' : ''}
+                        </div>
+                    `;
+                    body.appendChild(viajeItem);
+                }
+                
+                document.getElementById('dayInfoOverlay').style.display = 'flex';
+            }
+            
+            cerrarInfoDia() {
+                document.getElementById('dayInfoOverlay').style.display = 'none';
+            }
+            
+            renderizarCalendario() {
+                const container = document.getElementById('calendar');
+                container.innerHTML = '';
+                
+                for (let i = 0; i < this.meses.length; i += 3) {
+                    const row = document.createElement('div');
+                    row.className = 'months-row';
+                    
+                    for (let j = 0; j < 3 && (i + j) < this.meses.length; j++) {
+                        const monthIndex = i + j;
+                        const monthElement = this.crearElementoMes(this.meses[monthIndex], monthIndex);
+                        monthElement.dataset.monthIndex = monthIndex;
+                        row.appendChild(monthElement);
+                    }
+                    
+                    container.appendChild(row);
+                }
+            }
+            
+            crearElementoMes(nombreMes, mesIndex) {
+                const monthDiv = document.createElement('div');
+                monthDiv.className = 'month';
+                
+                const header = document.createElement('div');
+                header.className = 'month-header';
+                header.textContent = nombreMes;
+                monthDiv.appendChild(header);
+                
+                const grid = document.createElement('div');
+                grid.className = 'calendar-grid';
+                
+                this.crearHeadersGrid(grid);
+                this.crearDiasMes(grid, mesIndex, false);
+                
+                monthDiv.appendChild(grid);
+                return monthDiv;
+            }
+            
+            crearHeadersGrid(grid) {
+                const weekHeader = document.createElement('div');
+                weekHeader.className = 'week-header';
+                weekHeader.textContent = 'S';
+                grid.appendChild(weekHeader);
+                
+                this.diasSemana.forEach(dia => {
+                    const dayHeader = document.createElement('div');
+                    dayHeader.className = 'day-header';
+                    dayHeader.textContent = dia;
+                    grid.appendChild(dayHeader);
+                });
+            }
+            
+            crearDiasMes(grid, mesIndex, isModal = false) {
+                const firstDay = new Date(2026, mesIndex, 1);
+                const lastDay = new Date(2026, mesIndex + 1, 0);
+                
+                let startingDayOfWeek = firstDay.getDay();
+                startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+                
+                let currentWeek = this.getWeekNumber(firstDay);
+                let addedWeekNumber = false;
+                
+                if (startingDayOfWeek > 0) {
+                    this.agregarCeldaNumeroSemana(grid, currentWeek, isModal);
+                    addedWeekNumber = true;
+                    
+                    for (let i = 0; i < startingDayOfWeek; i++) {
+                        grid.appendChild(this.crearDiaVacio(isModal));
+                    }
+                }
+                
+                let currentDayOfWeek = startingDayOfWeek;
+                
+                for (let dia = 1; dia <= lastDay.getDate(); dia++) {
+                    if (currentDayOfWeek === 0 && dia > 1) {
+                        currentWeek = this.getWeekNumber(new Date(2026, mesIndex, dia));
+                        this.agregarCeldaNumeroSemana(grid, currentWeek, isModal);
+                        addedWeekNumber = true;
+                    } else if (dia === 1 && !addedWeekNumber) {
+                        this.agregarCeldaNumeroSemana(grid, currentWeek, isModal);
+                        addedWeekNumber = true;
+                    }
+                    
+                    const fecha = new Date(2026, mesIndex, dia);
+                    const dateStr = this.formatearFecha(fecha);
+                    const dayOfWeek = fecha.getDay();
+                    
+                    const dayDiv = this.crearElementoDia(dia, dateStr, dayOfWeek, isModal);
+                    grid.appendChild(dayDiv);
+                    
+                    currentDayOfWeek = (currentDayOfWeek + 1) % 7;
+                    
+                    if (currentDayOfWeek === 0 || dia === lastDay.getDate()) {
+                        addedWeekNumber = false;
+                    }
+                }
+            }
+            
+            agregarCeldaNumeroSemana(grid, weekNumber, isModal = false) {
+                const weekNum = document.createElement('div');
+                weekNum.className = isModal ? 'modal-week-number' : 'week-number';
+                weekNum.textContent = weekNumber;
+                grid.appendChild(weekNum);
+            }
+            
+            crearDiaVacio(isModal = false) {
+                const emptyDay = document.createElement('div');
+                emptyDay.className = isModal ? 'modal-day empty' : 'day empty';
+                return emptyDay;
+            }
+            
+            crearElementoDia(numeroDia, dateStr, dayOfWeek, isModal = false) {
+                const dayDiv = document.createElement('div');
+                const dayClass = this.getDayClass(dateStr, dayOfWeek);
+                
+                if (isModal) {
+                    dayDiv.className = `modal-day ${dayClass}`;
+                } else {
+                    dayDiv.className = `day ${dayClass}`;
+                }
+                
+                dayDiv.textContent = numeroDia;
+                dayDiv.dataset.date = dateStr;
+                
+                // Añadir clase de viaje si corresponde
+                if (this.tieneViaje(dateStr)) {
+                    dayDiv.classList.add('tiene-viaje');
+                }
+                
+                // Añadir clase de vacaciones personales
+                if (this.vacacionesPersonales.has(dateStr)) {
+                    dayDiv.classList.add('personal');
+                }
+                
+                return dayDiv;
+            }
+            
+            abrirVistaMes(monthIndex) {
+                const modal = document.getElementById('modalOverlay');
+                const title = document.getElementById('modalTitle');
+                const calendar = document.getElementById('modalCalendar');
+                
+                title.textContent = `${this.meses[monthIndex]} 2026`;
+                calendar.innerHTML = this.crearVistaModal(monthIndex);
+                
+                this.modoVacaciones = false;
+                const btn = document.getElementById('btnToggleVacaciones');
+                btn.textContent = '🏖️ MARCAR/DESMARCAR VACACIONES';
+                btn.style.background = 'linear-gradient(135deg, #e91e63 0%, #c2185b 100%)';
+                
+                modal.style.display = 'flex';
+                document.body.style.overflow = 'hidden';
+                
+                this.actualizarEventosDiasModal();
+            }
+            
+            cerrarModal() {
+                const modal = document.getElementById('modalOverlay');
+                modal.style.display = 'none';
+                document.body.style.overflow = 'auto';
+                this.renderizarCalendario();
+            }
+            
+            crearVistaModal(monthIndex) {
+                const firstDay = new Date(2026, monthIndex, 1);
+                const lastDay = new Date(2026, monthIndex + 1, 0);
+                
+                let html = '<div class="modal-grid">';
+                
+                html += '<div class="modal-week-header">S</div>';
+                
+                this.diasSemana.forEach(dia => {
+                    html += `<div class="modal-day-header">${dia}</div>`;
+                });
+                
+                let startingDayOfWeek = firstDay.getDay();
+                startingDayOfWeek = startingDayOfWeek === 0 ? 6 : startingDayOfWeek - 1;
+                
+                let currentWeek = this.getWeekNumber(firstDay);
+                let addedWeekNumber = false;
+                
+                if (startingDayOfWeek > 0) {
+                    html += `<div class="modal-week-number">${currentWeek}</div>`;
+                    addedWeekNumber = true;
+                    
+                    for (let i = 0; i < startingDayOfWeek; i++) {
+                        html += '<div class="modal-day empty"></div>';
+                    }
+                }
+                
+                let currentDayOfWeek = startingDayOfWeek;
+                
+                for (let dia = 1; dia <= lastDay.getDate(); dia++) {
+                    if (currentDayOfWeek === 0 && dia > 1) {
+                        currentWeek = this.getWeekNumber(new Date(2026, monthIndex, dia));
+                        html += `<div class="modal-week-number">${currentWeek}</div>`;
+                        addedWeekNumber = true;
+                    } else if (dia === 1 && !addedWeekNumber) {
+                        html += `<div class="modal-week-number">${currentWeek}</div>`;
+                        addedWeekNumber = true;
+                    }
+                    
+                    const fecha = new Date(2026, monthIndex, dia);
+                    const dateStr = this.formatearFecha(fecha);
+                    const dayOfWeek = fecha.getDay();
+                    const dayClass = this.getDayClass(dateStr, dayOfWeek);
+                    
+                    let className = 'modal-day';
+                    if (dayClass) className += ` ${dayClass}`;
+                    
+                    if (this.tieneViaje(dateStr)) className += ' tiene-viaje';
+                    if (this.vacacionesPersonales.has(dateStr)) className += ' personal';
+                    
+                    html += `<div class="${className}" data-date="${dateStr}">${dia}</div>`;
+                    
+                    currentDayOfWeek = (currentDayOfWeek + 1) % 7;
+                    
+                    if (currentDayOfWeek === 0 || dia === lastDay.getDate()) {
+                        addedWeekNumber = false;
+                    }
+                }
+                
+                html += '</div>';
+                return html;
+            }
+            
+            actualizarEventosDiasModal() {
+                const dias = document.querySelectorAll('.modal-day:not(.empty)');
+                
+                dias.forEach(day => {
+                    const dateStr = day.dataset.date;
+                    
+                    day.onclick = null;
+                    
+                    if (this.modoVacaciones) {
+                        day.onclick = (e) => {
+                            e.stopPropagation();
+                            this.toggleVacacion(dateStr);
+                            day.classList.toggle('personal');
+                        };
+                    } else {
+                        day.onclick = (e) => {
+                            e.stopPropagation();
+                            this.mostrarInfoDia(dateStr);
+                        };
+                    }
+                });
+            }
+        }
+
+        // Inicializar calendario cuando el DOM esté listo
+        let calendario;
+        document.addEventListener('DOMContentLoaded', () => {
+            calendario = new CalendarioViajes();
+        });
+    </script>
+
+  <!-- PWA: Registrar Service Worker -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('./service-worker.js');
+      });
+    }
+  </script>
+</body>
+</html>
