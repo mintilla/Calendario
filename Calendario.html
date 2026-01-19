@@ -1189,12 +1189,7 @@
                 flex: 1;
             }
         }
-    
-/* --- Botones paralelos --- */
-.botones-principales{display:grid;grid-template-columns:1fr;gap:10px}
-@media(min-width:560px){.botones-principales{grid-template-columns:1fr 1fr}}
-</style>
-  <link rel="stylesheet" href="./world/mapa.css">
+    </style>
 </head>
 <body>
     <div class="container">
@@ -1230,7 +1225,7 @@
             </div>
             
             <!-- SOLO UN BOTÓN: MIS VIAJES -->
-            <div class="botones-principales"><button class="boton-principal" id="btnMisViajes">
+            <button class="boton-principal" id="btnMisViajes">
                 ✈️ GESTIONAR MIS VIAJES
             </button>
             
@@ -2838,30 +2833,6 @@
             calendario = new CalendarioViajes();
         });
     </script>
-
-  <script>
-  // PATCH v4.1 seguro: prototipo, sin usar 'calendario' antes de crearlo
-  (function(){
-    const P = window.CalendarioViajes && window.CalendarioViajes.prototype; if(!P) return;
-    P.STORAGE_HISTORICO='historico-viajes'; P.historico=[];
-    const _init=P.init; P.init=function(){ this.cargarHistorico(); const r=_init.apply(this,arguments); setTimeout(()=>{document.getElementById('btnMapaMundial')?.addEventListener('click',()=>this.mostrarVistaMapa()); document.getElementById('volverDesdeMapa')?.addEventListener('click',()=>this.mostrarVistaCalendario()); document.getElementById('mapTooltipClose')?.addEventListener('click',()=>this.cerrarTooltipMapa()); document.getElementById('mapTooltipCloseBtn')?.addEventListener('click',()=>this.cerrarTooltipMapa()); document.getElementById('btnGestionHistorico')?.addEventListener('click',()=>{ this._rellenarSelectHistorico(); document.getElementById('historicoDias').value=''; document.getElementById('historicoOverlay').style.display='flex'; this._pintarHistoricoLista(); }); },0); return r; }
-    P.cargarHistorico=function(){ try{const s=localStorage.getItem(this.STORAGE_HISTORICO); this.historico=s?JSON.parse(s):[];}catch{this.historico=[];} }
-    P.guardarHistorico=function(){ try{localStorage.setItem(this.STORAGE_HISTORICO, JSON.stringify(this.historico));}catch(e){} }
-    P._rellenarSelectHistorico=function(){ const sel=document.getElementById('historicoPais'); if(!sel) return; sel.innerHTML='<option value="">Selecciona un país</option>'; this.paises.forEach(p=>{const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o);}); }
-    P._pintarHistoricoLista=function(){ const cont=document.getElementById('historicoLista'); if(!cont) return; if(!this.historico.length){cont.innerHTML='<p style="color:#666;">No hay registros</p>'; return;} cont.innerHTML=''; this.historico.sort((a,b)=>a.pais.localeCompare(b.pais)); this.historico.forEach((h,idx)=>{ const d=document.createElement('div'); d.className='viaje-card'; d.style.marginBottom='8px'; d.innerHTML=`<div class="viaje-card-header"><div class="viaje-destino-card">${h.pais}</div><div class="viaje-acciones"><button class="btn-editar" data-idx="${idx}">✏️ Editar</button><button class="btn-editar" data-del="${idx}" style="color:#e91e63">🗑️ Eliminar</button></div></div><div class="viaje-fechas">📆 Días previos: ${h.dias||0}</div>`; d.querySelector('[data-idx]')?.addEventListener('click',(e)=>{const i=parseInt(e.currentTarget.getAttribute('data-idx')); const h=this.historico[i]; document.getElementById('historicoPais').value=h.pais; document.getElementById('historicoDias').value=h.dias||0;}); d.querySelector('[data-del]')?.addEventListener('click',(e)=>{const i=parseInt(e.currentTarget.getAttribute('data-del')); if(confirm('¿Eliminar este registro histórico?')){ this.historico.splice(i,1); this.guardarHistorico(); this._pintarHistoricoLista(); this.pintarMapa?.(); }}); cont.appendChild(d); }); }
-    P.ISO_BY_PAIS=Object.assign({'España':'ES','Francia':'FR','Alemania':'DE','Italia':'IT','Portugal':'PT','Reino Unido':'GB','Irlanda':'IE','Países Bajos':'NL','Bélgica':'BE','Suiza':'CH','Austria':'AT','Polonia':'PL','República Checa':'CZ','Dinamarca':'DK','Suecia':'SE','Noruega':'NO','Finlandia':'FI','Estados Unidos':'US','Canadá':'CA','México':'MX','Brasil':'BR','Argentina':'AR','Chile':'CL','Perú':'PE','Colombia':'CO','Marruecos':'MA','Turquía':'TR','Rusia':'RU','China':'CN','Japón':'JP','Corea del Sur':'KR','India':'IN','Australia':'AU','Nueva Zelanda':'NZ'}, P.ISO_BY_PAIS||{});
-    P.cargarMapa=async function(){ const wrap=document.getElementById('mapaSvgWrapper'); if(!wrap||wrap.dataset.loaded==='1') return; try{ const resp=await fetch('./world/world.svg'); const txt=await resp.text(); wrap.innerHTML=txt; wrap.dataset.loaded='1'; wrap.querySelectorAll('.tile').forEach(el=> el.addEventListener('click',()=>this.mostrarPopupPais(el.id))); }catch(e){ wrap.innerHTML='<p style="color:#c00;text-align:center;">No se pudo cargar el mapa</p>'; } }
-    P._dias2026PorISO=function(){ const out={}; for(const v of this.viajes){ const iso=this.ISO_BY_PAIS[v.pais]; if(!iso) continue; (out[iso]||(out[iso]=new Set())); (v.dias||[]).forEach(d=>out[iso].add(d)); } return out; }
-    P._diasHistoricoPorISO=function(){ const out={}; for(const h of (this.historico||[])){ const iso=this.ISO_BY_PAIS[h.pais]; if(!iso) continue; out[iso]=(out[iso]||0)+(parseInt(h.dias)||0);} return out; }
-    P.pintarMapa=function(){ const wrap=document.getElementById('mapaSvgWrapper'); if(!wrap||!wrap.dataset.loaded) return; const d2026=this._dias2026PorISO(); const hist=this._diasHistoricoPorISO(); wrap.querySelectorAll('.tile').forEach(el=>{ const iso=el.id; const total=(d2026[iso]?.size||0)+(hist[iso]||0); el.setAttribute('class','tile'); if(total>=1 && total<=3) el.classList.add('visitado-1-3'); else if(total>=4 && total<=9) el.classList.add('visitado-4-9'); else if(total>=10) el.classList.add('visitado-10p'); }); }
-    P.mostrarPopupPais=function(iso){ const nombre=Object.entries(this.ISO_BY_PAIS).find(([k,v])=>v===iso)?.[0]||iso; const d2026=this._dias2026PorISO(); const hist=this._diasHistoricoPorISO(); const total=(d2026[iso]?.size||0)+(hist[iso]||0); const viajesPais=this.viajes.filter(v=>this.ISO_BY_PAIS[v.pais]===iso); const resumen=viajesPais.map(v=>{ const i=new Date(v.fechaInicio), f=new Date(v.fechaFin); const dias=Math.floor((f-i)/(1000*60*60*24))+1; const destino=v.ciudadDestino?`${v.ciudadDestino} (${v.pais})`:v.pais; return `• ${destino} — ${this.formatearFechaVisual(i)} - ${this.formatearFechaVisual(f)} (${dias}d)`; }).join('<br>'); document.getElementById('mapTooltipTitle').textContent=nombre; document.getElementById('mapTooltipBody').innerHTML=`<div class="info-item" style="background:#f0f7ff;border-left:4px solid #2196F3;"><div class="info-icon">📆</div><div class="info-text"><strong>Total días:</strong> ${total} (histórico ${hist[iso]||0} + 2026 ${d2026[iso]?.size||0})</div></div>` + (resumen? `<div class="info-item"><div class="info-icon">✈️</div><div class="info-text">${resumen}</div></div>`:''); document.getElementById('mapTooltip').style.display='flex'; }
-    P.cerrarTooltipMapa=function(){ const o=document.getElementById('mapTooltip'); if(o) o.style.display='none'; }
-    P.mostrarVistaMapa=function(){ document.getElementById('vistaCalendario').style.display='none'; document.getElementById('vistaViajes').style.display='none'; document.getElementById('formularioViaje').style.display='none'; document.getElementById('vistaMapa').style.display='block'; this.cargarMapa().then(()=>this.pintarMapa()); }
-    const _export=P.exportarDatos; if(_export){ P.exportarDatos=function(){ try{ const datos={vacaciones:[...this.vacacionesPersonales], viajes:this.viajes, historico:this.historico, fechaExportacion:new Date().toISOString(), totalViajes:this.viajes.length, totalVacaciones:this.vacacionesPersonales.size, version:'1.1', tipo:'Calendario Torres de Elorz 2026'}; const s=JSON.stringify(datos,null,2); const fecha=new Date().toISOString().split('T')[0]; this.mostrarModalExportacion(s,fecha);}catch(e){alert('❌ Error al exportar datos: '+e.message);} } }
-    const _imp=P.importarDatos; if(_imp){ P.importarDatos=function(ev){ const self=this; const reader=new FileReader(); const f=ev.target.files[0]; if(!f) return; ev.target.value=''; reader.onload=(e)=>{ try{ const datos=JSON.parse(e.target.result); if(datos.historico && Array.isArray(datos.historico)){ self.historico=datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias))); self.guardarHistorico(); } }catch(err){} }; reader.readAsText(f); return _imp.call(this, ev); } }
-    if(P.procesarImportacionIOS){ const _ios=P.procesarImportacionIOS; P.procesarImportacionIOS=function(){ try{ const datos=JSON.parse(document.getElementById('iosImportTextarea').value.trim()); if(datos.historico && Array.isArray(datos.historico)){ this.historico=datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias))); this.guardarHistorico(); } }catch(e){} return _ios.call(this); } }
-  })();
-  </script>
-
+  <script src="./world/addon.js"></script>
 </body>
 </html>

@@ -1,1 +1,262 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220"><g id="US" class="tile"><rect x="20" y="20" width="28" height="20" rx="3" ry="3"/><text x="34" y="32" text-anchor="middle" class="country-label">US</text></g><g id="CA" class="tile"><rect x="54" y="20" width="28" height="20" rx="3" ry="3"/><text x="68" y="32" text-anchor="middle" class="country-label">CA</text></g><g id="MX" class="tile"><rect x="88" y="20" width="28" height="20" rx="3" ry="3"/><text x="102" y="32" text-anchor="middle" class="country-label">MX</text></g><g id="PA" class="tile"><rect x="122" y="20" width="28" height="20" rx="3" ry="3"/><text x="136" y="32" text-anchor="middle" class="country-label">PA</text></g><g id="CR" class="tile"><rect x="156" y="20" width="28" height="20" rx="3" ry="3"/><text x="170" y="32" text-anchor="middle" class="country-label">CR</text></g><g id="CO" class="tile"><rect x="190" y="20" width="28" height="20" rx="3" ry="3"/><text x="204" y="32" text-anchor="middle" class="country-label">CO</text></g><g id="PE" class="tile"><rect x="224" y="20" width="28" height="20" rx="3" ry="3"/><text x="238" y="32" text-anchor="middle" class="country-label">PE</text></g><g id="CL" class="tile"><rect x="258" y="20" width="28" height="20" rx="3" ry="3"/><text x="272" y="32" text-anchor="middle" class="country-label">CL</text></g><g id="AR" class="tile"><rect x="292" y="20" width="28" height="20" rx="3" ry="3"/><text x="306" y="32" text-anchor="middle" class="country-label">AR</text></g><g id="BR" class="tile"><rect x="326" y="20" width="28" height="20" rx="3" ry="3"/><text x="340" y="32" text-anchor="middle" class="country-label">BR</text></g><g id="PT" class="tile"><rect x="360" y="20" width="28" height="20" rx="3" ry="3"/><text x="374" y="32" text-anchor="middle" class="country-label">PT</text></g><g id="ES" class="tile"><rect x="394" y="20" width="28" height="20" rx="3" ry="3"/><text x="408" y="32" text-anchor="middle" class="country-label">ES</text></g><g id="FR" class="tile"><rect x="428" y="20" width="28" height="20" rx="3" ry="3"/><text x="442" y="32" text-anchor="middle" class="country-label">FR</text></g><g id="BE" class="tile"><rect x="462" y="20" width="28" height="20" rx="3" ry="3"/><text x="476" y="32" text-anchor="middle" class="country-label">BE</text></g><g id="NL" class="tile"><rect x="496" y="20" width="28" height="20" rx="3" ry="3"/><text x="510" y="32" text-anchor="middle" class="country-label">NL</text></g><g id="IE" class="tile"><rect x="20" y="48" width="28" height="20" rx="3" ry="3"/><text x="34" y="60" text-anchor="middle" class="country-label">IE</text></g><g id="GB" class="tile"><rect x="54" y="48" width="28" height="20" rx="3" ry="3"/><text x="68" y="60" text-anchor="middle" class="country-label">GB</text></g><g id="DE" class="tile"><rect x="88" y="48" width="28" height="20" rx="3" ry="3"/><text x="102" y="60" text-anchor="middle" class="country-label">DE</text></g><g id="CH" class="tile"><rect x="122" y="48" width="28" height="20" rx="3" ry="3"/><text x="136" y="60" text-anchor="middle" class="country-label">CH</text></g><g id="IT" class="tile"><rect x="156" y="48" width="28" height="20" rx="3" ry="3"/><text x="170" y="60" text-anchor="middle" class="country-label">IT</text></g><g id="AT" class="tile"><rect x="190" y="48" width="28" height="20" rx="3" ry="3"/><text x="204" y="60" text-anchor="middle" class="country-label">AT</text></g><g id="PL" class="tile"><rect x="224" y="48" width="28" height="20" rx="3" ry="3"/><text x="238" y="60" text-anchor="middle" class="country-label">PL</text></g><g id="CZ" class="tile"><rect x="258" y="48" width="28" height="20" rx="3" ry="3"/><text x="272" y="60" text-anchor="middle" class="country-label">CZ</text></g><g id="DK" class="tile"><rect x="292" y="48" width="28" height="20" rx="3" ry="3"/><text x="306" y="60" text-anchor="middle" class="country-label">DK</text></g><g id="SE" class="tile"><rect x="326" y="48" width="28" height="20" rx="3" ry="3"/><text x="340" y="60" text-anchor="middle" class="country-label">SE</text></g><g id="NO" class="tile"><rect x="360" y="48" width="28" height="20" rx="3" ry="3"/><text x="374" y="60" text-anchor="middle" class="country-label">NO</text></g><g id="FI" class="tile"><rect x="394" y="48" width="28" height="20" rx="3" ry="3"/><text x="408" y="60" text-anchor="middle" class="country-label">FI</text></g><g id="HU" class="tile"><rect x="428" y="48" width="28" height="20" rx="3" ry="3"/><text x="442" y="60" text-anchor="middle" class="country-label">HU</text></g><g id="RO" class="tile"><rect x="462" y="48" width="28" height="20" rx="3" ry="3"/><text x="476" y="60" text-anchor="middle" class="country-label">RO</text></g><g id="BG" class="tile"><rect x="496" y="48" width="28" height="20" rx="3" ry="3"/><text x="510" y="60" text-anchor="middle" class="country-label">BG</text></g><g id="GR" class="tile"><rect x="20" y="76" width="28" height="20" rx="3" ry="3"/><text x="34" y="88" text-anchor="middle" class="country-label">GR</text></g><g id="TR" class="tile"><rect x="54" y="76" width="28" height="20" rx="3" ry="3"/><text x="68" y="88" text-anchor="middle" class="country-label">TR</text></g><g id="UA" class="tile"><rect x="88" y="76" width="28" height="20" rx="3" ry="3"/><text x="102" y="88" text-anchor="middle" class="country-label">UA</text></g><g id="RU" class="tile"><rect x="122" y="76" width="28" height="20" rx="3" ry="3"/><text x="136" y="88" text-anchor="middle" class="country-label">RU</text></g><g id="MA" class="tile"><rect x="156" y="76" width="28" height="20" rx="3" ry="3"/><text x="170" y="88" text-anchor="middle" class="country-label">MA</text></g><g id="DZ" class="tile"><rect x="190" y="76" width="28" height="20" rx="3" ry="3"/><text x="204" y="88" text-anchor="middle" class="country-label">DZ</text></g><g id="TN" class="tile"><rect x="224" y="76" width="28" height="20" rx="3" ry="3"/><text x="238" y="88" text-anchor="middle" class="country-label">TN</text></g><g id="EG" class="tile"><rect x="258" y="76" width="28" height="20" rx="3" ry="3"/><text x="272" y="88" text-anchor="middle" class="country-label">EG</text></g><g id="SA" class="tile"><rect x="292" y="76" width="28" height="20" rx="3" ry="3"/><text x="306" y="88" text-anchor="middle" class="country-label">SA</text></g><g id="AE" class="tile"><rect x="326" y="76" width="28" height="20" rx="3" ry="3"/><text x="340" y="88" text-anchor="middle" class="country-label">AE</text></g><g id="QA" class="tile"><rect x="360" y="76" width="28" height="20" rx="3" ry="3"/><text x="374" y="88" text-anchor="middle" class="country-label">QA</text></g><g id="IL" class="tile"><rect x="394" y="76" width="28" height="20" rx="3" ry="3"/><text x="408" y="88" text-anchor="middle" class="country-label">IL</text></g><g id="JO" class="tile"><rect x="428" y="76" width="28" height="20" rx="3" ry="3"/><text x="442" y="88" text-anchor="middle" class="country-label">JO</text></g><g id="ZA" class="tile"><rect x="462" y="76" width="28" height="20" rx="3" ry="3"/><text x="476" y="88" text-anchor="middle" class="country-label">ZA</text></g><g id="NG" class="tile"><rect x="496" y="76" width="28" height="20" rx="3" ry="3"/><text x="510" y="88" text-anchor="middle" class="country-label">NG</text></g><g id="SN" class="tile"><rect x="20" y="104" width="28" height="20" rx="3" ry="3"/><text x="34" y="116" text-anchor="middle" class="country-label">SN</text></g><g id="GH" class="tile"><rect x="54" y="104" width="28" height="20" rx="3" ry="3"/><text x="68" y="116" text-anchor="middle" class="country-label">GH</text></g><g id="KE" class="tile"><rect x="88" y="104" width="28" height="20" rx="3" ry="3"/><text x="102" y="116" text-anchor="middle" class="country-label">KE</text></g><g id="TZ" class="tile"><rect x="122" y="104" width="28" height="20" rx="3" ry="3"/><text x="136" y="116" text-anchor="middle" class="country-label">TZ</text></g><g id="ET" class="tile"><rect x="156" y="104" width="28" height="20" rx="3" ry="3"/><text x="170" y="116" text-anchor="middle" class="country-label">ET</text></g><g id="IN" class="tile"><rect x="190" y="104" width="28" height="20" rx="3" ry="3"/><text x="204" y="116" text-anchor="middle" class="country-label">IN</text></g><g id="CN" class="tile"><rect x="224" y="104" width="28" height="20" rx="3" ry="3"/><text x="238" y="116" text-anchor="middle" class="country-label">CN</text></g><g id="HK" class="tile"><rect x="258" y="104" width="28" height="20" rx="3" ry="3"/><text x="272" y="116" text-anchor="middle" class="country-label">HK</text></g><g id="TW" class="tile"><rect x="292" y="104" width="28" height="20" rx="3" ry="3"/><text x="306" y="116" text-anchor="middle" class="country-label">TW</text></g><g id="KR" class="tile"><rect x="326" y="104" width="28" height="20" rx="3" ry="3"/><text x="340" y="116" text-anchor="middle" class="country-label">KR</text></g><g id="JP" class="tile"><rect x="360" y="104" width="28" height="20" rx="3" ry="3"/><text x="374" y="116" text-anchor="middle" class="country-label">JP</text></g><g id="SG" class="tile"><rect x="394" y="104" width="28" height="20" rx="3" ry="3"/><text x="408" y="116" text-anchor="middle" class="country-label">SG</text></g><g id="MY" class="tile"><rect x="428" y="104" width="28" height="20" rx="3" ry="3"/><text x="442" y="116" text-anchor="middle" class="country-label">MY</text></g><g id="TH" class="tile"><rect x="462" y="104" width="28" height="20" rx="3" ry="3"/><text x="476" y="116" text-anchor="middle" class="country-label">TH</text></g><g id="VN" class="tile"><rect x="496" y="104" width="28" height="20" rx="3" ry="3"/><text x="510" y="116" text-anchor="middle" class="country-label">VN</text></g><g id="PH" class="tile"><rect x="20" y="132" width="28" height="20" rx="3" ry="3"/><text x="34" y="144" text-anchor="middle" class="country-label">PH</text></g><g id="ID" class="tile"><rect x="54" y="132" width="28" height="20" rx="3" ry="3"/><text x="68" y="144" text-anchor="middle" class="country-label">ID</text></g><g id="KZ" class="tile"><rect x="88" y="132" width="28" height="20" rx="3" ry="3"/><text x="102" y="144" text-anchor="middle" class="country-label">KZ</text></g><g id="AU" class="tile"><rect x="122" y="132" width="28" height="20" rx="3" ry="3"/><text x="136" y="144" text-anchor="middle" class="country-label">AU</text></g><g id="NZ" class="tile"><rect x="156" y="132" width="28" height="20" rx="3" ry="3"/><text x="170" y="144" text-anchor="middle" class="country-label">NZ</text></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 220">
+<g id="US" class="tile">
+  <rect x="20" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="34" y="32" text-anchor="middle" class="country-label">US</text>
+</g>
+<g id="CA" class="tile">
+  <rect x="54" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="68" y="32" text-anchor="middle" class="country-label">CA</text>
+</g>
+<g id="MX" class="tile">
+  <rect x="88" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="102" y="32" text-anchor="middle" class="country-label">MX</text>
+</g>
+<g id="PA" class="tile">
+  <rect x="122" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="136" y="32" text-anchor="middle" class="country-label">PA</text>
+</g>
+<g id="CR" class="tile">
+  <rect x="156" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="170" y="32" text-anchor="middle" class="country-label">CR</text>
+</g>
+<g id="CO" class="tile">
+  <rect x="190" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="204" y="32" text-anchor="middle" class="country-label">CO</text>
+</g>
+<g id="PE" class="tile">
+  <rect x="224" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="238" y="32" text-anchor="middle" class="country-label">PE</text>
+</g>
+<g id="CL" class="tile">
+  <rect x="258" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="272" y="32" text-anchor="middle" class="country-label">CL</text>
+</g>
+<g id="AR" class="tile">
+  <rect x="292" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="306" y="32" text-anchor="middle" class="country-label">AR</text>
+</g>
+<g id="BR" class="tile">
+  <rect x="326" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="340" y="32" text-anchor="middle" class="country-label">BR</text>
+</g>
+<g id="PT" class="tile">
+  <rect x="360" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="374" y="32" text-anchor="middle" class="country-label">PT</text>
+</g>
+<g id="ES" class="tile">
+  <rect x="394" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="408" y="32" text-anchor="middle" class="country-label">ES</text>
+</g>
+<g id="FR" class="tile">
+  <rect x="428" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="442" y="32" text-anchor="middle" class="country-label">FR</text>
+</g>
+<g id="BE" class="tile">
+  <rect x="462" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="476" y="32" text-anchor="middle" class="country-label">BE</text>
+</g>
+<g id="NL" class="tile">
+  <rect x="496" y="20" width="28" height="20" rx="3" ry="3"/>
+  <text x="510" y="32" text-anchor="middle" class="country-label">NL</text>
+</g>
+<g id="IE" class="tile">
+  <rect x="20" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="34" y="60" text-anchor="middle" class="country-label">IE</text>
+</g>
+<g id="GB" class="tile">
+  <rect x="54" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="68" y="60" text-anchor="middle" class="country-label">GB</text>
+</g>
+<g id="DE" class="tile">
+  <rect x="88" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="102" y="60" text-anchor="middle" class="country-label">DE</text>
+</g>
+<g id="CH" class="tile">
+  <rect x="122" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="136" y="60" text-anchor="middle" class="country-label">CH</text>
+</g>
+<g id="IT" class="tile">
+  <rect x="156" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="170" y="60" text-anchor="middle" class="country-label">IT</text>
+</g>
+<g id="AT" class="tile">
+  <rect x="190" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="204" y="60" text-anchor="middle" class="country-label">AT</text>
+</g>
+<g id="PL" class="tile">
+  <rect x="224" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="238" y="60" text-anchor="middle" class="country-label">PL</text>
+</g>
+<g id="CZ" class="tile">
+  <rect x="258" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="272" y="60" text-anchor="middle" class="country-label">CZ</text>
+</g>
+<g id="DK" class="tile">
+  <rect x="292" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="306" y="60" text-anchor="middle" class="country-label">DK</text>
+</g>
+<g id="SE" class="tile">
+  <rect x="326" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="340" y="60" text-anchor="middle" class="country-label">SE</text>
+</g>
+<g id="NO" class="tile">
+  <rect x="360" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="374" y="60" text-anchor="middle" class="country-label">NO</text>
+</g>
+<g id="FI" class="tile">
+  <rect x="394" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="408" y="60" text-anchor="middle" class="country-label">FI</text>
+</g>
+<g id="HU" class="tile">
+  <rect x="428" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="442" y="60" text-anchor="middle" class="country-label">HU</text>
+</g>
+<g id="RO" class="tile">
+  <rect x="462" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="476" y="60" text-anchor="middle" class="country-label">RO</text>
+</g>
+<g id="BG" class="tile">
+  <rect x="496" y="48" width="28" height="20" rx="3" ry="3"/>
+  <text x="510" y="60" text-anchor="middle" class="country-label">BG</text>
+</g>
+<g id="GR" class="tile">
+  <rect x="20" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="34" y="88" text-anchor="middle" class="country-label">GR</text>
+</g>
+<g id="TR" class="tile">
+  <rect x="54" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="68" y="88" text-anchor="middle" class="country-label">TR</text>
+</g>
+<g id="UA" class="tile">
+  <rect x="88" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="102" y="88" text-anchor="middle" class="country-label">UA</text>
+</g>
+<g id="RU" class="tile">
+  <rect x="122" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="136" y="88" text-anchor="middle" class="country-label">RU</text>
+</g>
+<g id="MA" class="tile">
+  <rect x="156" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="170" y="88" text-anchor="middle" class="country-label">MA</text>
+</g>
+<g id="DZ" class="tile">
+  <rect x="190" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="204" y="88" text-anchor="middle" class="country-label">DZ</text>
+</g>
+<g id="TN" class="tile">
+  <rect x="224" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="238" y="88" text-anchor="middle" class="country-label">TN</text>
+</g>
+<g id="EG" class="tile">
+  <rect x="258" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="272" y="88" text-anchor="middle" class="country-label">EG</text>
+</g>
+<g id="SA" class="tile">
+  <rect x="292" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="306" y="88" text-anchor="middle" class="country-label">SA</text>
+</g>
+<g id="AE" class="tile">
+  <rect x="326" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="340" y="88" text-anchor="middle" class="country-label">AE</text>
+</g>
+<g id="QA" class="tile">
+  <rect x="360" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="374" y="88" text-anchor="middle" class="country-label">QA</text>
+</g>
+<g id="IL" class="tile">
+  <rect x="394" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="408" y="88" text-anchor="middle" class="country-label">IL</text>
+</g>
+<g id="JO" class="tile">
+  <rect x="428" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="442" y="88" text-anchor="middle" class="country-label">JO</text>
+</g>
+<g id="ZA" class="tile">
+  <rect x="462" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="476" y="88" text-anchor="middle" class="country-label">ZA</text>
+</g>
+<g id="NG" class="tile">
+  <rect x="496" y="76" width="28" height="20" rx="3" ry="3"/>
+  <text x="510" y="88" text-anchor="middle" class="country-label">NG</text>
+</g>
+<g id="SN" class="tile">
+  <rect x="20" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="34" y="116" text-anchor="middle" class="country-label">SN</text>
+</g>
+<g id="GH" class="tile">
+  <rect x="54" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="68" y="116" text-anchor="middle" class="country-label">GH</text>
+</g>
+<g id="KE" class="tile">
+  <rect x="88" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="102" y="116" text-anchor="middle" class="country-label">KE</text>
+</g>
+<g id="TZ" class="tile">
+  <rect x="122" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="136" y="116" text-anchor="middle" class="country-label">TZ</text>
+</g>
+<g id="ET" class="tile">
+  <rect x="156" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="170" y="116" text-anchor="middle" class="country-label">ET</text>
+</g>
+<g id="IN" class="tile">
+  <rect x="190" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="204" y="116" text-anchor="middle" class="country-label">IN</text>
+</g>
+<g id="CN" class="tile">
+  <rect x="224" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="238" y="116" text-anchor="middle" class="country-label">CN</text>
+</g>
+<g id="HK" class="tile">
+  <rect x="258" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="272" y="116" text-anchor="middle" class="country-label">HK</text>
+</g>
+<g id="TW" class="tile">
+  <rect x="292" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="306" y="116" text-anchor="middle" class="country-label">TW</text>
+</g>
+<g id="KR" class="tile">
+  <rect x="326" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="340" y="116" text-anchor="middle" class="country-label">KR</text>
+</g>
+<g id="JP" class="tile">
+  <rect x="360" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="374" y="116" text-anchor="middle" class="country-label">JP</text>
+</g>
+<g id="SG" class="tile">
+  <rect x="394" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="408" y="116" text-anchor="middle" class="country-label">SG</text>
+</g>
+<g id="MY" class="tile">
+  <rect x="428" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="442" y="116" text-anchor="middle" class="country-label">MY</text>
+</g>
+<g id="TH" class="tile">
+  <rect x="462" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="476" y="116" text-anchor="middle" class="country-label">TH</text>
+</g>
+<g id="VN" class="tile">
+  <rect x="496" y="104" width="28" height="20" rx="3" ry="3"/>
+  <text x="510" y="116" text-anchor="middle" class="country-label">VN</text>
+</g>
+<g id="PH" class="tile">
+  <rect x="20" y="132" width="28" height="20" rx="3" ry="3"/>
+  <text x="34" y="144" text-anchor="middle" class="country-label">PH</text>
+</g>
+<g id="ID" class="tile">
+  <rect x="54" y="132" width="28" height="20" rx="3" ry="3"/>
+  <text x="68" y="144" text-anchor="middle" class="country-label">ID</text>
+</g>
+<g id="KZ" class="tile">
+  <rect x="88" y="132" width="28" height="20" rx="3" ry="3"/>
+  <text x="102" y="144" text-anchor="middle" class="country-label">KZ</text>
+</g>
+<g id="AU" class="tile">
+  <rect x="122" y="132" width="28" height="20" rx="3" ry="3"/>
+  <text x="136" y="144" text-anchor="middle" class="country-label">AU</text>
+</g>
+<g id="NZ" class="tile">
+  <rect x="156" y="132" width="28" height="20" rx="3" ry="3"/>
+  <text x="170" y="144" text-anchor="middle" class="country-label">NZ</text>
+</g>
+</svg>
