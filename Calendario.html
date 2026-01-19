@@ -2833,6 +2833,15 @@
             calendario = new CalendarioViajes();
         });
     </script>
-  <script src="./world/addon.js"></script>
+ 
+<script src="./world/addon_break_99127.js"></script>
+<script>
+  // Registrar el service worker v11 para romper la caché sí o sí
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./service-worker-v11.js?bust=1')
+      .catch(console.error);
+  }
+</script>
+
 </body>
 </html>
