@@ -1190,10 +1190,9 @@
             }
         }
     
-/* --- Botones principales en paralelo --- */
+/* --- Botones paralelos --- */
 .botones-principales{display:grid;grid-template-columns:1fr;gap:10px}
 @media(min-width:560px){.botones-principales{grid-template-columns:1fr 1fr}}
-
 </style>
   <link rel="stylesheet" href="./world/mapa.css">
 </head>
@@ -1231,10 +1230,9 @@
             </div>
             
             <!-- SOLO UN BOTÓN: MIS VIAJES -->
-            <div class="botones-principales">
-  <button class="boton-principal" id="btnMisViajes">✈️ MIS VIAJES</button>
-  <button class="boton-principal" id="btnMapaMundial">🌍 MAPA MUNDIAL</button>
-</div>
+            <div class="botones-principales"><button class="boton-principal" id="btnMisViajes">
+                ✈️ GESTIONAR MIS VIAJES
+            </button>
             
             <!-- Calendario -->
             <div class="months-container" id="calendar"></div>
@@ -1489,7 +1487,7 @@
             }
             
             init() {
-                this.cargarDatos(); this.cargarHistorico();
+                this.cargarDatos();
                 this.renderizarCalendario();
                 this.setupEventListeners();
                 this.renderizarListaViajes();
@@ -2835,310 +2833,35 @@
         }
 
         // Inicializar calendario cuando el DOM esté listo
-        
-// === HISTÓRICO: carga/guardado + UI helpers ===
-calendario.cargarHistorico = function(){
-  try{
-    const s = localStorage.getItem(this.STORAGE_HISTORICO);
-    if(s) this.historico = JSON.parse(s);
-    else this.historico = [];
-  }catch{ this.historico = []; }
-};
-calendario.guardarHistorico = function(){
-  try{ localStorage.setItem(this.STORAGE_HISTORICO, JSON.stringify(this.historico)); }
-  catch(e){ console.error('Error guardando histórico', e); }
-};
-
-// Rellena select de países en el modal histórico
-calendario._rellenarSelectHistorico = function(){
-  const sel = document.getElementById('historicoPais');
-  sel.innerHTML = '<option value="">Selecciona un país</option>';
-  this.paises.forEach(p=>{ const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o); });
-};
-
-// Pintar listado histórico
-calendario._pintarHistoricoLista = function(){
-  const cont = document.getElementById('historicoLista');
-  if(!this.historico || this.historico.length===0){ cont.innerHTML='<p style="color:#666;">No hay registros</p>'; return; }
-  cont.innerHTML='';
-  this.historico.sort((a,b)=>a.pais.localeCompare(b.pais));
-  this.historico.forEach((h,idx)=>{
-    const d=document.createElement('div');
-    d.className='viaje-card';
-    d.style.marginBottom='8px';
-    d.innerHTML=`<div class="viaje-card-header"><div class="viaje-destino-card">${h.pais}</div>
-      <div class="viaje-acciones">
-        <button class="btn-editar" data-idx="${idx}">✏️ Editar</button>
-        <button class="btn-editar" data-del="${idx}" style="color:#e91e63">🗑️ Eliminar</button>
-      </div></div>
-      <div class="viaje-fechas">📆 Días previos: ${h.dias||0}</div>`;
-    d.querySelector('[data-idx]')?.addEventListener('click', (e)=>{
-      const i=parseInt(e.currentTarget.getAttribute('data-idx')); const h=this.historico[i];
-      document.getElementById('historicoPais').value=h.pais; document.getElementById('historicoDias').value=h.dias||0;
-    });
-    d.querySelector('[data-del]')?.addEventListener('click', (e)=>{
-      const i=parseInt(e.currentTarget.getAttribute('data-del'));
-      if(confirm('¿Eliminar este registro histórico?')){ this.historico.splice(i,1); this.guardarHistorico(); this._pintarHistoricoLista(); this.pintarMapa?.(); }
-    });
-    cont.appendChild(d);
-  });
-};
-
-// === MAPA: diccionario ISO mínimo (extensible) ===
-calendario.ISO_BY_PAIS = {
-  'España':'ES','Francia':'FR','Alemania':'DE','Italia':'IT','Portugal':'PT','Reino Unido':'GB','Irlanda':'IE','Países Bajos':'NL','Bélgica':'BE','Suiza':'CH','Austria':'AT','Polonia':'PL','República Checa':'CZ','Dinamarca':'DK','Suecia':'SE','Noruega':'NO','Finlandia':'FI','Estonia':'EE','Letonia':'LV','Lituania':'LT','Hungría':'HU','Rumanía':'RO','Bulgaria':'BG','Grecia':'GR','Croacia':'HR','Eslovenia':'SI','Eslovaquia':'SK','Chipre':'CY','Malta':'MT','Luxemburgo':'LU',
-  'Estados Unidos':'US','Canadá':'CA','México':'MX','Brasil':'BR','Argentina':'AR','Chile':'CL','Perú':'PE','Colombia':'CO','Uruguay':'UY','Paraguay':'PY','Bolivia':'BO','Ecuador':'EC','Venezuela':'VE','Panamá':'PA','Costa Rica':'CR','Guatemala':'GT','Honduras':'HN','Nicaragua':'NI','El Salvador':'SV','Cuba':'CU','República Dominicana':'DO','Puerto Rico':'PR',
-  'Marruecos':'MA','Argelia':'DZ','Túnez':'TN','Egipto':'EG','Sudáfrica':'ZA','Nigeria':'NG','Senegal':'SN','Ghana':'GH','Etiopía':'ET','Kenia':'KE','Tanzania':'TZ',
-  'Turquía':'TR','Rusia':'RU','Ucrania':'UA','Bielorrusia':'BY','Serbia':'RS','Bosnia y Herzegovina':'BA','Macedonia del Norte':'MK','Montenegro':'ME','Albania':'AL',
-  'China':'CN','Japón':'JP','Corea del Sur':'KR','India':'IN','Indonesia':'ID','Tailandia':'TH','Vietnam':'VN','Malasia':'MY','Singapur':'SG','Filipinas':'PH','Taiwán':'TW','Kazajistán':'KZ','Emiratos Árabes Unidos':'AE','Qatar':'QA','Arabia Saudita':'SA','Israel':'IL','Jordania':'JO','Líbano':'LB',
-  'Australia':'AU','Nueva Zelanda':'NZ'
-};
-
-// Carga SVG (tile-map) y eventos
-calendario.cargarMapa = async function(){
-  const wrap = document.getElementById('mapaSvgWrapper');
-  if(wrap.dataset.loaded==='1') return;
-  try{
-    const resp = await fetch('./world/world.svg');
-    const txt = await resp.text();
-    wrap.innerHTML = txt;
-    wrap.dataset.loaded='1';
-    wrap.querySelectorAll('.tile').forEach(el=>{
-      el.addEventListener('click', ()=> this.mostrarPopupPais(el.id));
-    });
-  }catch(e){
-    wrap.innerHTML = '<p style="color:#c00;text-align:center;">No se pudo cargar el mapa</p>';
-  }
-};
-
-// Computa días 2026 por país ISO
-calendario._dias2026PorISO = function(){
-  const out={};
-  for(const v of this.viajes){
-    const iso = this.ISO_BY_PAIS[v.pais]; if(!iso) continue;
-    if(!out[iso]) out[iso] = new Set();
-    (v.dias||[]).forEach(d=> out[iso].add(d));
-  }
-  return out; // iso -> Set fechas unicas
-};
-
-// Días históricos por ISO
-calendario._diasHistoricoPorISO = function(){
-  const out={};
-  for(const h of (this.historico||[])){
-    const iso = this.ISO_BY_PAIS[h.pais]; if(!iso) continue;
-    out[iso] = (out[iso]||0) + (parseInt(h.dias)||0);
-  }
-  return out; // iso -> numero
-};
-
-// Pintado del mapa (fusionando histórico + 2026)
-calendario.pintarMapa = function(){
-  const wrap = document.getElementById('mapaSvgWrapper'); if(!wrap || !wrap.dataset.loaded) return;
-  const d2026 = this._dias2026PorISO();
-  const hist  = this._diasHistoricoPorISO();
-  wrap.querySelectorAll('.tile').forEach(el=>{
-    const iso = el.id; const total = (d2026[iso]?.size||0) + (hist[iso]||0);
-    el.setAttribute('class','tile');
-    if(total>=1 && total<=3) el.classList.add('visitado-1-3');
-    else if(total>=4 && total<=9) el.classList.add('visitado-4-9');
-    else if(total>=10) el.classList.add('visitado-10p');
-  });
-};
-
-// Popup país
-calendario.mostrarPopupPais = function(iso){
-  const nombre = Object.entries(this.ISO_BY_PAIS).find(([k,v])=>v===iso)?.[0] || iso;
-  const d2026 = this._dias2026PorISO();
-  const hist  = this._diasHistoricoPorISO();
-  const total = (d2026[iso]?.size||0) + (hist[iso]||0);
-  // Resumen de viajes 2026
-  const viajesPais = this.viajes.filter(v=> this.ISO_BY_PAIS[v.pais]===iso);
-  const resumen = viajesPais.map(v=>{
-    const i=new Date(v.fechaInicio), f=new Date(v.fechaFin);
-    const dias = Math.floor((f-i)/(1000*60*60*24))+1;
-    const destino=v.ciudadDestino?`${v.ciudadDestino} (${v.pais})`:v.pais;
-    return `• ${destino} — ${this.formatearFechaVisual(i)} - ${this.formatearFechaVisual(f)} (${dias}d)`;
-  }).join('<br>');
-  document.getElementById('mapTooltipTitle').textContent = nombre;
-  document.getElementById('mapTooltipBody').innerHTML =
-    `<div class="info-item" style="background:#f0f7ff;border-left:4px solid #2196F3;">
-      <div class="info-icon">📆</div>
-      <div class="info-text"><strong>Total días:</strong> ${total} (histórico ${hist[iso]||0} + 2026 ${d2026[iso]?.size||0})</div>
-    </div>` +
-    (resumen ? `<div class="info-item"><div class="info-icon">✈️</div><div class="info-text">${resumen}</div></div>` : '');
-  document.getElementById('mapTooltip').style.display='flex';
-};
-
-// Navegación a vista mapa
-calendario.mostrarVistaMapa = function(){
-  document.getElementById('vistaCalendario').style.display='none';
-  document.getElementById('vistaViajes').style.display='none';
-  document.getElementById('formularioViaje').style.display='none';
-  document.getElementById('vistaMapa').style.display='block';
-  this.cargarMapa().then(()=> this.pintarMapa());
-};
-
-// Event wiring extra (se ejecuta tras DOMContentLoaded)
-(function(){
-  document.getElementById('btnMapaMundial')?.addEventListener('click', ()=>calendario.mostrarVistaMapa());
-  document.getElementById('volverDesdeMapa')?.addEventListener('click', ()=>calendario.mostrarVistaCalendario());
-  document.getElementById('mapTooltipClose')?.addEventListener('click', ()=>calendario.cerrarTooltipMapa());
-  document.getElementById('mapTooltipCloseBtn')?.addEventListener('click', ()=>calendario.cerrarTooltipMapa());
-  calendario.cerrarTooltipMapa = function(){ document.getElementById('mapTooltip').style.display='none'; };
-
-  // Gestión histórico
-  document.getElementById('btnGestionHistorico')?.addEventListener('click', ()=>{
-    calendario._rellenarSelectHistorico();
-    document.getElementById('historicoDias').value='';
-    document.getElementById('historicoOverlay').style.display='flex';
-    calendario._pintarHistoricoLista();
-  });
-  document.getElementById('historicoClose')?.addEventListener('click', ()=>{ document.getElementById('historicoOverlay').style.display='none'; });
-  document.getElementById('historicoCancelar')?.addEventListener('click', ()=>{ document.getElementById('historicoOverlay').style.display='none'; });
-  document.getElementById('historicoGuardar')?.addEventListener('click', ()=>{
-    const pais = document.getElementById('historicoPais').value;
-    const dias = parseInt(document.getElementById('historicoDias').value||'0');
-    if(!pais){ alert('Selecciona un país'); return; }
-    if(isNaN(dias) || dias<0){ alert('Introduce días válidos'); return; }
-    const idx = calendario.historico.findIndex(x=>x.pais===pais);
-    if(idx===-1) calendario.historico.push({pais, dias}); else calendario.historico[idx].dias=dias;
-    calendario.guardarHistorico();
-    calendario._pintarHistoricoLista();
-    calendario.pintarMapa?.();
-  });
-})();
-
-// === Export/Import: añadir histórico ===
-(function(){
-  // Parche exportarDatos
-  const _export = calendario.exportarDatos?.bind(calendario);
-  if(_export){
-    calendario.exportarDatos = function(){
-      try{
-        const datos={
-          vacaciones:[...this.vacacionesPersonales],
-          viajes:this.viajes,
-          historico:this.historico, // <-- añadido
-          fechaExportacion:new Date().toISOString(),
-          totalViajes:this.viajes.length,
-          totalVacaciones:this.vacacionesPersonales.size,
-          version:'1.1', tipo:'Calendario Torres de Elorz 2026'
-        };
-        const s=JSON.stringify(datos,null,2); const fecha=new Date().toISOString().split('T')[0];
-        this.mostrarModalExportacion(s,fecha);
-      }catch(e){ alert('❌ Error al exportar datos: '+e.message); }
-    }
-  }
-
-  // Parche importarDatos (desde archivo)
-  const fileInput = document.getElementById('fileImport');
-  if(fileInput){
-    // Ya existe un handler original; lo respetamos porque se reasigna dentro
-  }
-
-  // Hook de funciones internas ya existentes
-  const _importarDesdeArchivo = calendario.importarDatos?.bind(calendario);
-  if(_importarDesdeArchivo){
-    calendario.importarDatos = function(ev){
-      const prev = ev && ev.target && ev.target.files && ev.target.files[0];
-      const originalOnLoad = (e)=>{ /* no usado aquí */ };
-      // Dejamos que corra el original y luego añadimos histórico si existe
-      const oldPush = this.guardarViajes.bind(this);
-      const self=this;
-      const reader = new FileReader();
-      const f = ev.target.files[0]; if(!f) return; ev.target.value='';
-      reader.onload = (e)=>{
-        try{
-          const datos = JSON.parse(e.target.result);
-          if(datos.historico && Array.isArray(datos.historico)){
-            // Validar forma {pais, dias}
-            self.historico = datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias)));
-            self.guardarHistorico();
-          }
-        }catch(err){ console.warn('Histórico no presente o inválido:', err); }
-      };
-      reader.readAsText(f);
-      // Ejecutar original también
-      _importarDesdeArchivo(ev);
-    }
-  }
-
-  // Parche procesarImportacionIOS (pegado)
-  if(calendario.procesarImportacionIOS){
-    const _ios = calendario.procesarImportacionIOS.bind(calendario);
-    calendario.procesarImportacionIOS = function(){
-      const txt = document.getElementById('iosImportTextarea').value.trim();
-      try{ const datos = JSON.parse(txt); if(datos.historico && Array.isArray(datos.historico)){
-        this.historico = datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias)));
-        this.guardarHistorico();
-      }}catch(e){ /* ya lo maneja el original */ }
-      return _ios();
-    }
-  }
-})();
-let calendario;
+        let calendario;
         document.addEventListener('DOMContentLoaded', () => {
             calendario = new CalendarioViajes();
         });
     </script>
 
-<!-- VISTA MAPA MUNDIAL -->
-<div class="viajes-container" id="vistaMapa" style="display:none;">
-  <div class="viajes-header">
-    <button class="volver-calendario" id="volverDesdeMapa">← Volver</button>
-    <h2>🌍 Mapa mundial de viajes</h2>
-    <div></div>
-  </div>
+  <script>
+  // PATCH v4.1 seguro: prototipo, sin usar 'calendario' antes de crearlo
+  (function(){
+    const P = window.CalendarioViajes && window.CalendarioViajes.prototype; if(!P) return;
+    P.STORAGE_HISTORICO='historico-viajes'; P.historico=[];
+    const _init=P.init; P.init=function(){ this.cargarHistorico(); const r=_init.apply(this,arguments); setTimeout(()=>{document.getElementById('btnMapaMundial')?.addEventListener('click',()=>this.mostrarVistaMapa()); document.getElementById('volverDesdeMapa')?.addEventListener('click',()=>this.mostrarVistaCalendario()); document.getElementById('mapTooltipClose')?.addEventListener('click',()=>this.cerrarTooltipMapa()); document.getElementById('mapTooltipCloseBtn')?.addEventListener('click',()=>this.cerrarTooltipMapa()); document.getElementById('btnGestionHistorico')?.addEventListener('click',()=>{ this._rellenarSelectHistorico(); document.getElementById('historicoDias').value=''; document.getElementById('historicoOverlay').style.display='flex'; this._pintarHistoricoLista(); }); },0); return r; }
+    P.cargarHistorico=function(){ try{const s=localStorage.getItem(this.STORAGE_HISTORICO); this.historico=s?JSON.parse(s):[];}catch{this.historico=[];} }
+    P.guardarHistorico=function(){ try{localStorage.setItem(this.STORAGE_HISTORICO, JSON.stringify(this.historico));}catch(e){} }
+    P._rellenarSelectHistorico=function(){ const sel=document.getElementById('historicoPais'); if(!sel) return; sel.innerHTML='<option value="">Selecciona un país</option>'; this.paises.forEach(p=>{const o=document.createElement('option'); o.value=p; o.textContent=p; sel.appendChild(o);}); }
+    P._pintarHistoricoLista=function(){ const cont=document.getElementById('historicoLista'); if(!cont) return; if(!this.historico.length){cont.innerHTML='<p style="color:#666;">No hay registros</p>'; return;} cont.innerHTML=''; this.historico.sort((a,b)=>a.pais.localeCompare(b.pais)); this.historico.forEach((h,idx)=>{ const d=document.createElement('div'); d.className='viaje-card'; d.style.marginBottom='8px'; d.innerHTML=`<div class="viaje-card-header"><div class="viaje-destino-card">${h.pais}</div><div class="viaje-acciones"><button class="btn-editar" data-idx="${idx}">✏️ Editar</button><button class="btn-editar" data-del="${idx}" style="color:#e91e63">🗑️ Eliminar</button></div></div><div class="viaje-fechas">📆 Días previos: ${h.dias||0}</div>`; d.querySelector('[data-idx]')?.addEventListener('click',(e)=>{const i=parseInt(e.currentTarget.getAttribute('data-idx')); const h=this.historico[i]; document.getElementById('historicoPais').value=h.pais; document.getElementById('historicoDias').value=h.dias||0;}); d.querySelector('[data-del]')?.addEventListener('click',(e)=>{const i=parseInt(e.currentTarget.getAttribute('data-del')); if(confirm('¿Eliminar este registro histórico?')){ this.historico.splice(i,1); this.guardarHistorico(); this._pintarHistoricoLista(); this.pintarMapa?.(); }}); cont.appendChild(d); }); }
+    P.ISO_BY_PAIS=Object.assign({'España':'ES','Francia':'FR','Alemania':'DE','Italia':'IT','Portugal':'PT','Reino Unido':'GB','Irlanda':'IE','Países Bajos':'NL','Bélgica':'BE','Suiza':'CH','Austria':'AT','Polonia':'PL','República Checa':'CZ','Dinamarca':'DK','Suecia':'SE','Noruega':'NO','Finlandia':'FI','Estados Unidos':'US','Canadá':'CA','México':'MX','Brasil':'BR','Argentina':'AR','Chile':'CL','Perú':'PE','Colombia':'CO','Marruecos':'MA','Turquía':'TR','Rusia':'RU','China':'CN','Japón':'JP','Corea del Sur':'KR','India':'IN','Australia':'AU','Nueva Zelanda':'NZ'}, P.ISO_BY_PAIS||{});
+    P.cargarMapa=async function(){ const wrap=document.getElementById('mapaSvgWrapper'); if(!wrap||wrap.dataset.loaded==='1') return; try{ const resp=await fetch('./world/world.svg'); const txt=await resp.text(); wrap.innerHTML=txt; wrap.dataset.loaded='1'; wrap.querySelectorAll('.tile').forEach(el=> el.addEventListener('click',()=>this.mostrarPopupPais(el.id))); }catch(e){ wrap.innerHTML='<p style="color:#c00;text-align:center;">No se pudo cargar el mapa</p>'; } }
+    P._dias2026PorISO=function(){ const out={}; for(const v of this.viajes){ const iso=this.ISO_BY_PAIS[v.pais]; if(!iso) continue; (out[iso]||(out[iso]=new Set())); (v.dias||[]).forEach(d=>out[iso].add(d)); } return out; }
+    P._diasHistoricoPorISO=function(){ const out={}; for(const h of (this.historico||[])){ const iso=this.ISO_BY_PAIS[h.pais]; if(!iso) continue; out[iso]=(out[iso]||0)+(parseInt(h.dias)||0);} return out; }
+    P.pintarMapa=function(){ const wrap=document.getElementById('mapaSvgWrapper'); if(!wrap||!wrap.dataset.loaded) return; const d2026=this._dias2026PorISO(); const hist=this._diasHistoricoPorISO(); wrap.querySelectorAll('.tile').forEach(el=>{ const iso=el.id; const total=(d2026[iso]?.size||0)+(hist[iso]||0); el.setAttribute('class','tile'); if(total>=1 && total<=3) el.classList.add('visitado-1-3'); else if(total>=4 && total<=9) el.classList.add('visitado-4-9'); else if(total>=10) el.classList.add('visitado-10p'); }); }
+    P.mostrarPopupPais=function(iso){ const nombre=Object.entries(this.ISO_BY_PAIS).find(([k,v])=>v===iso)?.[0]||iso; const d2026=this._dias2026PorISO(); const hist=this._diasHistoricoPorISO(); const total=(d2026[iso]?.size||0)+(hist[iso]||0); const viajesPais=this.viajes.filter(v=>this.ISO_BY_PAIS[v.pais]===iso); const resumen=viajesPais.map(v=>{ const i=new Date(v.fechaInicio), f=new Date(v.fechaFin); const dias=Math.floor((f-i)/(1000*60*60*24))+1; const destino=v.ciudadDestino?`${v.ciudadDestino} (${v.pais})`:v.pais; return `• ${destino} — ${this.formatearFechaVisual(i)} - ${this.formatearFechaVisual(f)} (${dias}d)`; }).join('<br>'); document.getElementById('mapTooltipTitle').textContent=nombre; document.getElementById('mapTooltipBody').innerHTML=`<div class="info-item" style="background:#f0f7ff;border-left:4px solid #2196F3;"><div class="info-icon">📆</div><div class="info-text"><strong>Total días:</strong> ${total} (histórico ${hist[iso]||0} + 2026 ${d2026[iso]?.size||0})</div></div>` + (resumen? `<div class="info-item"><div class="info-icon">✈️</div><div class="info-text">${resumen}</div></div>`:''); document.getElementById('mapTooltip').style.display='flex'; }
+    P.cerrarTooltipMapa=function(){ const o=document.getElementById('mapTooltip'); if(o) o.style.display='none'; }
+    P.mostrarVistaMapa=function(){ document.getElementById('vistaCalendario').style.display='none'; document.getElementById('vistaViajes').style.display='none'; document.getElementById('formularioViaje').style.display='none'; document.getElementById('vistaMapa').style.display='block'; this.cargarMapa().then(()=>this.pintarMapa()); }
+    const _export=P.exportarDatos; if(_export){ P.exportarDatos=function(){ try{ const datos={vacaciones:[...this.vacacionesPersonales], viajes:this.viajes, historico:this.historico, fechaExportacion:new Date().toISOString(), totalViajes:this.viajes.length, totalVacaciones:this.vacacionesPersonales.size, version:'1.1', tipo:'Calendario Torres de Elorz 2026'}; const s=JSON.stringify(datos,null,2); const fecha=new Date().toISOString().split('T')[0]; this.mostrarModalExportacion(s,fecha);}catch(e){alert('❌ Error al exportar datos: '+e.message);} } }
+    const _imp=P.importarDatos; if(_imp){ P.importarDatos=function(ev){ const self=this; const reader=new FileReader(); const f=ev.target.files[0]; if(!f) return; ev.target.value=''; reader.onload=(e)=>{ try{ const datos=JSON.parse(e.target.result); if(datos.historico && Array.isArray(datos.historico)){ self.historico=datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias))); self.guardarHistorico(); } }catch(err){} }; reader.readAsText(f); return _imp.call(this, ev); } }
+    if(P.procesarImportacionIOS){ const _ios=P.procesarImportacionIOS; P.procesarImportacionIOS=function(){ try{ const datos=JSON.parse(document.getElementById('iosImportTextarea').value.trim()); if(datos.historico && Array.isArray(datos.historico)){ this.historico=datos.historico.filter(h=>h && h.pais && Number.isFinite(parseInt(h.dias))); this.guardarHistorico(); } }catch(e){} return _ios.call(this); } }
+  })();
+  </script>
 
-  <div style="display:flex;gap:10px;flex-wrap:wrap;margin-bottom:10px;">
-    <button class="btn-nuevo-viaje" id="btnGestionHistorico" style="background:linear-gradient(135deg,#9C27B0 0%,#7B1FA2 100%);flex:1;min-width:220px;">📝 Gestionar histórico (antes de 2026)</button>
-  </div>
-
-  <div id="mapaContainer" style="width:100%;">
-    <div id="mapaSvgWrapper" style="width:100%;"></div>
-    <div style="text-align:center;color:#888;font-size:12px;margin-top:6px;">Toca un país para ver detalles</div>
-  </div>
-</div>
-
-<!-- Popup mapa -->
-<div class="day-info-overlay" id="mapTooltip" style="display:none;">
-  <div class="day-info-content">
-    <div class="day-info-header">
-      <div class="day-info-title" id="mapTooltipTitle">País</div>
-      <button class="close-day-info" id="mapTooltipClose">&times;</button>
-    </div>
-    <div class="day-info-body" id="mapTooltipBody"></div>
-    <div class="form-botones"><button class="btn-cancelar" id="mapTooltipCloseBtn">Cerrar</button></div>
-  </div>
-</div>
-
-<!-- Modal gestión histórico -->
-<div class="day-info-overlay" id="historicoOverlay" style="display:none;">
-  <div class="day-info-content" style="max-width:520px;">
-    <div class="day-info-header">
-      <div class="day-info-title">📝 Histórico de viajes (antes de 2026)</div>
-      <button class="close-day-info" id="historicoClose">&times;</button>
-    </div>
-    <div class="day-info-body">
-      <div class="form-group">
-        <label class="form-label" for="historicoPais">🌍 País</label>
-        <select class="form-select" id="historicoPais"></select>
-      </div>
-      <div class="form-group">
-        <label class="form-label" for="historicoDias">📆 Días totales (antes de 2026)</label>
-        <input type="number" min="0" class="form-input" id="historicoDias" placeholder="Ej: 12">
-      </div>
-      <div class="form-botones">
-        <button class="btn-guardar" id="historicoGuardar">Guardar</button>
-        <button class="btn-cancelar" id="historicoCancelar">Cancelar</button>
-      </div>
-      <h3 style="margin-top:18px;color:#333;">Listado</h3>
-      <div id="historicoLista" style="margin-top:10px;"></div>
-    </div>
-  </div>
-</div>
-
-  <script src="./world/mapa.js"></script>
 </body>
 </html>
