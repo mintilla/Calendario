@@ -2827,27 +2827,29 @@
             }
         }
 
-       // Inicializar calendario y HACERLO PÚBLICO para el mapa
-window.calendario = null; 
-
-document.addEventListener('DOMContentLoaded', () => {
-    // Guardamos la instancia en window para que addon.js pueda usarla
-    window.calendario = new CalendarioViajes();
-    
-    // Si usas una variable llamada 'app' en otros sitios, 
-    // también podemos definirla aquí:
-    window.app = window.calendario;
-});
-    </script>
- 
-<script src="./world/addon.js?v=1.1"></script>
 <script>
-  // Registrar el service worker v11 para romper la caché sí o sí
-  if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./service-worker-v11.js?bust=1')
-      .catch(console.error);
-  }
-</script>
+        // 1. Definimos el objeto global ANTES de cargar el archivo addon.js
+        window.calendario = null;
 
+        document.addEventListener('DOMContentLoaded', () => {
+            // Inicializamos tu calendario
+            window.calendario = new CalendarioViajes();
+            // Creamos el alias 'app' que es el que busca el mapa
+            window.app = window.calendario;
+            
+            console.log("Sistema listo, app vinculada");
+        });
+    </script>
+
+    <script src="./world/addon.js?v=999"></script>
+
+    <script>
+      // 3. El Service Worker lo dejamos para el final
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('./service-worker-v11.js?v=999')
+          .then(() => console.log("Service Worker actualizado"))
+          .catch(console.error);
+      }
+    </script>
 </body>
 </html>
