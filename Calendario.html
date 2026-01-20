@@ -2827,26 +2827,24 @@
             }
         }
 
-<script>
-        // 1. Definimos el objeto global ANTES de cargar el archivo addon.js
+</script> <script>
+        // 1. Definimos el objeto global
         window.calendario = null;
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Inicializamos tu calendario
+            // Inicializamos tu calendario (Asegúrate de que el nombre de la clase es este)
             window.calendario = new CalendarioViajes();
-            // Creamos el alias 'app' que es el que busca el mapa
             window.app = window.calendario;
-            
             console.log("Sistema listo, app vinculada");
         });
     </script>
 
-    <script src="./world/addon.js?v=999"></script>
+    <script src="./world/addon.js?v=1001"></script>
 
     <script>
-      // 3. El Service Worker lo dejamos para el final
+      // 3. Service Worker
       if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('./service-worker-v11.js?v=999')
+        navigator.serviceWorker.register('./service-worker-v11.js?v=1001')
           .then(() => console.log("Service Worker actualizado"))
           .catch(console.error);
       }
