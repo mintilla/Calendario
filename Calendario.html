@@ -2827,11 +2827,17 @@
             }
         }
 
-        // Inicializar calendario cuando el DOM esté listo
-        let calendario;
-        document.addEventListener('DOMContentLoaded', () => {
-            calendario = new CalendarioViajes();
-        });
+       // Inicializar calendario y HACERLO PÚBLICO para el mapa
+window.calendario = null; 
+
+document.addEventListener('DOMContentLoaded', () => {
+    // Guardamos la instancia en window para que addon.js pueda usarla
+    window.calendario = new CalendarioViajes();
+    
+    // Si usas una variable llamada 'app' en otros sitios, 
+    // también podemos definirla aquí:
+    window.app = window.calendario;
+});
     </script>
  
 <script src="./world/addon_break_99127.js"></script>
