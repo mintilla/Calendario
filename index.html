@@ -700,7 +700,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.8';
+const VERSION = 'v6.9';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2125,13 +2125,15 @@ function editarDocGen(d) {
       <optgroup label="Solo viajes a…">${paises.map(x => `<option${amb === x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</optgroup></select></div>
     <div class="campo"><label>Válido desde (opcional)</label><input id="dgDesde" type="date" value="${d.desde || ''}"></div>
     <div class="campo"><label>Válido hasta (opcional)</label><input id="dgHasta" type="date" value="${d.hasta || ''}"></div>
-    <label class="campo" style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="dgPrivado" type="checkbox" ${d.privado ? 'checked' : ''} style="width:22px;height:22px;flex:none"><span>🔒 Privado (pide Face ID si está activado)</span></label>
+    <div class="campo"><label>Acceso</label><div class="seg" id="dgPrivado" style="margin:6px 0 4px"><button data-priv="0" class="${d.privado ? '' : 'on'}">🔓 Normal</button><button data-priv="1" class="${d.privado ? 'on' : ''}">🔒 Privado</button></div>
+      <div class="muted" style="font-size:12px">Privado: pide Face ID para abrirlo (si lo tienes activado).</div></div>
     <div class="muted" style="font-size:12px;margin-top:6px">Ej.: pasaporte → todos los viajes, privado. Seguro Indonesia 2026 → Indonesia, válido del 01/01 al 31/12/2026. Guía para viajeros → todos los viajes.</div>`;
   $('#modalDocGen').classList.add('on');
   $('#dgCancelar').onclick = () => $('#modalDocGen').classList.remove('on');
+  $('#dgPrivado').onclick = e => { const b = e.target.closest('[data-priv]'); if (b) $('#dgPrivado').querySelectorAll('button').forEach(x => x.classList.toggle('on', x === b)); };
   $('#dgGuardar').onclick = () => {
     const ext = (d.nombre.match(/\.[a-z0-9]{2,5}$/i) || [''])[0];
-    const meta = { ...d, nombre: ($('#dgNombre').value.trim() || 'Documento') + ext, ambito: $('#dgAmbito').value, privado: $('#dgPrivado').checked };
+    const meta = { ...d, nombre: ($('#dgNombre').value.trim() || 'Documento') + ext, ambito: $('#dgAmbito').value, privado: !!$('#dgPrivado [data-priv="1"].on') };
     const de = $('#dgDesde').value, ha = $('#dgHasta').value;
     if (de) meta.desde = de; else delete meta.desde;
     if (ha) meta.hasta = ha; else delete meta.hasta;
