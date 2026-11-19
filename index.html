@@ -491,7 +491,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li><b>Crear un viaje:</b> el <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al guardarlo se abre su ficha. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
         <li><b>Correo de la agencia (.eml):</b> en Mail, pulsa el adjunto «mime-attachment» → Compartir → Guardar en Archivos, y súbelo con <b>＋ Añadir documento</b>. La app saca los <b>vuelos</b> y los PDFs adjuntos. Si lo subes dos veces, no duplica nada.</li>
-        <li><b>Vuelos:</b> número, día, horas (+1 si llegas al día siguiente), terminal, asiento, equipaje y localizador. Toca el localizador o el billete para copiarlo. <b>🔎 Estado</b> abre Flightradar24, Google o Mensajes con el número de vuelo. Desde 3 días antes, el vuelo sale en la tarjeta de hoy.</li>
+        <li><b>Vuelos:</b> número, día, horas (+1 si llegas al día siguiente), terminal, asiento, equipaje y localizador. Toca el localizador o el billete para copiarlo. <b>🔎 Ver estado del vuelo</b> abre Google con la salida, los retrasos y la puerta. Desde 3 días antes, el vuelo sale en la tarjeta de hoy.</li>
         <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora, «Hotel: …» o un hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba. Las direcciones abren Google Maps o Waze.</li>
         <li><b>Documentos:</b> PDFs o imágenes (máx. 7 MB). En el PC también puedes arrastrarlos. <b>✏️</b> cambia el nombre. Al abrirlo, <b>Compartir</b> lo guarda en Archivos, lo imprime o lo manda. En el móvil, <b>−/＋</b> amplía.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días, y todos los de Mis documentos, se guardan solos en el dispositivo (✓). Para otro viaje: <b>⬇️ Guardar sin conexión</b>.</li>
@@ -700,7 +700,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.9';
+const VERSION = 'v7.0';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2013,7 +2013,7 @@ function htmlVuelos(v) {
     const det2 = [f.asiento ? '💺 ' + esc(f.asiento) : '', f.clase ? esc(f.clase) : '', f.equipaje ? '🧳 ' + esc(f.equipaje) : ''].filter(Boolean).join(' · ');
     const det3 = [f.loc ? `Localizador <span class="cp" data-copiar="${esc(f.loc)}">${esc(f.loc)}</span>` : '', f.billete ? `Billete <span class="cp" data-copiar="${esc(f.billete)}">${esc(f.billete)}</span>` : ''].filter(Boolean).join(' · ');
     const q = encodeURIComponent(f.num || '');
-    const estado = f.num ? `<div class="vd">🔎 Estado: <a class="cp" href="https://www.flightradar24.com/data/flights/${q.toLowerCase()}" target="_blank" rel="noopener">Flightradar24</a> · <a class="cp" href="https://www.google.com/search?q=${q}+flight+status" target="_blank" rel="noopener">Google</a>${/iPhone|iPad/.test(navigator.userAgent) ? ` · <a class="cp" href="sms:&body=${q}">Mensajes</a>` : ''}</div>` : '';
+    const estado = f.num ? `<div class="vd"><a class="cp" href="https://www.google.com/search?q=${q}+flight+status" target="_blank" rel="noopener">🔎 Ver estado del vuelo ↗</a></div>` : '';
     return `<div class="vuelo"><div class="vc"><span>✈️ ${esc(f.num || '')}${f.aerolinea ? ' · ' + esc(f.aerolinea.replace(/-ROYAL DUTCH AIRLINES/i, '')) : ''} · ${diaVuelo(f.sal)}</span><button class="x" data-vuelo-borrar="${i}">✕</button></div>
       <div class="vr">${esc(f.de || '')} ${f.sal ? f.sal.slice(11, 16) : ''} <small>→</small> ${esc(f.a || '')} ${f.lle ? f.lle.slice(11, 16) : ''}${dias > 0 ? ` <small>+${dias}</small>` : ''}${f.utc ? ' <small>UTC</small>' : ''}</div>
       ${det ? `<div class="vd">${det}</div>` : ''}${det2 ? `<div class="vd">${det2}</div>` : ''}${det3 ? `<div class="vd">${det3}</div>` : ''}${estado}</div>`;
