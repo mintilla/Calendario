@@ -359,20 +359,20 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VIAJES ===================== -->
 <section class="tab" id="tab-via">
-  <button class="btn primario" id="btnNuevoViaje" style="margin:0 0 12px">＋ Nuevo viaje</button>
   <div class="seg" id="segVia"><button data-modo="año" class="on">Por año</button><button data-modo="hist">Histórico</button></div>
   <div id="viaHist" style="display:none"></div>
   <div id="viaAño">
   <div class="mes-nav" style="margin-top:4px">
     <div class="mes-titulo tocable" id="viaTitulo">Viajes</div>
     <div class="nav-btns">
+      <button class="icon-btn nuevo-viaje" title="Nuevo viaje" style="background:var(--accent);color:#fff;font-size:24px">＋</button>
       <button class="icon-btn" data-año="-1">‹</button>
       <button class="icon-btn" data-año="1">›</button>
     </div>
   </div>
   <div class="stats" id="viaStats"></div>
   <div id="viaDesglose"></div>
-  <div class="h-title">Viajes</div>
+  <div class="h-title" style="display:flex;justify-content:space-between;align-items:center">Viajes<button class="pill-btn nuevo-viaje" style="text-transform:none;letter-spacing:0">＋ Nuevo viaje</button></div>
   <div id="viaLista"></div>
   </div>
 </section>
@@ -479,7 +479,7 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>📎 Documentos del viaje</summary><div class="cont">
       <ul>
-        <li>El botón <b>＋ Nuevo viaje</b> está arriba en Viajes. Al crear un viaje se abre su ficha directamente. En el calendario, la tarjeta de hoy también abre la ficha del viaje en curso o del próximo. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
+        <li>Para crear un viaje: el botón <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al crear un viaje se abre su ficha directamente. En el calendario, la tarjeta de hoy también abre la ficha del viaje en curso o del próximo. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
         <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Revisa y guarda. El correo completo queda guardado al final.</li>
         <li><b>Documentos:</b> <b>＋ Añadir documento</b> para PDFs o imágenes (máx. 7 MB cada uno). En el PC también puedes arrastrarlos. Se sincronizan entre dispositivos.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días se guardan solos en el dispositivo (✓ sin conexión). Para otro viaje, pulsa <b>⬇️ Guardar sin conexión</b>. Antes de salir, abre el viaje con conexión y comprueba que pone ✓.</li>
@@ -680,7 +680,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.3';
+const VERSION = 'v6.4';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2166,7 +2166,7 @@ function eventos() {
   });
 
   // Formulario
-  $('#btnNuevoViaje').onclick = () => abrirFormulario(null);
+  document.querySelectorAll('.nuevo-viaje').forEach(b => b.onclick = () => abrirFormulario(null));
   $('#formCancelar').onclick = cerrarFormulario;
   $('#fPaisBuscar').oninput = renderListaPaises;
   $('#fPaisLista').onclick = e => { const b = e.target.closest('[data-pais]'); if (b) elegirPais(b.dataset.pais); };
