@@ -551,7 +551,7 @@ input,select,textarea{font-size:16px !important}
     <details><summary>🏭 Clientes</summary><div class="cont">
       <ul>
         <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
-        <li>Los viajes sin cliente salen aparte (⚠️). Tócalo para verlos y ponles cliente desde su ficha con <b>✏️ Editar viaje</b>.</li>
+        <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar viaje</b> puedes marcar uno como Feria, Comercial, Interno u Otro. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
       </ul>
     </div></details>
     <details><summary>🏢 Calendario de empresa</summary><div class="cont">
@@ -643,6 +643,7 @@ input,select,textarea{font-size:16px !important}
     </div>
     <div class="campo"><label>Ciudad (opcional)</label><input id="fCiudad" placeholder="Ej: Hamburgo" autocomplete="off"></div>
     <div class="campo"><label>Cliente</label><input id="fCliente" list="listaClientes" placeholder="Ej: Airbus" autocomplete="off"><datalist id="listaClientes"></datalist></div>
+    <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option><option value="otro">Otro (proveedor, socio…)</option></select></div>
     <div class="fechas">
       <div class="campo"><label>Ida</label><input type="date" id="fIni"></div>
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
@@ -788,7 +789,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.9';
+const VERSION = 'v8.0';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -937,11 +938,28 @@ function trasCambio() {
     return;
   }
   if (!N.migrandoVac && !S.aju.migVac1 && todos.every(k => N.servidor[k])) { N.migrandoVac = true; migrarVacacionesExcel(); }
+  if (!N.migrandoTipos && !S.aju.migTipos1 && todos.every(k => N.servidor[k])) { N.migrandoTipos = true; migrarTipos(); }
   if (renderPendiente) return;
   renderPendiente = true;
   requestAnimationFrame(() => { renderPendiente = false; render(); });
 }
 // Una sola vez: bolsa de 2026 y días parciales de la hoja "Vacaciones'26" del Excel
+const TIPOS_VIAJE = { feria: '🎪 Ferias', comercial: '💼 Comerciales', interno: '🏢 Internos (MTorres)', otro: '🤝 Otros (proveedor, socio…)', sincliente: '⚠️ Sin cliente' };
+const tipoDe = v => !v.cliente || v.cliente === 'Sin detalle' ? 'sincliente' : (v.tipo || 'cliente');
+const esCliente = v => tipoDe(v) === 'cliente';
+// Una sola vez: ferias, viajes comerciales e internos que venían del Excel como si fueran clientes
+function migrarTipos() {
+  S.viajes.forEach(v => {
+    if (v.tipo || !v.cliente) return;
+    const c = v.cliente;
+    if (/^feria\b/i.test(c)) v.tipo = 'feria';
+    else if (/comercial/i.test(c)) v.tipo = 'comercial';
+    else if (/^(m\.?\s?torres\b|mtt$)/i.test(c)) v.tipo = 'interno';
+    else if (/^fosber$/i.test(c)) v.tipo = 'otro';
+  });
+  S.aju.migTipos1 = true;
+  guardar();
+}
 function migrarVacacionesExcel() {
   S.aju.bolsas = S.aju.bolsas || {};
   if (!S.aju.bolsas[2026]) S.aju.bolsas[2026] = {
@@ -1379,7 +1397,7 @@ function htmlRecords(porAño) {
   S.viajes.forEach(v => {
     if (v.pais !== PAIS_CASA) nPais[v.pais] = (nPais[v.pais] || 0) + 1;
     for (const s of rango(v.fechaInicio, v.fechaFin)) {
-      if (v.cliente && v.cliente !== 'Sin detalle') (dCli[v.cliente] = dCli[v.cliente] || new Set()).add(s);
+      if (esCliente(v)) (dCli[v.cliente] = dCli[v.cliente] || new Set()).add(s);
       meses[+s.slice(5, 7) - 1]++;
     }
   });
@@ -1411,7 +1429,7 @@ function htmlRecords(porAño) {
 }
 function listaCliente(c, lista) {
   const vs = (lista || S.viajes.filter(v => v.cliente === c)).sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio));
-  $('#dlgTxt').innerHTML = `<b>${esc(lista ? 'Viajes sin cliente' : c)}</b><div class="muted" style="font-size:13px">${plural(vs.length, 'viaje')}${lista ? ' · toca uno y ponle cliente con ✏️ Editar viaje' : ''}</div>`;
+  $('#dlgTxt').innerHTML = `<b>${esc(c)}</b><div class="muted" style="font-size:13px">${plural(vs.length, 'viaje')}${lista ? ' · toca uno para abrirlo; con ✏️ Editar viaje cambias cliente o tipo' : ''}</div>`;
   $('#dlgBtns').innerHTML = `<div style="max-height:50vh;overflow:auto;text-align:left;margin:6px 0">${vs.map(v => `<div class="rec-f" data-dlg-viaje="${v.id}"><div class="ic">${bandera(v.pais)}</div><div style="flex:1"><div class="t">${esc(v.ciudadDestino || v.pais)}</div><div class="s">${rangoTxt(v.fechaInicio, v.fechaFin)} ${v.fechaInicio.slice(0, 4)} · ${plural(diasEntre(v.fechaInicio, v.fechaFin) + 1, 'día')}</div></div><div class="chev">›</div></div>`).join('')}</div><button class="btn secundario" data-i="0">Cerrar</button>`;
   const d = $('#dialogo'); d.classList.add('on');
   d.onclick = e => {
@@ -1427,7 +1445,7 @@ function renderHistorico() {
     for (const s of rango(v.fechaInicio, v.fechaFin)) {
       todos.add(s); if (v.pais !== PAIS_CASA) fuera.add(s);
       const y = s.slice(0,4); (porAño[y] = porAño[y] || new Set()).add(s);
-      (porCliente[v.cliente] = porCliente[v.cliente] || new Set()).add(s);
+      if (esCliente(v)) (porCliente[v.cliente] = porCliente[v.cliente] || new Set()).add(s);
     }
   });
   const paises = Object.keys(st).filter(p => p !== PAIS_CASA);
@@ -1701,9 +1719,10 @@ function renderViajes() {
   lista.forEach(v => {
     const a = v.fechaInicio < ini ? ini : v.fechaInicio, b = v.fechaFin > fin ? fin : v.fechaFin;
     const kp = `${bandera(v.pais)} ${esc(v.pais)}`, kc = esc(v.cliente);
-    porPais[kp] = porPais[kp] || new Set(); porCliente[kc] = porCliente[kc] || new Set();
+    const cli = esCliente(v);
+    porPais[kp] = porPais[kp] || new Set(); if (cli) porCliente[kc] = porCliente[kc] || new Set();
     for (const s of rango(a, b)) {
-      porPais[kp].add(s); porCliente[kc].add(s); todos.add(s);
+      porPais[kp].add(s); if (cli) porCliente[kc].add(s); todos.add(s);
       if (v.pais !== PAIS_CASA) fuera.add(s);
     }
   });
@@ -1745,6 +1764,7 @@ function abrirFormulario(viaje, ini, fin) {
   $('#fCiudad').value = viaje?.ciudadDestino || '';
   $('#fNota').value = viaje?.nota || '';
   $('#fCliente').value = viaje?.cliente || '';
+  $('#fTipo').value = viaje?.tipo || 'cliente';
   $('#fIni').value = viaje?.fechaInicio || ini || '';
   $('#fFin').value = viaje?.fechaFin || fin || ini || '';
   $('#formEliminar').style.display = viaje ? 'block' : 'none';
@@ -1788,11 +1808,13 @@ function guardarFormulario() {
   const a = $('#fIni').value, b = $('#fFin').value;
   if (!pais || !cliente || !a || !b) return toast('Falta país, cliente o fechas');
   if (b < a) return toast('La vuelta es antes que la ida');
-  const v = { id: S.editando?.id || 'viaje_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
+  // Se parte del viaje que había para no perder ficha, vuelos, reservas…
+  const previo = { ...(S.editando || {}) }; delete previo.nota; delete previo.tipo;
+  const tipoV = $('#fTipo').value;
+  const v = { ...previo, id: S.editando?.id || 'viaje_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
               pais, ciudadDestino: ciudad, fechaInicio: a, fechaFin: b, cliente,
               ...($('#fNota').value.trim() ? { nota: $('#fNota').value.trim() } : {}),
-              ...(S.editando?.info ? { info: S.editando.info } : {}),
-              ...(S.editando?.vuelos ? { vuelos: S.editando.vuelos } : {}),
+              ...(tipoV !== 'cliente' ? { tipo: tipoV } : {}),
               fechaCreacion: S.editando?.fechaCreacion || new Date().toISOString() };
   const i = S.viajes.findIndex(x => x.id === v.id);
   if (i >= 0) S.viajes[i] = v; else S.viajes.push(v);
@@ -2705,19 +2727,21 @@ function iniciarDetalle() {
 // =====================================================================
 //  CLIENTES: renombrar, juntar y aplicar un archivo de correcciones
 // =====================================================================
-function clientesConteo() {
+function clientesConteo(soloClientes) {
   const c = {};
-  S.viajes.forEach(v => { const k = v.cliente || 'Sin detalle'; c[k] = (c[k] || 0) + 1; });
+  S.viajes.forEach(v => { if (soloClientes && !esCliente(v)) return; const k = v.cliente || 'Sin detalle'; c[k] = (c[k] || 0) + 1; });
   return Object.entries(c).sort((a, b) => a[0].localeCompare(b[0], 'es', { sensitivity: 'base' }));
 }
 function renderClientes() {
-  const lista = clientesConteo().filter(([c]) => c !== 'Sin detalle');
+  const lista = clientesConteo(true);
   if (S.aju.clientesAntes) { delete S.aju.clientesAntes; guardar(); }
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cliToggle"><span>${plural(lista.length, 'cliente')} en tus viajes</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.cliAbierto ? 'Ocultar' : 'Ver y renombrar ›'}</span></div>`;
   if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para ver sus viajes. Con ✏️ le cambias el nombre en todos ellos; si pones el de otro que ya existe, se juntan.</div>
     <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli-ver="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div><div class="s">${plural(n, 'viaje')}</div></div><button class="pill-btn" data-cli="${esc(c)}" aria-label="Cambiar nombre" style="padding:0 10px">✏️</button></div>`).join('')}</div>`;
-  const sin = S.viajes.filter(v => !v.cliente || v.cliente === 'Sin detalle');
-  if (sin.length) h += `<div class="rec-f" id="cliSin" style="cursor:pointer;margin-top:6px;border-top:1px solid var(--line)"><div class="ic">⚠️</div><div style="flex:1"><div class="t" style="font-size:14px">${plural(sin.length, 'viaje sin cliente', 'viajes sin cliente')}</div><div class="s">Tócalo para verlos y ponerles cliente</div></div><div class="chev">›</div></div>`;
+  const otros = Object.keys(TIPOS_VIAJE).map(t => [t, S.viajes.filter(v => tipoDe(v) === t)]).filter(([, l]) => l.length);
+  if (otros.length) h += `<div class="muted" style="font-size:12px;font-weight:600;margin:14px 0 2px;text-transform:uppercase;letter-spacing:.4px">Otros viajes</div>` +
+    otros.map(([t, l]) => `<div class="rec-f" data-otros="${t}" style="cursor:pointer;padding:9px 0"><div style="flex:1"><div class="t" style="font-size:14px">${TIPOS_VIAJE[t]}</div><div class="s">${plural(l.length, 'viaje')}${t === 'sincliente' ? ' · tócalo para ponerles cliente' : ''}</div></div><div class="chev">›</div></div>`).join('') +
+    `<div class="muted" style="font-size:11px;margin-top:6px">No cuentan como clientes en las estadísticas. El tipo se cambia en ✏️ Editar viaje.</div>`;
   $('#cliCard').innerHTML = h;
 }
 async function renombrarCliente(viejo) {
@@ -2732,7 +2756,7 @@ async function renombrarCliente(viejo) {
 function iniciarClientes() {
   $('#cliCard').addEventListener('click', e => {
     if (e.target.closest('#cliToggle')) { S.cliAbierto = !S.cliAbierto; return renderClientes(); }
-    if (e.target.closest('#cliSin')) return listaCliente('Sin detalle', S.viajes.filter(v => !v.cliente || v.cliente === 'Sin detalle'));
+    const ot = e.target.closest('[data-otros]'); if (ot) return listaCliente(TIPOS_VIAJE[ot.dataset.otros], S.viajes.filter(v => tipoDe(v) === ot.dataset.otros));
     const c = e.target.closest('[data-cli]'); if (c) return renombrarCliente(c.dataset.cli);
     const cv = e.target.closest('[data-cli-ver]'); if (cv) return listaCliente(cv.dataset.cliVer);
   });
