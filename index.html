@@ -198,9 +198,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fila-pais .n small{display:block;font-size:10px;color:var(--muted);font-weight:600}
 
 /* ===== MAPA ===== */
-.mapa-wrap{overflow:auto;border-radius:14px;background:var(--soft);-webkit-overflow-scrolling:touch;position:relative}
+.mapa-wrap{aspect-ratio:1000/520;touch-action:pan-x pan-y;overflow:auto;border-radius:14px;background:var(--soft);-webkit-overflow-scrolling:touch;position:relative}
 .mapa-wrap svg{display:block}
-.mapa-wrap path{fill:var(--line);stroke:var(--card);stroke-width:.4;cursor:pointer;transition:fill .15s}
+.mapa-wrap path{fill:var(--line);stroke:var(--card);stroke-width:.6;vector-effect:non-scaling-stroke;cursor:pointer;transition:fill .15s}
 .mapa-wrap path.n1{fill:#d9c6f7}.mapa-wrap path.n2{fill:#b48af0}.mapa-wrap path.n3{fill:#8e44ec}.mapa-wrap path.n4{fill:#5b1fb0}
 .mapa-wrap path.ocio{fill:#2ec4a6}
 .mapa-wrap path.casa{fill:#ff9500}
@@ -564,7 +564,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.5';
+const VERSION = 'v5.6';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1249,7 +1249,10 @@ function renderMapa() {
     if (nombre && nombre === S.paisSel) cls += ' sel';
     svg += `<path d="${d}" class="${cls}" data-iso="${iso}"/>`;
   }
-  $('#mapaWrap').innerHTML = svg + '</svg>';
+  // Mantener la zona que se estaba viendo al redibujar (p. ej. al tocar un país)
+  const wrap = $('#mapaWrap');
+  wrap.innerHTML = svg + '</svg>';
+  aplicarCentroMapa();
 
   const trabajo = Object.keys(st).filter(p => p !== PAIS_CASA);
   const continentes = trabajo.length + ocio.length;
@@ -1260,6 +1263,34 @@ function renderMapa() {
   $('#mapLista').innerHTML = Object.entries(st).sort((a, b) => b[1].dias.size - a[1].dias.size).map(([p, x]) => filaPais(p, x)).join('') +
     ocio.map(p => `<div class="fila-pais" data-ver-pais="${esc(p)}"><div class="fl">${bandera(p)}</div><div class="tx"><div class="t">${esc(p)}</div><div class="s">Ocio</div></div><div class="n" style="color:#2ec4a6">🏖️</div></div>`).join('');
   renderPanelPais();
+}
+// Ampliar y centrar el mapa en un país (útil para los pequeños)
+function centrarEnPais(nombre) {
+  const iso = PAISES[nombre], wrap = $('#mapaWrap');
+  const path = iso && wrap.querySelector(`path[data-iso="${iso}"]`);
+  if (!path) return;
+  const bb = path.getBBox();
+  S.zoom = Math.min(16, Math.max(1, Math.min(MAPA.w / (bb.width * 3), MAPA.h / (bb.height * 3))));
+  wrap.querySelector('svg').style.width = (S.zoom * 100) + '%';
+  S.mapCentro = { x: (bb.x + bb.width / 2) / MAPA.w, y: (bb.y + bb.height / 2) / MAPA.h };
+  aplicarCentroMapa();
+}
+// Centro visible del mapa, en fracción del mapa (0–1), para conservarlo entre redibujados
+function leerCentroMapa() {
+  const w = $('#mapaWrap');
+  if (!w.scrollWidth) return;
+  S.mapCentro = { x: (w.scrollLeft + w.clientWidth / 2) / w.scrollWidth, y: (w.scrollTop + w.clientHeight / 2) / w.scrollHeight };
+}
+function aplicarCentroMapa() {
+  const pon = () => {
+    const w = $('#mapaWrap'), c = S.mapCentro;
+    if (!c) return;
+    N.moviendoMapa = true;
+    w.scrollLeft = c.x * w.scrollWidth - w.clientWidth / 2;
+    w.scrollTop = c.y * w.scrollHeight - w.clientHeight / 2;
+    setTimeout(() => N.moviendoMapa = false, 50);
+  };
+  pon(); requestAnimationFrame(pon);
 }
 function renderPanelPais() {
   const el = $('#paisPanel'), p = S.paisSel;
@@ -1588,6 +1619,7 @@ function eventos() {
   $('#btnVista').onclick = () => { S.vista = S.vista === 'mes' ? 'año' : 'mes'; S.sel = null; renderCal(); };
   $('#mesTitulo').onclick = () => elegirAño(renderCal);
   $('#viaTitulo').onclick = () => elegirAño(renderViajes);
+  $('#mapaWrap').addEventListener('scroll', () => { if (!N.moviendoMapa) leerCentroMapa(); }, { passive: true });
   $('#vacTitulo').onclick = () => { const y = S.año; S.año = S.añoVac; elegirAño(() => { S.añoVac = S.año; S.año = y; renderVacaciones(); }); };
   // Cambios en campos de horas y bolsa (se guardan al salir del campo)
   document.body.addEventListener('change', e => {
@@ -1616,7 +1648,7 @@ function eventos() {
     const md = e.target.closest('#segVia [data-modo]'); if (md) { S.modoVia = md.dataset.modo; return renderViajes(); }
     const ia = e.target.closest('[data-ir-año]'); if (ia) { S.año = +ia.dataset.irAño; S.modoVia = 'año'; renderViajes(); return window.scrollTo(0, 0); }
     const vp = e.target.closest('[data-ver-pais]');
-    if (vp) { S.paisSel = vp.dataset.verPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); return setTimeout(() => $('#paisPanel').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
+    if (vp) { S.paisSel = vp.dataset.verPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); centrarEnPais(S.paisSel); return setTimeout(() => $('#mapaWrap').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
     const pth = e.target.closest('path[data-iso]');
     if (pth) { const n = NOMBRE_DE_ISO[pth.dataset.iso]; if (n) { S.paisSel = n; renderMapa(); } return; }
     if (e.target.id === 'panelX') { S.paisSel = null; return renderMapa(); }
@@ -1626,8 +1658,12 @@ function eventos() {
       guardar(); return renderMapa();
     }
     if (e.target.id === 'zoomMas' || e.target.id === 'zoomMenos') {
-      S.zoom = Math.min(4, Math.max(1, S.zoom + (e.target.id === 'zoomMas' ? 1 : -1)));
-      return renderMapa();
+      // Zoom manteniendo el centro de lo que se está viendo
+      leerCentroMapa();
+      S.zoom = Math.min(16, Math.max(1, S.zoom * (e.target.id === 'zoomMas' ? 1.6 : 1 / 1.6)));
+      if (S.zoom < 1.05) S.zoom = 1;
+      $('#mapaWrap').querySelector('svg').style.width = (S.zoom * 100) + '%';
+      return aplicarCentroMapa();
     }
     const eb = e.target.closest('[data-emp-borrar]');
     if (eb) {
