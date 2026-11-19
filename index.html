@@ -41,6 +41,17 @@ body{
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .card{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
+.ayuda details{border-bottom:1px solid var(--line)}
+.ayuda details:last-child{border-bottom:none}
+.ayuda summary{list-style:none;cursor:pointer;padding:11px 2px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+.ayuda summary::-webkit-details-marker{display:none}
+.ayuda summary::after{content:'›';color:var(--muted);font-size:20px;transition:transform .2s}
+.ayuda details[open] summary::after{transform:rotate(90deg)}
+.ayuda .cont{font-size:14px;line-height:1.45;padding:0 2px 12px;color:var(--text)}
+.ayuda .cont p{margin:0 0 8px}
+.ayuda .cont ul{margin:0 0 8px 18px;padding:0}
+.ayuda .cont li{margin-bottom:4px}
+.ayuda code{font-family:Menlo,monospace;font-size:12px;background:var(--soft);padding:1px 5px;border-radius:6px}
 .h-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 4px 8px}
 .muted{color:var(--muted)}
 .tab{display:none}
@@ -397,6 +408,63 @@ input,select,textarea{font-size:16px !important}
     </div>
     <input type="file" id="fileImport" accept=".json,application/json,text/plain" style="display:none">
   </div>
+
+  <div class="h-title">Ayuda</div>
+  <div class="card ayuda">
+    <details><summary>📅 Calendario</summary><div class="cont">
+      <p>Se abre en la <b>vista año</b>. Toca un mes para verlo en grande; el botón <b>Mes/Año</b> cambia de vista.</p>
+      <ul>
+        <li><b>Marcar:</b> en la vista mes toca un día y luego otro para elegir un rango. Abajo sale una hoja con <b>🏖️ Vacaciones</b> y <b>✈️ Viaje</b>.</li>
+        <li><b>Vacaciones:</b> se amplían solas a los findes y festivos pegados. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
+        <li><b>Días parciales:</b> toca un solo día de vacaciones y cambia sus horas (por defecto 8 h). El día se rellena como un vaso según las horas. <b>↺</b> vuelve a 8 h.</li>
+        <li><b>Viajes:</b> toca un viaje en la hoja o en la lista del mes para editarlo o borrarlo.</li>
+        <li>Los festivos, puentes y vacacionales de empresa no cuentan horas. El vacacional y el previo sí son laborables: si coges vacaciones ahí, cuentan.</li>
+      </ul>
+    </div></details>
+    <details><summary>🏖️ Vacaciones (bolsa de horas)</summary><div class="cont">
+      <p>Las vacaciones van por horas. Cada año tiene su <b>bolsa</b>:</p>
+      <ul>
+        <li><b>Conceptos:</b> vacaciones, opcionales, ajuste de horario, otros… Con <b>＋ Añadir concepto</b> metes los que diga el calendario laboral.</li>
+        <li><b>Pendiente del año anterior:</b> se calcula solo (lo que sobró). Si no cuadra con lo de la empresa, cámbialo a mano; <b>↺</b> vuelve al cálculo automático.</li>
+        <li><b>Reservadas</b> son todas las marcadas en el calendario; <b>disfrutadas</b>, las de hasta hoy. "Pendiente de reservar" es lo que te queda por marcar.</li>
+        <li><b>Año nuevo:</b> cuando salga el calendario laboral, pulsa <b>＋ Crear bolsa</b> (copia los conceptos del año anterior) y ajusta las horas.</li>
+      </ul>
+    </div></details>
+    <details><summary>🏢 Calendario de empresa</summary><div class="cont">
+      <ul>
+        <li>En <b>Ajustes → Calendario de empresa</b>, <b>＋ Añadir calendario</b> crea un año vacío con sus días cuadrados.</li>
+        <li>Pulsa <b>✏️ Editar</b>, elige el tipo (Festivo, Puente, Vacacional, Previo 6h o Borrar) y toca los días. <b>Listo</b> para terminar.</li>
+        <li>Solo se pueden borrar los años futuros, para no perder los pasados.</li>
+      </ul>
+    </div></details>
+    <details><summary>✈️ Viajes y 🌍 Mapa</summary><div class="cont">
+      <ul>
+        <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
+        <li>Los días cuentan de salida a vuelta, ambos incluidos. "En el extranjero" excluye España.</li>
+        <li><b>Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
+        <li>Para países pequeños, tócalos en la lista <b>Todos los países</b>: el mapa se amplía y los centra. Con <b>＋/−</b> llegas hasta ×16.</li>
+        <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
+      </ul>
+    </div></details>
+    <details><summary>📶 Sin conexión y sincronización</summary><div class="cont">
+      <ul>
+        <li>Funciona sin cobertura: los cambios se guardan en el dispositivo y se envían al volver la conexión.</li>
+        <li>En el iPhone solo sincroniza con la app <b>abierta</b>. Si arriba sale el aviso de cambios pendientes, déjala abierta con conexión hasta que desaparezca.</li>
+        <li>Si cambias lo mismo en dos sitios sin conexión: las vacaciones y horas se juntan; en viajes, bolsa y ajustes gana el último que se envía.</li>
+        <li>Las actualizaciones de la app llegan solas: si no ves un cambio, ciérrala y ábrela otra vez.</li>
+      </ul>
+    </div></details>
+    <details><summary>🔧 Cómo está montado</summary><div class="cont">
+      <ul>
+        <li><b>Web:</b> GitHub Pages, <code>mintilla.github.io/Calendario</code>. El código está en GitHub, repositorio <code>mintilla/Calendario</code> (público, sin datos personales). Cada cambio en la rama <code>main</code> se publica solo en 1–2 minutos.</li>
+        <li><b>Datos:</b> Firebase, proyecto <code>calendario-torres</code> (plan gratuito Spark, sin tarjeta). Entras con correo y contraseña; cada usuario solo ve sus datos.</li>
+        <li><b>Copia local:</b> cada dispositivo guarda una copia para abrir sin conexión.</li>
+        <li><b>Backup:</b> exporta de vez en cuando con <b>💾 Exportar backup</b> y guárdalo (iCloud, OneDrive…). Se recupera con <b>Importar backup</b>.</li>
+        <li><b>Si algo falla:</b> cierra y abre la app; prueba en el navegador normal; mira que estás conectado (arriba, en Cuenta). Si no abre en ningún sitio, revisa en <code>github.com/mintilla/Calendario</code> → Settings → Pages que siga activo.</li>
+        <li><b>Para cambiar algo:</b> pásale el repositorio a Claude y explícale lo que quieres.</li>
+      </ul>
+    </div></details>
+  </div>
   <div class="muted" style="font-size:11px;text-align:center;margin-top:16px"><span id="verTxt"></span></div>
 </section>
 
@@ -564,7 +632,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.8';
+const VERSION = 'v5.9';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
