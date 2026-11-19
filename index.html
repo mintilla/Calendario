@@ -68,7 +68,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .doc-f .tx{flex:1;min-width:0}
 .doc-f .t{font-size:14px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .doc-f .s{font-size:12px;color:var(--muted)}
-.doc-f .x{width:30px;height:30px;border-radius:15px;background:var(--soft);color:var(--muted);flex:none}
+.doc-f .x{width:30px;height:30px;border-radius:15px;background:var(--soft);color:var(--muted);flex:none;font-size:13px}
 .doc-drop{border:2px dashed var(--accent);border-radius:14px}
 .correo-txt{white-space:pre-wrap;font-size:13px;line-height:1.45;word-break:break-word;margin-top:8px;max-height:60vh;overflow:auto}
 .campo textarea{width:100%;border:none;background:none;color:var(--text);font-size:16px;padding:6px 0 10px;outline:none;resize:vertical;font-family:inherit;line-height:1.4}
@@ -207,7 +207,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .seg button{flex:1;padding:8px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
 .mes-titulo.tocable{cursor:pointer}
-.mes-titulo.tocable::after{content:' ▾';font-size:14px;color:var(--accent)}
+.mes-titulo.tocable::after{content:'▾';display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:13px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:15px;margin-left:8px;vertical-align:middle;position:relative;top:-2px}
 .años-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:50vh;overflow-y:auto;margin:10px 0 4px}
 .años-grid button{padding:10px 0;border-radius:10px;background:var(--soft);font-weight:700;font-size:15px}
 .años-grid button.on{background:var(--accent);color:#fff}
@@ -414,7 +414,8 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== AJUSTES ===================== -->
 <section class="tab" id="tab-aju">
-  <div class="mes-titulo" style="margin:4px 0 12px">Ajustes</div>
+  <div class="mes-titulo" style="margin:4px 0 2px">Ajustes</div>
+  <div class="muted" style="font-size:13px;margin:0 4px 12px" id="verTxt"></div>
   <div class="h-title">Cuenta</div>
   <div class="card">
     <div style="font-weight:600" id="cuentaEmail"></div>
@@ -478,11 +479,11 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>📎 Documentos del viaje</summary><div class="cont">
       <ul>
-        <li>Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
+        <li>Al crear un viaje se abre su ficha directamente. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
         <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Revisa y guarda. El correo completo queda guardado al final.</li>
         <li><b>Documentos:</b> <b>＋ Añadir documento</b> para PDFs o imágenes (máx. 7 MB cada uno). En el PC también puedes arrastrarlos. Se sincronizan entre dispositivos.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días se guardan solos en el dispositivo (✓ sin conexión). Para otro viaje, pulsa <b>⬇️ Guardar sin conexión</b>. Antes de salir, abre el viaje con conexión y comprueba que pone ✓.</li>
-        <li>Al abrir un documento, <b>Compartir</b> te deja guardarlo en Archivos, imprimirlo o mandarlo.</li>
+        <li>Con <b>✏️</b> le cambias el nombre (p. ej. «QR entrada Indonesia»). Al abrir un documento, <b>Compartir</b> te deja guardarlo en Archivos, imprimirlo o mandarlo.</li>
         <li>Los documentos no van en el backup: están en Firebase. Si borras el viaje, se borran también sus documentos.</li>
       </ul>
     </div></details>
@@ -505,7 +506,6 @@ input,select,textarea{font-size:16px !important}
       </ul>
     </div></details>
   </div>
-  <div class="muted" style="font-size:11px;text-align:center;margin-top:16px"><span id="verTxt"></span></div>
 </section>
 
 <!-- ===================== HOJA SELECCIÓN ===================== -->
@@ -680,7 +680,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.1';
+const VERSION = 'v6.2';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1550,9 +1550,11 @@ function guardarFormulario() {
               fechaCreacion: S.editando?.fechaCreacion || new Date().toISOString() };
   const i = S.viajes.findIndex(x => x.id === v.id);
   if (i >= 0) S.viajes[i] = v; else S.viajes.push(v);
+  const nuevo = !S.editando;
   guardar(); cerrarFormulario(); S.sel = null;
   toast(`${bandera(pais)} Viaje guardado`);
   render();
+  if (nuevo) abrirDetalle(v.id);   // directo a la ficha para pegar el correo y subir documentos
 }
 function eliminarViaje() {
   if (!S.editando) return;
@@ -1659,6 +1661,18 @@ function borrarDocYa(d) {
   enviar(lote);
   S.docs = (S.docs || []).filter(x => x.id !== d.id);
   borrarDocLocal(d.id);
+}
+async function renombrarDoc(d) {
+  const ext = (d.nombre.match(/\.[a-z0-9]{2,5}$/i) || [''])[0];
+  const actual = ext ? d.nombre.slice(0, -ext.length) : d.nombre;
+  const nuevo = await pedirTexto('Nombre del documento', actual);
+  if (!nuevo || nuevo === actual) return;
+  const meta = { ...d, nombre: nuevo + ext };
+  const lote = N.FB.writeBatch(N.db);
+  lote.set(N.FB.doc(N.db, 'usuarios', N.uid, 'docs', d.id), meta);
+  enviar(lote);
+  S.docs = (S.docs || []).map(x => x.id === d.id ? meta : x);
+  guardarCopiaLocal(); renderDetalle(); toast('✏️ Nombre cambiado');
 }
 function borrarDoc(d) {
   preguntar(`¿Borrar «${d.nombre}»?\nSe borra en todos tus dispositivos.`, [{ t: 'Borrar', cls: 'peligro' }, { t: 'Cancelar' }]).then(i => {
@@ -1790,7 +1804,7 @@ function renderDetalle() {
     const sinGuardar = docs.filter(d => !N.docsLocal.has(d.id)).length;
     h += `<div class="det-sec"><span>Documentos</span>${docs.length ? `<span style="font-size:12px;text-transform:none;letter-spacing:0">${sinGuardar ? `${sinGuardar} sin guardar en este dispositivo` : '✓ Todo disponible sin conexión'}</span>` : ''}</div>
       <div class="card" id="docsCard">
-        ${docs.map(d => `<div class="doc-f" data-doc-abrir="${d.id}"><div class="ic">${(d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${tamTxt(d.tam || 0)} · ${N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'}</div></div><button class="x" data-doc-borrar="${d.id}">✕</button></div>`).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Sin documentos. Añade los PDFs del viaje (billetes, visado, reservas…).</div>'}
+        ${docs.map(d => `<div class="doc-f" data-doc-abrir="${d.id}"><div class="ic">${(d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${tamTxt(d.tam || 0)} · ${N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'}</div></div><button class="x" data-doc-renombrar="${d.id}" title="Cambiar nombre">✏️</button><button class="x" data-doc-borrar="${d.id}">✕</button></div>`).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Sin documentos. Añade los PDFs del viaje (billetes, visado, reservas…).</div>'}
         <button class="btn primario" id="docAñadir">＋ Añadir documento</button>
         ${sinGuardar ? '<button class="btn secundario" id="docGuardarTodo">⬇️ Guardar sin conexión</button>' : ''}
       </div>`;
@@ -1835,6 +1849,7 @@ function iniciarDetalle() {
       toast('⬇️ Guardando…');
       return precargar(S.detalle).then(() => { renderDetalle(); toast(docsDe(S.detalle).every(d => N.docsLocal.has(d.id)) ? '✓ Disponible sin conexión' : '⚠️ Alguno no se pudo guardar'); });
     }
+    const rn = t.closest('[data-doc-renombrar]'); if (rn) { e.stopPropagation(); return renombrarDoc(S.docs.find(d => d.id === rn.dataset.docRenombrar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
     const a = t.closest('[data-doc-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.docAbrir));
   });
@@ -1890,7 +1905,7 @@ function añadirAño() {
 function renderAjustes() {
   $('#cuentaEmail').textContent = '👤 ' + N.email;
   $('#cuentaEstado').textContent = estadoNube();
-  $('#verTxt').textContent = `Datos en la nube (Firebase) y copia en este dispositivo · ${VERSION}`;
+  $('#verTxt').innerHTML = `Versión <b>${VERSION}</b> · datos en la nube y copia en este dispositivo`;
   renderEmpCard();
   $('#backupInfo').textContent = `${plural(S.viajes.length, 'viaje')} y ${plural(S.vac.size, 'día')} de vacaciones guardados (todos los años).`;
 }
@@ -1985,6 +2000,19 @@ function elegirAño(alElegir) {
       S.sel = null; alElegir();
     }
   };
+}
+function pedirTexto(texto, valor) {
+  return new Promise(res => {
+    $('#dlgTxt').textContent = texto;
+    $('#dlgBtns').innerHTML = `<input id="dlgInput" value="${esc(valor || '')}" style="width:100%;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--text);margin:6px 0 4px" autocomplete="off">
+      <button class="btn primario" data-i="0">Guardar</button><button class="btn secundario" data-i="1">Cancelar</button>`;
+    const d = $('#dialogo');
+    d.classList.add('on');
+    const inp = $('#dlgInput'); setTimeout(() => { inp.focus(); inp.select(); }, 50);
+    const fin = ok => { d.classList.remove('on'); d.onclick = null; res(ok ? inp.value.trim() : null); };
+    inp.onkeydown = e => { if (e.key === 'Enter') fin(true); };
+    d.onclick = e => { const b = e.target.closest('[data-i]'); if (b) fin(b.dataset.i === '0'); else if (e.target === d) fin(false); };
+  });
 }
 function preguntar(texto, botones) {
   return new Promise(res => {
@@ -2143,6 +2171,10 @@ function eventos() {
   $('#fPaisLista').onclick = e => { const b = e.target.closest('[data-pais]'); if (b) elegirPais(b.dataset.pais); };
   $('#fPaisElegido').onclick = () => { elegirPais(''); $('#fPaisBuscar').focus(); };
   $('#formGuardar').onclick = guardarFormulario;
+  // Aviso cuando llega una versión nueva
+  const vVista = leer('version-vista');
+  if (vVista && vVista !== VERSION) setTimeout(() => toast(`✨ App actualizada a ${VERSION}`), 1800);
+  escribir('version-vista', VERSION);
   iniciarDetalle();
   $('#formEliminar').onclick = eliminarViaje;
   $('#fIni').onchange = () => { if (!$('#fFin').value || $('#fFin').value < $('#fIni').value) $('#fFin').value = $('#fIni').value; actualizarDuracion(); };
