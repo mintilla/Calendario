@@ -76,6 +76,10 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .visor.on{display:flex}
 .visor-bar{display:flex;align-items:center;gap:8px;padding:calc(8px + env(safe-area-inset-top)) 10px 8px;border-bottom:1px solid var(--line)}
 .visor-bar span{flex:1;font-weight:600;font-size:14px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-align:center}
+.pdf-hojas{flex:1;overflow:auto;-webkit-overflow-scrolling:touch;background:#525659;padding:8px}
+.pdf-hojas canvas{display:block;margin:0 auto 8px;background:#fff;box-shadow:0 1px 4px rgba(0,0,0,.4)}
+.pdf-zoom{position:absolute;right:14px;bottom:calc(16px + env(safe-area-inset-bottom));display:flex;gap:8px;z-index:2}
+.pdf-zoom button{width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--accent);font-size:22px;font-weight:700;box-shadow:var(--shadow)}
 .visor iframe,.visor img{flex:1;width:100%;border:none;background:#fff;object-fit:contain}
 .clip{font-size:12px;color:var(--muted);margin-left:6px}
 .h-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 4px 8px}
@@ -513,7 +517,7 @@ input,select,textarea{font-size:16px !important}
 <input type="file" id="fileDocs" accept="application/pdf,image/*,.pdf" multiple style="display:none">
 <div class="visor" id="visor">
   <div class="visor-bar"><button class="pill-btn" id="visorCerrar">Cerrar</button><span id="visorNombre"></span><button class="pill-btn" id="visorCompartir">Compartir</button></div>
-  <div id="visorCuerpo" style="flex:1;display:flex"></div>
+  <div id="visorCuerpo" style="flex:1;display:flex;position:relative;min-height:0"></div>
 </div>
 
 <!-- ===================== FORMULARIO VIAJE ===================== -->
@@ -676,7 +680,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.0';
+const VERSION = 'v6.1';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1675,12 +1679,54 @@ async function abrirDocumento(d) {
   if (visorURL) URL.revokeObjectURL(visorURL);
   visorURL = URL.createObjectURL(blob);
   $('#visorNombre').textContent = d.nombre;
-  $('#visorCuerpo').innerHTML = (blob.type || d.tipo).startsWith('image/') ? `<img src="${visorURL}" alt="">` : `<iframe src="${visorURL}"></iframe>`;
+  const tipo = blob.type || d.tipo || '';
   $('#visorCompartir').textContent = puedeCompartir() ? 'Compartir' : 'Descargar';
   $('#visor').classList.add('on');
+  // En el móvil el visor del navegador solo enseña la primera página: se dibujan todas con PDF.js
+  if (tipo.includes('pdf') && matchMedia('(pointer:coarse)').matches) {
+    try { return await dibujarPdf(blob); } catch (e) { console.error(e); }
+  }
+  $('#visorCuerpo').innerHTML = tipo.startsWith('image/') ? `<img src="${visorURL}" alt="">` : `<iframe src="${visorURL}"></iframe>`;
+}
+let pdfjs = null, pdfZoom = 1, pdfDoc = null, pdfDibujo = 0;
+async function dibujarPdf(blob) {
+  const cuerpo = $('#visorCuerpo');
+  cuerpo.innerHTML = '<div class="pdf-hojas" id="pdfHojas"><div class="muted" style="color:#ddd;text-align:center;padding:30px">Cargando…</div></div><div class="pdf-zoom"><button id="pdfMenos">−</button><button id="pdfMas">＋</button></div>';
+  if (!pdfjs) {
+    pdfjs = await import('./pdfjs/pdf.min.mjs');
+    pdfjs.GlobalWorkerOptions.workerSrc = new URL('./pdfjs/pdf.worker.min.mjs', location.href).href;
+  }
+  pdfDoc = await pdfjs.getDocument({ data: new Uint8Array(await blob.arrayBuffer()) }).promise;
+  pdfZoom = 1;
+  $('#pdfMenos').onclick = () => { pdfZoom = Math.max(1, pdfZoom / 1.5); pintarPdf(); };
+  $('#pdfMas').onclick = () => { pdfZoom = Math.min(4, pdfZoom * 1.5); pintarPdf(); };
+  await pintarPdf();
+}
+async function pintarPdf() {
+  const cont = $('#pdfHojas'); if (!cont || !pdfDoc) return;
+  const turno = ++pdfDibujo;
+  const ancho = (cont.clientWidth - 16) * pdfZoom, dpr = Math.min(window.devicePixelRatio || 1, 3);
+  const frac = cont.scrollHeight ? cont.scrollTop / cont.scrollHeight : 0;
+  const hojas = [];
+  for (let i = 1; i <= pdfDoc.numPages; i++) {
+    const pag = await pdfDoc.getPage(i);
+    const vp0 = pag.getViewport({ scale: 1 });
+    const vp = pag.getViewport({ scale: ancho / vp0.width * dpr });
+    const c = document.createElement('canvas');
+    c.width = Math.floor(vp.width); c.height = Math.floor(vp.height);
+    c.style.width = ancho + 'px'; c.style.height = (vp.height / dpr) + 'px';
+    hojas.push([pag, c, vp]);
+  }
+  if (turno !== pdfDibujo) return;
+  cont.innerHTML = ''; hojas.forEach(([, c]) => cont.appendChild(c));
+  cont.scrollTop = frac * cont.scrollHeight;
+  for (const [pag, c, vp] of hojas) {
+    if (turno !== pdfDibujo) return;
+    await pag.render({ canvasContext: c.getContext('2d'), viewport: vp }).promise;
+  }
 }
 function puedeCompartir() { try { return !!navigator.canShare && navigator.canShare({ files: [new File([''], 'a.pdf', { type: 'application/pdf' })] }); } catch (e) { return false; } }
-function cerrarVisor() { $('#visor').classList.remove('on'); $('#visorCuerpo').innerHTML = ''; if (visorURL) URL.revokeObjectURL(visorURL); visorURL = null; }
+function cerrarVisor() { pdfDibujo++; if (pdfDoc) { pdfDoc.destroy(); pdfDoc = null; } $('#visor').classList.remove('on'); $('#visorCuerpo').innerHTML = ''; if (visorURL) URL.revokeObjectURL(visorURL); visorURL = null; }
 async function compartirVisor() {
   if (!visorBlob) return;
   const file = new File([visorBlob], visorNombre, { type: visorBlob.type || 'application/pdf' });

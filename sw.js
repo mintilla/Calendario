@@ -1,7 +1,7 @@
 // Guarda la app en el dispositivo para que abra sin conexión.
 // Estrategia: responde desde la copia guardada y la actualiza en segundo plano.
-const CACHE = 'calendario-v6.0';
-const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
+const CACHE = 'calendario-v6.1';
+const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './pdfjs/pdf.min.mjs', './pdfjs/pdf.worker.min.mjs'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting()));
