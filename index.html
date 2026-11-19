@@ -90,6 +90,39 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .pdf-zoom button{width:44px;height:44px;border-radius:22px;background:var(--card);color:var(--accent);font-size:22px;font-weight:700;box-shadow:var(--shadow)}
 .visor iframe,.visor img{flex:1;width:100%;border:none;background:#fff;object-fit:contain}
 .clip{font-size:12px;color:var(--muted);margin-left:6px}
+.tab-titulo{font-size:30px;font-weight:800;margin:2px 4px 10px;display:flex;justify-content:space-between;align-items:center;letter-spacing:-.3px}
+.res-dia{font-size:12px;font-weight:600;color:var(--muted);margin:14px 6px 6px}
+.res-f{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.res-f:last-child{border-bottom:none}
+.res-f .ic{font-size:20px;width:26px;text-align:center;flex:none}
+.res-f .t{font-size:15px;font-weight:600}
+.res-f .s{font-size:12px;color:var(--muted);margin-top:1px}
+.res-det{margin-top:8px;cursor:default}
+.res-det .vd{font-size:13px;color:var(--muted);line-height:1.5;margin-top:3px}
+.res-det a,.res-det .cp{color:var(--accent);font-weight:600;text-decoration:none}
+.prox-vuelo{background:color-mix(in srgb,var(--accent) 14%,var(--card));cursor:pointer}
+.prox-vuelo .k{font-size:12px;color:var(--accent);font-weight:600}
+.prox-vuelo .vr{font-size:21px;font-weight:800;margin:3px 0}
+.prox-vuelo .s{font-size:12px;color:var(--muted)}
+.aviso-card{background:color-mix(in srgb,#f5a524 16%,var(--card));font-size:13px;line-height:1.45}
+.aviso-card div+div{margin-top:6px}
+.vac-top .s{font-size:13px;color:var(--muted)}
+.vac-top .vg{display:flex;align-items:baseline;gap:8px;margin:2px 0}
+.vac-top .vg b{font-size:32px;font-weight:800}
+.vac-top .vg span{font-size:14px;color:var(--muted)}
+.vbar{display:flex;height:10px;border-radius:5px;overflow:hidden;background:var(--line);margin:10px 0 8px}
+.vley{display:flex;gap:10px;flex-wrap:wrap;font-size:11px;color:var(--muted)}
+.vley i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:4px}
+.per-f{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
+.per-f:last-child{border-bottom:none}
+.per-f .t{font-size:15px;font-weight:600}
+.per-f .s{font-size:12px;color:var(--muted)}
+.per-f .h{font-size:14px;color:var(--muted);font-weight:600;white-space:nowrap}
+.bolsa-f{display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid var(--line);font-size:14px}
+.deshacer{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:185;display:none;align-items:center;gap:12px;
+  background:var(--text);color:var(--bg);border-radius:22px;padding:8px 8px 8px 16px;font-size:14px;font-weight:600;box-shadow:var(--shadow);white-space:nowrap}
+.deshacer.on{display:flex}
+.deshacer button{background:var(--accent);color:#fff;border-radius:16px;padding:6px 12px;font-weight:700;font-size:13px}
 .h-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 4px 8px}
 .muted{color:var(--muted)}
 .tab{display:none}
@@ -169,12 +202,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .ymini i.g{background:var(--previo);color:#fff}
 .ymini i.w{opacity:.45}
 /* Vista año a pantalla completa: la tarjeta de hoy queda debajo, al bajar */
-#calCard.llena{display:flex;flex-direction:column;min-height:calc(100vh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:calc(100dvh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+#calCard.llena{display:flex;flex-direction:column;min-height:calc(100vh - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:calc(100dvh - 132px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
 #calCard.llena #calCuerpo{flex:1;display:flex}
-#calCard.llena .ygrid{flex:1;grid-template-rows:repeat(4,1fr)}
-#calCard.llena .ymes{display:flex;flex-direction:column}
-#calCard.llena .ymini{flex:1;grid-template-rows:auto;grid-auto-rows:1fr}
-#calCard.llena .ymini i{aspect-ratio:auto;min-height:14px;font-size:10px}
+#calCard.llena .ygrid{flex:1;align-content:space-between}
 .ymini i.hoy{box-shadow:inset 0 0 0 1.5px var(--accent);color:var(--accent);font-weight:800}
 .ymini i.hoy.v,.ymini i.hoy.p,.ymini i.hoy.b,.ymini i.hoy.o,.ymini i.hoy.g{color:#fff;box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--text)}
 .ymini i.hoy.f{color:var(--text);box-shadow:0 0 0 1.5px var(--text)}
@@ -349,6 +379,7 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== CALENDARIO ===================== -->
 <section class="tab on" id="tab-cal">
+  <div class="tab-titulo">Calendario</div>
   <div class="card" id="calCard">
     <div class="mes-nav">
       <div class="mes-titulo tocable" id="mesTitulo"></div>
@@ -380,12 +411,13 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VIAJES ===================== -->
 <section class="tab" id="tab-via">
+  <div class="tab-titulo">Viajes</div>
   <div class="seg" id="segVia"><button data-modo="año" class="on">Por año</button><button data-modo="hist">Histórico</button><button data-modo="docs">🔒 Mis docs</button></div>
   <div id="viaHist" style="display:none"></div>
   <div id="viaDocs" style="display:none"></div>
   <div id="viaAño">
   <div class="mes-nav" style="margin-top:4px">
-    <div class="mes-titulo tocable" id="viaTitulo">Viajes</div>
+    <div class="mes-titulo tocable" id="viaTitulo"></div>
     <div class="nav-btns">
       <button class="icon-btn nuevo-viaje" title="Nuevo viaje" style="background:var(--accent);color:#fff;font-size:24px">＋</button>
       <button class="icon-btn" data-año="-1">‹</button>
@@ -401,8 +433,9 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VACACIONES ===================== -->
 <section class="tab" id="tab-vac">
+  <div class="tab-titulo">Vacaciones</div>
   <div class="mes-nav" style="margin-top:4px">
-    <div class="mes-titulo tocable" id="vacTitulo">Vacaciones</div>
+    <div class="mes-titulo tocable" id="vacTitulo"></div>
     <div class="nav-btns">
       <button class="icon-btn" data-vac-año="-1">‹</button>
       <button class="icon-btn" data-vac-año="1">›</button>
@@ -413,7 +446,7 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== MAPA ===================== -->
 <section class="tab" id="tab-map">
-  <div class="mes-titulo" style="margin:4px 0 12px">Países visitados</div>
+  <div class="tab-titulo">Mapa</div>
   <div class="stats" id="mapStats"></div>
   <div class="card" style="padding:10px">
     <div class="mapa-caja">
@@ -436,8 +469,8 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== AJUSTES ===================== -->
 <section class="tab" id="tab-aju">
-  <div class="mes-titulo" style="margin:4px 0 2px">Ajustes</div>
-  <div class="muted" style="font-size:13px;margin:0 4px 12px" id="verTxt"></div>
+  <div class="tab-titulo">Ajustes<button class="icon-btn" id="irAyuda" aria-label="Ayuda" style="font-size:17px">?</button></div>
+  <div class="muted" style="font-size:13px;margin:-6px 4px 12px" id="verTxt"></div>
   <div class="h-title">Cuenta</div>
   <div class="card">
     <div style="font-weight:600" id="cuentaEmail"></div>
@@ -463,7 +496,7 @@ input,select,textarea{font-size:16px !important}
     <input type="file" id="fileImport" accept=".json,application/json,text/plain" style="display:none">
   </div>
 
-  <div class="h-title">Ayuda</div>
+  <div class="h-title" id="ayudaTit">Ayuda</div>
   <div class="card ayuda">
     <details><summary>📅 Calendario</summary><div class="cont">
       <p>Se abre en la <b>vista año</b>. Toca un mes para verlo en grande; el botón <b>Mes/Año</b> cambia de vista.</p>
@@ -471,13 +504,17 @@ input,select,textarea{font-size:16px !important}
         <li><b>Marcar:</b> en la vista mes toca un día y luego otro para elegir un rango. Abajo sale una hoja con <b>🏖️ Vacaciones</b> y <b>✈️ Viaje</b>.</li>
         <li><b>Vacaciones:</b> se amplían solas a los findes y festivos pegados. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
         <li><b>Días parciales:</b> toca un solo día de vacaciones y cambia sus horas (por defecto 8 h). El día se rellena como un vaso según las horas. <b>↺</b> vuelve a 8 h.</li>
-        <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar</b> para cambiarlo o borrarlo.</li>
+        <li><b>Vistas:</b> se abre en la vista año; la tarjeta de hoy está debajo, al bajar. En la vista mes ves la lista de ese mes debajo del calendario.</li>
+        <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar viaje</b> para cambiarlo o borrarlo.</li>
         <li>Los festivos, puentes y vacacionales de empresa no cuentan horas. El vacacional y el previo sí son laborables: si coges vacaciones ahí, cuentan.</li>
       </ul>
     </div></details>
     <details><summary>🏖️ Vacaciones (bolsa de horas)</summary><div class="cont">
       <p>Las vacaciones van por horas. Cada año tiene su <b>bolsa</b>:</p>
       <ul>
+        <li><b>Arriba:</b> lo que te queda por reservar, con una barra de disfrutadas, reservadas y libres.</li>
+        <li><b>Próximas y ya disfrutadas:</b> tus vacaciones agrupadas por periodos. Las listas solo se leen: toca un periodo para cambiar las horas de sus días (días parciales), verlo en el calendario o quitarlo. Los cambios se aplican al pulsar <b>Guardar</b> y durante unos segundos puedes <b>Deshacer</b>.</li>
+        <li><b>Bolsa de horas</b> (plegada): tócala para ver los conceptos y <b>✏️ Editar bolsa</b> para cambiarlos. <b>Listo</b> cuando termines.</li>
         <li><b>Conceptos:</b> vacaciones, opcionales, ajuste de horario, otros… Con <b>＋ Añadir concepto</b> metes los que diga el calendario laboral.</li>
         <li><b>Pendiente del año anterior:</b> se calcula solo (lo que sobró). Si no cuadra con lo de la empresa, cámbialo a mano; <b>↺</b> vuelve al cálculo automático.</li>
         <li><b>Reservadas</b> son todas las marcadas en el calendario; <b>disfrutadas</b>, las de hasta hoy. "Pendiente de reservar" es lo que te queda por marcar.</li>
@@ -500,13 +537,12 @@ input,select,textarea{font-size:16px !important}
         <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
       </ul>
     </div></details>
-    <details><summary>📎 Ficha, vuelos y documentos del viaje</summary><div class="cont">
+    <details><summary>📎 Ficha del viaje: resumen, reservas y docs</summary><div class="cont">
       <ul>
-        <li><b>Crear un viaje:</b> el <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al guardarlo se abre su ficha. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
-        <li><b>Correo de la agencia (.eml):</b> en Mail, pulsa el adjunto «mime-attachment» → Compartir → Guardar en Archivos, y súbelo con <b>＋ Añadir documento</b>. La app saca los <b>vuelos</b> y los PDFs adjuntos. Si lo subes dos veces, no duplica nada.</li>
-        <li><b>Vuelos:</b> número, día, horas (+1 si llegas al día siguiente), terminal, asiento, equipaje y localizador. Toca el localizador o el billete para copiarlo. <b>🔎 Ver estado del vuelo</b> abre Google con la salida, los retrasos y la puerta. Desde 3 días antes, el vuelo sale en la tarjeta de hoy.</li>
-        <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora, «Hotel: …» o un hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba. Las direcciones abren Google Maps o Waze.</li>
-        <li><b>Documentos:</b> PDFs o imágenes (máx. 7 MB). En el PC también puedes arrastrarlos. <b>✏️</b> cambia el nombre. Al abrirlo, <b>Compartir</b> lo guarda en Archivos, lo imprime o lo manda. En el móvil, <b>−/＋</b> amplía.</li>
+        <li><b>Crear un viaje:</b> el <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al guardarlo se abre su ficha. <b>✏️ Editar viaje</b> (arriba) cambia país, fechas o cliente.</li>
+        <li><b>Resumen:</b> el próximo vuelo (tócalo para ver todas las reservas), el hotel donde estás (con Google Maps y Waze), lo que tengas hoy, los avisos y los <b>datos del viaje</b>: cliente, orden SAP, contactos y notas. <b>✏️ Editar · pegar correo</b>: pega el correo de la gestora y pulsa <b>✨ Rellenar</b>; el hotel que encuentre se guarda en Reservas.</li>
+        <li><b>Reservas:</b> vuelos, hoteles, coches, trenes, traslados… ordenados por día. Toca una para ver el detalle (localizador o billete para copiar, estado del vuelo, direcciones) y <b>✏️ Editar</b> para cambiarla o borrarla. <b>＋ Añadir reserva</b> para meter una a mano.</li>
+        <li><b>Docs:</b> los documentos del viaje y tus documentos generales que le aplican. <b>＋ Añadir documento o correo</b>: PDFs, imágenes (máx. 7 MB) o el correo de la agencia (.eml, el «mime-attachment» de CWT guardado en Archivos), que añade solo los vuelos y sus PDFs. En el PC también puedes arrastrarlos. <b>✏️</b> cambia el nombre.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días, y todos los de Mis documentos, se guardan solos en el dispositivo (✓). Para otro viaje: <b>⬇️ Guardar sin conexión</b>.</li>
         <li>Si borras un viaje, se borran también sus documentos.</li>
       </ul>
@@ -543,6 +579,7 @@ input,select,textarea{font-size:16px !important}
 <!-- ===================== HOJA SELECCIÓN ===================== -->
 <div class="ptr" id="ptr">↓ Desliza para actualizar</div>
 <div class="aviso-act" id="avisoAct"></div>
+<div class="deshacer" id="deshacer"></div>
 <div class="sheet" id="sheet"></div>
 <div class="sheet" id="editBar"></div>
 
@@ -715,7 +752,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.3';
+const VERSION = 'v7.4';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1211,7 +1248,7 @@ function renderAño() {
 
 function renderCal() {
   renderHoy();
-  $('#hoyCard').style.display = S.editEmp ? 'none' : '';
+  $('#hoyCard').style.display = S.editEmp || S.vista === 'mes' ? 'none' : '';
   $('#avisoCal').style.display = empresa(S.año).ok ? 'none' : 'block';
   $('#btnVista').textContent = S.vista === 'mes' ? 'Año' : 'Mes';
   if (S.vista === 'mes') { renderMes(); renderAgenda(); $('#agendaWrap').style.display = ''; }
@@ -1324,74 +1361,129 @@ function renderHistorico() {
 // =====================================================================
 //  VACACIONES (bolsa de horas)
 // =====================================================================
+// Periodos de vacaciones: días seguidos marcados
+function periodosVac(año) {
+  const dias = [...S.vac].filter(s => s.startsWith(año + '-')).sort(), out = [];
+  dias.forEach(s => {
+    const u = out[out.length - 1];
+    if (u && sumar(u.b, 1) === s) { u.b = s; u.dias.push(s); } else out.push({ a: s, b: s, dias: [s] });
+  });
+  out.forEach(p => { p.h = p.dias.reduce((t, s) => t + horasDe(s), 0); p.lab = p.dias.filter(s => horasDe(s) > 0).length; p.parcial = p.dias.some(s => S.horas[s] !== undefined); });
+  return out.filter(p => p.h > 0 || p.dias.some(s => S.horas[s] !== undefined));
+}
+const rangoPer = p => p.a === p.b ? cap(fechaDia(p.a)) : rangoTxt(p.a, p.b);
+function filaPer(p) {
+  return `<div class="per-f" data-periodo="${p.a}|${p.b}"><div style="flex:1;min-width:0"><div class="t">${rangoPer(p)}</div><div class="s">${plural(p.lab, 'día laborable', 'días laborables')}${p.parcial ? ' · con horas parciales' : ''}</div></div><div class="h">${fmtH(p.h)} ›</div></div>`;
+}
 function renderVacaciones() {
   const año = S.añoVac;
-  $('#vacTitulo').textContent = `Vacaciones ${año}`;
+  $('#vacTitulo').textContent = `${año}`;
   const r = resumenVac(año), b = bolsa(año);
   let h = '';
-  if (!b && año < +HOY.slice(0,4)) {
-    h += `<div class="card" style="text-align:center">
-      <div style="font-size:15px;font-weight:600">${fmtH(r.reservadas)} de vacaciones en ${año}</div>
-      <div class="muted" style="font-size:13px;margin-top:4px">${fmtD(r.reservadas)} · año anterior, sin bolsa de horas</div>
-    </div>`;
+  if (!b && año < +HOY.slice(0, 4)) {
+    h += `<div class="card" style="text-align:center"><div style="font-size:15px;font-weight:600">${fmtH(r.reservadas)} de vacaciones en ${año}</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">${fmtD(r.reservadas)} · año anterior, sin bolsa de horas</div></div>`;
   } else if (!b) {
     const ant = bolsa(año - 1);
-    h += `<div class="card" style="text-align:center">
-      <div style="font-size:15px;font-weight:600;margin-bottom:6px">Sin bolsa de horas para ${año}</div>
+    h += `<div class="card" style="text-align:center"><div style="font-size:15px;font-weight:600;margin-bottom:6px">Sin bolsa de horas para ${año}</div>
       <div class="muted" style="font-size:13px">Cuando salga el calendario laboral, mete las horas de vacaciones, opcionales y ajustes de ese año.</div>
-      <button class="btn primario" data-crear-bolsa="${año}">＋ Crear bolsa ${año}${ant ? ` (con los conceptos de ${año - 1})` : ''}</button>
-    </div>`;
+      <button class="btn primario" data-crear-bolsa="${año}">＋ Crear bolsa ${año}${ant ? ` (con los conceptos de ${año - 1})` : ''}</button></div>`;
   } else {
-    const pct = r.total > 0 ? Math.min(100, r.disfrutadas / r.total * 100) : 0;
-    h += `<div class="vac-grande">
-      <div class="t">Te quedan por disfrutar</div>
-      <div class="v">${fmtH(r.porDisfrutar)}</div>
-      <div class="s">${fmtD(r.porDisfrutar)} · de ${fmtH(r.total)} en total</div>
-      <div class="barra"><i style="width:${pct}%"></i></div>
-    </div>
-    <div class="stats cinco">
-      <div class="stat"><b>${fmtH(r.porReservar)}</b><span>pendiente de reservar</span><small>${fmtD(r.porReservar)}</small></div>
-      <div class="stat"><b>${fmtH(r.reservadas)}</b><span>reservadas</span><small>${fmtD(r.reservadas)}</small></div>
-      <div class="stat"><b>${fmtH(r.disfrutadas)}</b><span>disfrutadas</span><small>hasta hoy</small></div>
-      <div class="stat"><b>${fmtH(r.total)}</b><span>total del año</span><small>${fmtD(r.total)}</small></div>
-    </div>
-    <div class="h-title">Bolsa de horas ${año}</div>
-    <div class="card">
-      ${b.conceptos.map((c, i) => `<div class="concepto">
-        <input class="nom" value="${esc(c.n)}" data-con-n="${i}" placeholder="Concepto">
-        <input class="hh" type="text" inputmode="decimal" step="0.01" value="${coma(c.h)}" data-con-h="${i}">
-        <button class="sheet-x" data-con-del="${i}">✕</button></div>`).join('')}
-      <button class="btn secundario" data-con-add="1" style="margin-top:4px">＋ Añadir concepto</button>
-      <div class="concepto" style="margin-top:12px">
-        <div style="flex:1;font-size:14px">Pendiente de años anteriores
-          <div class="muted" style="font-size:11px">${b.pendienteManual !== null && b.pendienteManual !== undefined ? `Corregido a mano · calculado: ${fmtH(r.pendAuto)}` : (bolsa(año - 1) ? `Calculado con lo que sobró de ${año - 1}` : `Sin datos de ${año - 1}: ponlo a mano`)}</div>
-        </div>
-        <input class="hh" type="text" inputmode="decimal" step="0.01" value="${coma(Math.round(r.pendiente * 100) / 100)}" data-pend="1">
-        ${b.pendienteManual !== null && b.pendienteManual !== undefined ? '<button class="sheet-x" data-pend-auto="1" title="Volver al cálculo automático">↺</button>' : '<span style="width:30px"></span>'}
-      </div>
-      <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:10px;font-size:15px"><span>Total</span><span>${fmtH(r.total)}</span></div>
+    const tot = Math.max(r.total, r.reservadas, 0.01);
+    const pd = Math.min(100, r.disfrutadas / tot * 100), pr = Math.min(100 - pd, (r.reservadas - r.disfrutadas) / tot * 100);
+    h += `<div class="card vac-top">
+      <div class="s">${r.porReservar >= 0 ? 'Te quedan por reservar' : 'Te has pasado'}</div>
+      <div class="vg"><b>${fmtH(Math.abs(r.porReservar))}</b><span>${fmtD(Math.abs(r.porReservar))}</span></div>
+      <div class="vbar"><i style="width:${pd}%;background:var(--vac)"></i><i style="width:${pr}%;background:color-mix(in srgb,var(--vac) 45%,transparent)"></i></div>
+      <div class="vley"><span><i style="background:var(--vac)"></i>Disfrutadas ${fmtH(r.disfrutadas)}</span><span><i style="background:color-mix(in srgb,var(--vac) 45%,transparent)"></i>Reservadas ${fmtH(r.reservadas - r.disfrutadas)}</span><span><i style="background:var(--line)"></i>Libres ${fmtH(Math.max(0, r.porReservar))}</span></div>
+      <div class="s" style="margin-top:8px">Total del año: ${fmtH(r.total)}</div>
     </div>`;
   }
-  // Lista de días con horas
-  const dias = r.dias.filter(s => horasDe(s) > 0);
-  h += `<div class="h-title">Días de vacaciones ${año} · ${fmtH(r.reservadas)}</div>`;
-  if (!dias.length) h += '<div class="card vacio">Sin vacaciones marcadas este año. Márcalas en el calendario.</div>';
-  else {
-    let mes = -1, cuerpo = '';
-    dias.forEach(s => {
-      const m = +s.slice(5, 7) - 1;
-      if (m !== mes) { if (mes >= 0) cuerpo += '</div>'; cuerpo += `<div class="h-title" style="margin-top:12px">${MESES[m]}</div><div class="card">`; mes = m; }
-      cuerpo += `<div class="dia-vac">
-        <div class="f" data-ir-dia="${s}">${cap(fechaDia(s))}</div>
-        <span class="est ${s <= HOY ? 'ok' : 'res'}">${s <= HOY ? 'Disfrutado' : 'Reservado'}</span>
-        <input class="inp-horas" type="text" inputmode="decimal" step="0.25" min="0" max="24" value="${coma(horasDe(s))}" data-horas-dia="${s}">
-      </div>`;
-    });
-    h += cuerpo + '</div>';
+  const pers = periodosVac(año), prox = pers.filter(p => p.b >= HOY), pas = pers.filter(p => p.b < HOY);
+  h += `<div class="det-sec"><span>Próximas vacaciones</span></div><div class="card" style="padding:2px 14px">${prox.map(filaPer).join('') || '<div class="muted" style="font-size:14px;padding:10px 0">Nada marcado de aquí en adelante. Márcalas en el calendario.</div>'}</div>`;
+  if (pas.length) {
+    const vis = S.verTodasVac ? pas : pas.slice(-4);
+    h += `<div class="det-sec"><span>Ya disfrutadas</span>${pas.length > 4 ? `<button class="pill-btn" id="vacVerTodas">${S.verTodasVac ? 'Ver menos' : `Ver todas (${pas.length})`}</button>` : ''}</div>
+      <div class="card" style="padding:2px 14px">${vis.map(filaPer).join('')}</div>`;
   }
-  h += '<div class="muted" style="font-size:11px;text-align:center;margin-top:12px">Cada día laborable de vacaciones cuenta 8 h. Cambia las horas de un día para los días parciales o para ajustarlo a lo fichado.</div>';
+  if (b) {
+    if (S.bolsaEdit) {
+      h += `<div class="det-sec"><span>Bolsa de horas ${año}</span><button class="pill-btn" id="bolsaListo" style="font-weight:700">Listo</button></div>
+      <div class="card">
+        ${b.conceptos.map((c, i) => `<div class="concepto">
+          <input class="nom" value="${esc(c.n)}" data-con-n="${i}" placeholder="Concepto">
+          <input class="hh" type="text" inputmode="decimal" value="${coma(c.h)}" data-con-h="${i}">
+          <button class="sheet-x" data-con-del="${i}">✕</button></div>`).join('')}
+        <button class="btn secundario" data-con-add="1" style="margin-top:4px">＋ Añadir concepto</button>
+        <div class="concepto" style="margin-top:12px">
+          <div style="flex:1;font-size:14px">Pendiente de años anteriores
+            <div class="muted" style="font-size:11px">${b.pendienteManual !== null && b.pendienteManual !== undefined ? `Corregido a mano · calculado: ${fmtH(r.pendAuto)}` : (bolsa(año - 1) ? `Calculado con lo que sobró de ${año - 1}` : `Sin datos de ${año - 1}: ponlo a mano`)}</div>
+          </div>
+          <input class="hh" type="text" inputmode="decimal" value="${coma(Math.round(r.pendiente * 100) / 100)}" data-pend="1">
+          ${b.pendienteManual !== null && b.pendienteManual !== undefined ? '<button class="sheet-x" data-pend-auto="1" title="Volver al cálculo automático">↺</button>' : '<span style="width:30px"></span>'}
+        </div>
+        <div style="display:flex;justify-content:space-between;font-weight:800;margin-top:10px;font-size:15px"><span>Total</span><span>${fmtH(r.total)}</span></div>
+      </div>`;
+    } else {
+      h += `<div class="card" id="bolsaCard" style="cursor:pointer"><div style="display:flex;justify-content:space-between;align-items:center"><span style="font-weight:600">💼 Bolsa de horas ${año}</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.bolsaAbierta ? 'Ocultar' : fmtH(r.total) + ' ›'}</span></div>
+        ${S.bolsaAbierta ? `<div style="margin-top:8px">${b.conceptos.map(c => `<div class="bolsa-f"><span>${esc(c.n || 'Sin nombre')}</span><b>${fmtH(+c.h || 0)}</b></div>`).join('')}
+          <div class="bolsa-f"><span>Pendiente de ${año - 1}${b.pendienteManual !== null && b.pendienteManual !== undefined ? ' (a mano)' : ''}</span><b>${fmtH(r.pendiente)}</b></div>
+          <div class="bolsa-f" style="font-weight:800"><span>Total</span><b>${fmtH(r.total)}</b></div>
+          <button class="btn secundario" id="bolsaEditar">✏️ Editar bolsa</button></div>` : ''}
+      </div>`;
+    }
+  }
+  h += '<div class="muted" style="font-size:11px;text-align:center;margin-top:12px">Toca un periodo para cambiar las horas de sus días (días parciales) o quitarlo.</div>';
   $('#vacCuerpo').innerHTML = h;
 }
+
+// Hoja de un periodo: horas día a día, con Guardar explícito y Deshacer
+function abrirPeriodo(a, b) {
+  const dias = [...rango(a, b)].filter(s => S.vac.has(s));
+  $('#docGenBox').innerHTML = `<div class="modal-head"><button class="pill-btn" id="peCancelar2">Cancelar</button><h2>${a === b ? cap(fechaDia(a)) : rangoTxt(a, b)}</h2><button class="pill-btn" id="peGuardar2" style="font-weight:700">Guardar</button></div>
+    <div class="card" style="padding:2px 14px">${dias.map(s => {
+      const editable = laborable(s) || S.horas[s] !== undefined;
+      return `<div class="per-f" style="cursor:default"><div style="flex:1"><div class="t">${cap(fechaDia(s))}</div><div class="s">${editable ? (S.horas[s] !== undefined ? 'Horas cambiadas' : 'Día completo') : 'No laborable · no cuenta'}</div></div>
+        ${editable ? `<input class="inp-horas" type="text" inputmode="decimal" value="${coma(horasDe(s))}" data-per-h="${s}"> <span class="s">h</span>` : '<span class="s">—</span>'}</div>`;
+    }).join('')}</div>
+    <div class="muted" style="font-size:12px;margin:0 2px 10px">Un día completo son ${HORAS_DIA} h. Pon menos para los días parciales.</div>
+    <button class="btn secundario" id="peVerCal">📅 Ver en el calendario</button>
+    <button class="btn secundario" id="peQuitar" style="color:#e5484d">Quitar estas vacaciones</button>`;
+  $('#modalDocGen').classList.add('on');
+  const cerrar = () => $('#modalDocGen').classList.remove('on');
+  $('#peCancelar2').onclick = cerrar;
+  $('#peVerCal').onclick = () => { cerrar(); S.año = +a.slice(0, 4); S.mes = +a.slice(5, 7) - 1; S.vista = 'mes'; irTab('cal'); };
+  $('#peGuardar2').onclick = () => {
+    const antes = { vac: new Set(S.vac), horas: { ...S.horas } };
+    let cambios = 0;
+    document.querySelectorAll('[data-per-h]').forEach(inp => {
+      const s = inp.dataset.perH, val = Math.max(0, Math.min(24, Math.round((parseFloat(inp.value.replace(',', '.')) || 0) * 100) / 100));
+      if (Math.abs(val - horasDe(s)) < 0.001) return;
+      cambios++;
+      if (val === (laborable(s) ? HORAS_DIA : 0)) delete S.horas[s]; else S.horas[s] = val;
+    });
+    cerrar();
+    if (!cambios) return;
+    guardar(); render();
+    avisoDeshacer(`⏱ Horas guardadas (${plural(cambios, 'día')})`, antes);
+  };
+  $('#peQuitar').onclick = () => preguntar(`¿Quitar ${plural(dias.length, 'día')} de vacaciones (${a === b ? fechaDia(a) : rangoTxt(a, b)})?`, [{ t: 'Quitar', cls: 'peligro' }, { t: 'Cancelar' }]).then(i => {
+    if (i !== 0) return;
+    const antes = { vac: new Set(S.vac), horas: { ...S.horas } };
+    dias.forEach(s => { S.vac.delete(s); delete S.horas[s]; });
+    cerrar(); guardar(); render();
+    avisoDeshacer('🗑️ Vacaciones quitadas', antes);
+  });
+}
+let deshacerT;
+function avisoDeshacer(texto, antes) {
+  const el = $('#deshacer');
+  el.innerHTML = `<span>${texto}</span><button id="btnDeshacer">Deshacer</button>`;
+  el.classList.add('on');
+  clearTimeout(deshacerT); deshacerT = setTimeout(() => el.classList.remove('on'), 7000);
+  $('#btnDeshacer').onclick = () => { S.vac = antes.vac; S.horas = antes.horas; guardar(); render(); el.classList.remove('on'); toast('↩️ Deshecho'); };
+}
+
 function cambiarBolsa(fn) {
   const año = S.añoVac;
   S.aju.bolsas = S.aju.bolsas || {};
@@ -1494,7 +1586,7 @@ function renderViajes() {
   $('#viaAño').style.display = S.modoVia === 'hist' || S.modoVia === 'docs' ? 'none' : 'block';
   if (S.modoVia === 'hist') return renderHistorico();
   if (S.modoVia === 'docs') { if (!S.persEdit) renderMisDocs(); return; }
-  $('#viaTitulo').textContent = `Viajes ${S.año}`;
+  $('#viaTitulo').textContent = `${S.año}`;
   const lista = viajesDelAño();
   const ini = `${S.año}-01-01`, fin = `${S.año}-12-31`;
   const fuera = new Set(), todos = new Set(), porPais = {}, porCliente = {};
@@ -1525,7 +1617,7 @@ function renderViajes() {
       <div class="viaje-flag">${bandera(v.pais)}</div>
       <div class="viaje-info">
         <div class="viaje-t">${esc(v.ciudadDestino ? v.ciudadDestino + ', ' + v.pais : v.pais)}</div>
-        <div class="viaje-s">${esc(v.cliente)} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${marcaDocs(v)}</div>
+        <div class="viaje-s">${esc(v.cliente)} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${marcaDocs(v)}</div>${proxVueloTxt(v)}
       </div>${chip}</div>`;
   }).join('') : `<div class="card vacio">Sin viajes en ${S.año}</div>`;
 }
@@ -1998,7 +2090,8 @@ async function importarEml(viajeId, f) {
     let nF = 0;
     if (v && (r.hotel || r.cliente || r.sap)) {
       const info = { ...(v.info || {}) };
-      ['hotel', 'cliente', 'sap', 'contactos'].forEach(k => { if (r[k] && !info[k]) { info[k] = r[k]; nF++; } });
+      ['cliente', 'sap', 'contactos'].forEach(k => { if (r[k] && !info[k]) { info[k] = r[k]; nF++; } });
+      if (r.hotel && !(v.reservas || []).some(x => x.tipo === 'hotel')) { hotelDeTexto(v, r.hotel); nF++; }
       if (!info.correo) info.correo = r.correo;
       v.info = info; guardar(); render();
     }
@@ -2194,42 +2287,224 @@ function iniciarMisDocs() {
 }
 
 // Pantalla de detalle
-function abrirDetalle(id) { S.detalle = id; S.fichaEdit = false; renderDetalle(); $('#modalDetalle').classList.add('on'); programarPrecarga(); }
+function proxVueloTxt(v) {
+  if (v.fechaFin < HOY) return '';
+  const ahora = ahoraIso(), f = (v.vuelos || []).filter(x => x.sal && x.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  if (!f) return '';
+  const ida = v.fechaInicio >= HOY && f === (v.vuelos || []).filter(x => x.sal).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  return `<div class="viaje-s" style="color:var(--accent);font-weight:600">✈️ ${ida ? 'Ida' : v.fechaInicio <= HOY ? 'Vuelta' : 'Vuelo'} ${diaVuelo(f.sal)} · ${f.sal.slice(11, 16)} · ${esc(f.de || '')} → ${esc(f.a || '')}</div>`;
+}
+function abrirDetalle(id) { S.detalle = id; S.fichaEdit = false; S.detTab = 'r'; S.resAbierta = null; const vv = S.viajes.find(x => x.id === id); if (migrarHotel(vv)) guardar(); renderDetalle(); $('#modalDetalle').classList.add('on'); programarPrecarga(); }
 function cerrarDetalle() { S.detalle = null; S.fichaEdit = false; $('#modalDetalle').classList.remove('on'); }
 const telLinks = s => esc(s).replace(/(\+?\d[\d .]{7,}\d)/g, m => `<a href="tel:${m.replace(/[ .]/g, '')}">${m}</a>`);
 const mapaLink = s => { const q = encodeURIComponent(s.replace(/\n/g, ', '));
   return `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Google Maps ↗</a> &nbsp;·&nbsp; <a href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener">Waze ↗</a>`; };
-const CAMPOS_FICHA = [['hotel', '🏨', 'Hotel'], ['cliente', '🏭', 'Dirección del cliente'], ['sap', '🧾', 'Orden de viaje SAP'], ['contactos', '☎️', 'Contactos'], ['notas', '📝', 'Notas']];
+const CAMPOS_FICHA = [['cliente', '🏭', 'Dirección del cliente'], ['sap', '🧾', 'Orden de viaje SAP'], ['contactos', '☎️', 'Contactos'], ['notas', '📝', 'Notas']];
+
+// ---- Reservas (hotel, coche, tren, traslado, otra). Los vuelos siguen en v.vuelos ----
+const TIPOS_RES = {
+  vuelo: { ic: '✈️', n: 'Vuelo', campos: [['num', 'Nº de vuelo'], ['aerolinea', 'Aerolínea'], ['de', 'Origen (código, p. ej. BIO)'], ['a', 'Destino (código)'], ['fecha', 'Fecha de salida', 'date'], ['hora', 'Hora de salida', 'time'], ['fechaLl', 'Fecha de llegada', 'date'], ['horaLl', 'Hora de llegada', 'time'], ['terminal', 'Terminal'], ['asiento', 'Asiento'], ['loc', 'Localizador'], ['notas', 'Notas', 'area']] },
+  hotel: { ic: '🏨', n: 'Hotel', campos: [['nombre', 'Nombre'], ['dir', 'Dirección', 'area'], ['fecha', 'Entrada', 'date'], ['fechaFin', 'Salida', 'date'], ['ref', 'Nº de reserva'], ['tel', 'Teléfono'], ['notas', 'Notas', 'area']] },
+  coche: { ic: '🚗', n: 'Coche', campos: [['nombre', 'Compañía'], ['dir', 'Lugar de recogida', 'area'], ['fecha', 'Recogida', 'date'], ['hora', 'Hora de recogida', 'time'], ['dirFin', 'Lugar de devolución', 'area'], ['fechaFin', 'Devolución', 'date'], ['horaFin', 'Hora de devolución', 'time'], ['ref', 'Nº de reserva'], ['tel', 'Teléfono'], ['notas', 'Notas', 'area']] },
+  tren: { ic: '🚆', n: 'Tren', campos: [['de', 'Estación de salida'], ['a', 'Estación de llegada'], ['fecha', 'Fecha', 'date'], ['hora', 'Salida', 'time'], ['horaFin', 'Llegada', 'time'], ['nombre', 'Tren / compañía'], ['asiento', 'Coche y asiento'], ['ref', 'Localizador'], ['notas', 'Notas', 'area']] },
+  traslado: { ic: '🚐', n: 'Traslado', campos: [['nombre', 'Empresa'], ['de', 'Desde'], ['a', 'Hasta'], ['fecha', 'Fecha', 'date'], ['hora', 'Hora', 'time'], ['tel', 'Teléfono'], ['ref', 'Nº de reserva'], ['notas', 'Notas', 'area']] },
+  otra: { ic: '📌', n: 'Otra', campos: [['nombre', 'Qué es'], ['dir', 'Lugar', 'area'], ['fecha', 'Fecha', 'date'], ['hora', 'Hora', 'time'], ['ref', 'Referencia'], ['notas', 'Notas', 'area']] },
+};
+const diaCorto = s => s ? diaVuelo(s + 'T00:00') : '';
+function noches(a, b) { return a && b ? Math.max(0, diasEntre(a, b)) : 0; }
+// El hotel que venía en la ficha (versiones anteriores) pasa a ser una reserva
+function migrarHotel(v) {
+  if (!v || !v.info || !v.info.hotel) return false;
+  hotelDeTexto(v, v.info.hotel);
+  delete v.info.hotel;
+  return true;
+}
+function hotelDeTexto(v, txt) {
+  const l = (txt || '').split('\n').map(x => x.trim()).filter(Boolean);
+  if (!l.length) return false;
+  v.reservas = v.reservas || [];
+  const previo = v.reservas.find(r => r.tipo === 'hotel' && r.origen === 'correo');
+  const datos = { nombre: l[0], dir: l.slice(1).join('\n') };
+  if (previo) Object.assign(previo, datos);
+  else v.reservas.push({ id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo: 'hotel', ...datos, fecha: v.fechaInicio, fechaFin: v.fechaFin, origen: 'correo' });
+  return true;
+}
+function itemsReservas(v) {
+  const it = [];
+  (v.vuelos || []).forEach((f, i) => it.push({ k: 'v' + i, tipo: 'vuelo', f, i, clave: f.sal || '9999' }));
+  (v.reservas || []).forEach(r => it.push({ k: r.id, tipo: r.tipo, r, clave: r.fecha ? r.fecha + 'T' + (r.hora || (r.tipo === 'hotel' ? '14:00' : '00:00')) : '9999' }));
+  return it.sort((a, b) => a.clave.localeCompare(b.clave));
+}
+function lineasRes(x) {
+  const r = x.r || {}, f = x.f || {};
+  const sh = s => (s || '').split('\n')[0];
+  switch (x.tipo) {
+    case 'vuelo': {
+      const d = f.sal && f.lle ? diasEntre(f.sal.slice(0, 10), f.lle.slice(0, 10)) : 0;
+      return [`${esc(f.de || '')} ${f.sal ? f.sal.slice(11, 16) : ''} → ${esc(f.a || '')} ${f.lle ? f.lle.slice(11, 16) : ''}${d > 0 ? ` <small class="muted">+${d}</small>` : ''}`,
+        [f.num, (f.aerolinea || '').replace(/-ROYAL DUTCH AIRLINES/i, ''), f.terminal ? 'T' + f.terminal : '', f.asiento ? (f.asiento.split(' ')[0]) : '', f.loc].filter(Boolean).map(esc).join(' · ')];
+    }
+    case 'hotel': return [esc(r.nombre || 'Hotel'), [r.fecha && r.fechaFin ? `${diaCorto(r.fecha)} → ${diaCorto(r.fechaFin)}` : '', r.fecha && r.fechaFin ? plural(noches(r.fecha, r.fechaFin), 'noche') : ''].filter(Boolean).join(' · ')];
+    case 'coche': return [`Coche${r.nombre ? ' · ' + esc(r.nombre) : ''}`, [r.hora ? 'Recogida ' + r.hora : '', esc(sh(r.dir)), r.fechaFin ? 'devolución ' + diaCorto(r.fechaFin) + (r.horaFin ? ' ' + r.horaFin : '') : ''].filter(Boolean).join(' · ')];
+    case 'tren': return [`${esc(r.de || '')} ${r.hora || ''} → ${esc(r.a || '')} ${r.horaFin || ''}`, [r.nombre, r.asiento, r.ref].filter(Boolean).map(esc).join(' · ')];
+    case 'traslado': return [`Traslado${r.nombre ? ' · ' + esc(r.nombre) : ''}`, [r.hora, r.de && r.a ? `${r.de} → ${r.a}` : (r.de || r.a)].filter(Boolean).map(esc).join(' · ')];
+    default: return [esc(r.nombre || 'Reserva'), [r.hora, sh(r.dir)].filter(Boolean).map(esc).join(' · ')];
+  }
+}
+function detalleRes(x) {
+  const r = x.r || {}, f = x.f || {}, out = [];
+  const cp = (t, val) => val ? `${t} <span class="cp" data-copiar="${esc(val)}">${esc(val)}</span>` : '';
+  if (x.tipo === 'vuelo') {
+    if (f.deNom || f.aNom) out.push(`${esc(f.deNom || f.de || '')}${f.terminal ? ' (T' + esc(f.terminal) + ')' : ''} → ${esc(f.aNom || f.a || '')}`);
+    out.push([f.dur ? '⏱ ' + esc(f.dur) : '', f.clase ? esc(f.clase) : '', f.asiento ? '💺 ' + esc(f.asiento) : '', f.equipaje ? '🧳 ' + esc(f.equipaje) : ''].filter(Boolean).join(' · '));
+    out.push([cp('Localizador', f.loc), cp('Billete', f.billete)].filter(Boolean).join(' · '));
+    if (f.num) out.push(`<a class="cp" href="https://www.google.com/search?q=${encodeURIComponent(f.num)}+flight+status" target="_blank" rel="noopener">🔎 Ver estado del vuelo ↗</a>`);
+  } else {
+    if (r.dir) out.push(`<span style="white-space:pre-line">${esc(r.dir)}</span><br>${mapaLink(r.dir)}`);
+    if (r.dirFin) out.push(`Devolución: <span style="white-space:pre-line">${esc(r.dirFin)}</span><br>${mapaLink(r.dirFin)}`);
+    if (x.tipo === 'traslado' && (r.de || r.a)) out.push(`${esc(r.de || '')} → ${esc(r.a || '')}`);
+    if (x.tipo === 'coche' && r.fecha) out.push(`Recogida ${diaCorto(r.fecha)}${r.hora ? ' ' + r.hora : ''}${r.fechaFin ? ` · devolución ${diaCorto(r.fechaFin)}${r.horaFin ? ' ' + r.horaFin : ''}` : ''}`);
+    out.push([cp(x.tipo === 'tren' ? 'Localizador' : 'Reserva', r.ref), r.tel ? '☎️ ' + telLinks(r.tel) : ''].filter(Boolean).join(' · '));
+  }
+  const notas = (x.f || x.r || {}).notas;
+  if (notas) out.push(`📝 <span style="white-space:pre-line">${esc(notas)}</span>`);
+  return out.filter(Boolean).map(l => `<div class="vd">${l}</div>`).join('') + `<div style="margin-top:8px"><button class="pill-btn" data-res-editar="${x.k}">✏️ Editar</button></div>`;
+}
+function htmlReservas(v) {
+  const it = itemsReservas(v);
+  let h = '', dia = null;
+  it.forEach(x => {
+    const d = x.clave === '9999' ? 'sin' : x.clave.slice(0, 10);
+    if (d !== dia) {
+      if (dia !== null) h += '</div>';
+      h += `<div class="res-dia">${d === 'sin' ? 'Sin fecha' : cap(fechaLarga(d))}</div><div class="card" style="padding:2px 14px">`;
+      dia = d;
+    }
+    const [t1, t2] = lineasRes(x), abierto = S.resAbierta === x.k;
+    h += `<div class="res-f" data-res="${x.k}"><div class="ic">${TIPOS_RES[x.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="t">${t1}</div>${t2 ? `<div class="s">${t2}</div>` : ''}${abierto ? `<div class="res-det">${detalleRes(x)}</div>` : ''}</div><div class="muted" style="font-size:16px">${abierto ? '⌃' : '›'}</div></div>`;
+  });
+  if (dia !== null) h += '</div>';
+  if (!it.length) h += '<div class="card"><div class="muted" style="font-size:14px">Sin reservas. Sube el correo de la agencia (.eml) en <b>Docs</b> y los vuelos se añaden solos, o añádelas a mano.</div></div>';
+  h += '<button class="btn primario" id="resAñadir">＋ Añadir reserva</button>';
+  return h;
+}
+function editarReserva(v, k, tipoNuevo) {
+  let tipo, datos = {};
+  const esVuelo = k ? k.startsWith('v') && /^v\d+$/.test(k) : tipoNuevo === 'vuelo';
+  if (k && esVuelo) { const f = v.vuelos[+k.slice(1)]; tipo = 'vuelo'; datos = { ...f, fecha: (f.sal || '').slice(0, 10), hora: (f.sal || '').slice(11, 16), fechaLl: (f.lle || '').slice(0, 10), horaLl: (f.lle || '').slice(11, 16) }; }
+  else if (k) { const r = (v.reservas || []).find(x => x.id === k); tipo = r.tipo; datos = { ...r }; }
+  else { tipo = tipoNuevo; datos = { fecha: v.fechaInicio, ...(tipo === 'hotel' ? { fechaFin: v.fechaFin } : {}), ...(tipo === 'vuelo' ? { fechaLl: v.fechaInicio } : {}) }; }
+  const T = TIPOS_RES[tipo];
+  $('#docGenBox').innerHTML = `<div class="modal-head"><button class="pill-btn" id="rsCancelar">Cancelar</button><h2>${T.ic} ${T.n}</h2><button class="pill-btn" id="rsGuardar" style="font-weight:700">Guardar</button></div>
+    ${T.campos.map(([c, t, ty]) => `<div class="campo"><label>${t}</label>${ty === 'area' ? `<textarea id="rs_${c}" rows="2">${esc(datos[c] || '')}</textarea>` : `<input id="rs_${c}" type="${ty || 'text'}" value="${esc(datos[c] || '')}"${c === 'de' || c === 'a' ? ' autocapitalize="characters"' : ''}>`}</div>`).join('')}
+    ${k ? '<button class="btn secundario" id="rsBorrar" style="color:#e5484d">Borrar reserva</button>' : ''}`;
+  $('#modalDocGen').classList.add('on');
+  const cerrar = () => $('#modalDocGen').classList.remove('on');
+  $('#rsCancelar').onclick = cerrar;
+  $('#rsGuardar').onclick = () => {
+    const o = {};
+    T.campos.forEach(([c]) => { const x = $('#rs_' + c).value.trim(); if (x) o[c] = x; });
+    if (!Object.keys(o).length) return toast('Rellena algún dato');
+    if (tipo === 'vuelo') {
+      const base = k ? { ...v.vuelos[+k.slice(1)] } : {};
+      ['fecha', 'hora', 'fechaLl', 'horaLl'].forEach(c => delete base[c]);
+      const f = { ...base, num: (o.num || '').replace(/\s/g, '').toUpperCase(), aerolinea: o.aerolinea || '', de: (o.de || '').toUpperCase(), a: (o.a || '').toUpperCase(),
+        sal: o.fecha ? `${o.fecha}T${o.hora || '00:00'}` : '', lle: (o.fechaLl || o.fecha) ? `${o.fechaLl || o.fecha}T${o.horaLl || '00:00'}` : '',
+        terminal: o.terminal || '', asiento: o.asiento || '', loc: o.loc || '', notas: o.notas || '' };
+      delete f.utc;
+      const limpio = Object.fromEntries(Object.entries(f).filter(([, y]) => y !== '' && y != null));
+      v.vuelos = v.vuelos || [];
+      if (k) v.vuelos[+k.slice(1)] = limpio; else v.vuelos.push(limpio);
+      v.vuelos.sort((a, b) => (a.sal || '').localeCompare(b.sal || ''));
+    } else {
+      v.reservas = v.reservas || [];
+      if (k) { const i = v.reservas.findIndex(x => x.id === k); v.reservas[i] = { id: k, tipo, ...o }; }
+      else v.reservas.push({ id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo, ...o });
+    }
+    S.resAbierta = null; cerrar(); guardar(); render(); toast('✅ Reserva guardada');
+  };
+  if (k) $('#rsBorrar').onclick = () => preguntar(`¿Borrar esta reserva (${T.n.toLowerCase()})?`, [{ t: 'Borrar', cls: 'peligro' }, { t: 'Cancelar' }]).then(i => {
+    if (i !== 0) return;
+    if (tipo === 'vuelo') { v.vuelos.splice(+k.slice(1), 1); if (!v.vuelos.length) delete v.vuelos; }
+    else { v.reservas = v.reservas.filter(x => x.id !== k); if (!v.reservas.length) delete v.reservas; }
+    S.resAbierta = null; cerrar(); guardar(); render(); toast('Reserva borrada');
+  });
+}
+function añadirReserva(v) {
+  const tipos = Object.keys(TIPOS_RES);
+  preguntar('¿Qué quieres añadir?', [...tipos.map(t => ({ t: `${TIPOS_RES[t].ic} ${TIPOS_RES[t].n}`, cls: 'secundario' })), { t: 'Cancelar' }]).then(i => {
+    if (i === null || i >= tipos.length) return;
+    editarReserva(v, null, tipos[i]);
+  });
+}
+
+function avisosViaje(v) {
+  const docs = misDocs().filter(d => aplicaA(d, v)), p = (S.aju && S.aju.personal) || {}, avisos = [];
+  if (p.pasCad && v.pais !== 'España' && p.pasCad < mas6meses(v.fechaFin)) avisos.push(`Tu pasaporte caduca el <b>${fechaES(p.pasCad)}</b>: menos de 6 meses después de la vuelta.`);
+  docs.filter(d => d.hasta && d.hasta < v.fechaFin).forEach(d => avisos.push(`<b>${esc(d.nombre)}</b> vale hasta el ${fechaES(d.hasta)}, antes de la vuelta.`));
+  return avisos;
+}
+function ahoraIso() { const d = new Date(); return `${HOY}T${dos(d.getHours())}:${dos(d.getMinutes())}`; }
 
 function renderDetalle() {
   const v = S.viajes.find(x => x.id === S.detalle);
   if (!v) return cerrarDetalle();
   const info = v.info || {}, docs = docsDe(v.id), n = diasEntre(v.fechaInicio, v.fechaFin) + 1;
-  let h = `<div class="modal-head"><button class="pill-btn" id="detCerrar">Cerrar</button><h2>${bandera(v.pais)} ${esc(v.ciudadDestino || v.pais)}</h2><button class="pill-btn" id="detEditar">✏️ Editar</button></div>
+  const tab = S.detTab || 'r';
+  let h = `<div class="modal-head"><button class="pill-btn" id="detCerrar">Cerrar</button><h2>${bandera(v.pais)} ${esc(v.ciudadDestino || v.pais)}</h2><button class="pill-btn" id="detEditar">✏️ Editar viaje</button></div>
     <div class="det-sub">${esc(v.cliente)} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${v.nota ? '<br>' + esc(v.nota) : ''}</div>`;
 
   if (S.fichaEdit) {
-    h += `<div class="det-sec">Ficha del viaje</div>
+    h += `<div class="det-sec">Datos del viaje</div>
       <div class="campo"><label>Correo de la gestora (pégalo aquí)</label><textarea id="fiCorreo" rows="4" placeholder="Pega el texto del correo…">${esc(info.correo || '')}</textarea></div>
-      <button class="btn secundario" id="fiRellenar" style="margin:0 0 12px">✨ Rellenar ficha con el correo</button>
+      <button class="btn secundario" id="fiRellenar" style="margin:0 0 12px">✨ Rellenar con el correo</button>
       ${CAMPOS_FICHA.map(([k, ic, t]) => `<div class="campo"><label>${ic} ${t}</label>${k === 'sap' ? `<input id="fi_${k}" value="${esc(info[k] || '')}" inputmode="numeric">` : `<textarea id="fi_${k}" rows="${k === 'contactos' ? 5 : 4}">${esc(info[k] || '')}</textarea>`}</div>`).join('')}
-      <button class="btn primario" id="fiGuardar">Guardar ficha</button>
+      <div class="muted" style="font-size:12px;margin:-4px 2px 10px">El hotel que venga en el correo se guarda en Reservas.</div>
+      <button class="btn primario" id="fiGuardar">Guardar</button>
       <button class="btn secundario" id="fiCancelar">Cancelar</button>`;
-  } else {
-    const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'hotel' || k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
-    h += htmlVuelos(v);
-    h += `<div class="det-sec"><span>Ficha del viaje</span><button class="pill-btn" id="fiEditar">${filas ? '✏️ Editar' : '＋ Rellenar'}</button></div>
-      <div class="card">${filas || '<div class="muted" style="font-size:14px">Pega aquí el correo de la gestora y se rellenan solos el hotel, el cliente, la orden SAP y los teléfonos. También puedes escribir tus notas.</div>'}</div>`;
+    $('#detalleBox').innerHTML = h;
+    return;
+  }
+  const nRes = (v.vuelos || []).length + (v.reservas || []).length;
+  const generales = misDocs().filter(d => aplicaA(d, v));
+  h += `<div class="seg" id="detTabs" style="margin-top:4px"><button data-dtab="r" class="${tab === 'r' ? 'on' : ''}">Resumen</button><button data-dtab="v" class="${tab === 'v' ? 'on' : ''}">Reservas${nRes ? ' ' + nRes : ''}</button><button data-dtab="d" class="${tab === 'd' ? 'on' : ''}">Docs${docs.length + generales.length ? ' ' + (docs.length + generales.length) : ''}</button></div>`;
 
+  if (tab === 'r') {
+    const ahora = ahoraIso();
+    const prox = (v.vuelos || []).filter(f => f.sal && f.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+    if (prox) {
+      const d = prox.lle ? diasEntre(prox.sal.slice(0, 10), prox.lle.slice(0, 10)) : 0;
+      h += `<div class="card prox-vuelo" data-dtab="v"><div class="k">Próximo vuelo · ${diaVuelo(prox.sal)} · ver reservas ›</div>
+        <div class="vr">${esc(prox.de || '')} ${prox.sal.slice(11, 16)} → ${esc(prox.a || '')} ${prox.lle ? prox.lle.slice(11, 16) : ''}${d > 0 ? ` <small>+${d}</small>` : ''}</div>
+        <div class="s">${[prox.num, prox.terminal ? 'T' + prox.terminal : '', prox.asiento ? 'asiento ' + prox.asiento.split(' ')[0] : '', prox.loc].filter(Boolean).map(esc).join(' · ')}</div></div>`;
+    }
+    const hoteles = (v.reservas || []).filter(r => r.tipo === 'hotel').sort((a, b) => (a.fecha || '').localeCompare(b.fecha || ''));
+    const hotel = hoteles.find(r => r.fecha <= HOY && (!r.fechaFin || r.fechaFin >= HOY)) || hoteles.find(r => (r.fecha || '') >= HOY) || hoteles[hoteles.length - 1];
+    const hoyRes = (v.reservas || []).filter(r => r.tipo !== 'hotel' && r.fecha === HOY);
+    if (hotel || hoyRes.length) {
+      h += '<div class="card">';
+      if (hotel) h += `<div class="ficha-f"><div class="ic">🏨</div><div style="flex:1;min-width:0"><div class="k">Hotel${hotel.fecha <= HOY && (!hotel.fechaFin || hotel.fechaFin >= HOY) ? ' ahora' : ''}${hotel.fecha && hotel.fechaFin ? ' · ' + diaCorto(hotel.fecha) + ' → ' + diaCorto(hotel.fechaFin) : ''}</div><div class="v">${esc(hotel.nombre || 'Hotel')}</div>${hotel.dir ? `<div class="v" style="font-size:13px;color:var(--muted)">${esc(hotel.dir)}</div><div style="margin-top:3px">${mapaLink((hotel.nombre || '') + '\n' + hotel.dir)}</div>` : ''}${hotel.tel ? `<div style="margin-top:3px">☎️ ${telLinks(hotel.tel)}</div>` : ''}</div></div>`;
+      hoyRes.forEach(r => { const [t1, t2] = lineasRes({ tipo: r.tipo, r }); h += `<div class="ficha-f" data-dtab="v" style="cursor:pointer"><div class="ic">${TIPOS_RES[r.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="k">Hoy</div><div class="v">${t1}</div>${t2 ? `<div class="v" style="font-size:13px;color:var(--muted)">${t2}</div>` : ''}</div></div>`; });
+      h += '</div>';
+    }
+    const av = avisosViaje(v);
+    if (av.length) h += `<div class="card aviso-card">${av.map(a => `<div>⚠️ ${a}</div>`).join('')}</div>`;
+    const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
+    h += `<div class="det-sec"><span>Datos del viaje</span><button class="pill-btn" id="fiEditar">${filas || info.correo ? '✏️ Editar · pegar correo' : '＋ Pegar correo'}</button></div>
+      <div class="card">${filas || '<div class="muted" style="font-size:14px">Pega el correo de la gestora y se rellenan solos el cliente, la orden SAP, los teléfonos y el hotel. También puedes escribir tus notas.</div>'}</div>`;
+    if (info.correo) h += `<div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)">✉️ Ver correo de la gestora</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
+  } else if (tab === 'v') {
+    h += htmlReservas(v);
+  } else {
     const sinGuardar = docs.filter(d => !N.docsLocal.has(d.id)).length;
-    h += `<div class="det-sec"><span>Documentos</span>${docs.length ? `<span style="font-size:12px;text-transform:none;letter-spacing:0">${sinGuardar ? `${sinGuardar} sin guardar en este dispositivo` : '✓ Todo disponible sin conexión'}</span>` : ''}</div>
+    h += `<div class="det-sec"><span>Del viaje</span>${docs.length ? `<span style="font-size:12px;text-transform:none;letter-spacing:0">${sinGuardar ? `${sinGuardar} sin guardar en este dispositivo` : '✓ Todo disponible sin conexión'}</span>` : ''}</div>
       <div class="card" id="docsCard">
         ${docs.map(d => `<div class="doc-f" data-doc-abrir="${d.id}"><div class="ic">${(d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${tamTxt(d.tam || 0)} · ${N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'}</div></div><button class="x" data-doc-renombrar="${d.id}" title="Cambiar nombre">✏️</button><button class="x" data-doc-borrar="${d.id}">✕</button></div>`).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Sin documentos. Añade los PDFs del viaje (billetes, visado, reservas…) o el correo de la agencia (.eml): saca los vuelos y los adjuntos solo.</div>'}
-        <button class="btn primario" id="docAñadir">＋ Añadir documento</button>
+        <button class="btn primario" id="docAñadir">＋ Añadir documento o correo</button>
         ${sinGuardar ? '<button class="btn secundario" id="docGuardarTodo">⬇️ Guardar sin conexión</button>' : ''}
       </div>`;
-    h += htmlGeneralesViaje(v);
-    if (info.correo) h += `<div class="det-sec">Correo de la gestora</div><div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px">Ver correo completo</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
+    h += `<div class="det-sec"><span>Mis documentos para este viaje</span><button class="pill-btn" id="irMisDocs">🔒 Todos</button></div>
+      <div class="card">${generales.map(d => filaDoc(d, false)).join('') || '<div class="muted" style="font-size:14px">Ninguno. En Viajes → 🔒 Mis docs puedes poner el pasaporte, el seguro o la guía para que salgan aquí.</div>'}</div>`;
   }
   $('#detalleBox').innerHTML = h;
 }
@@ -2243,35 +2518,42 @@ function leerFicha() {
 function guardarFicha() {
   const v = S.viajes.find(x => x.id === S.detalle); if (!v) return;
   const info = leerFicha();
+  let hotel = false;
+  if (N.hotelCorreo) { hotel = hotelDeTexto(v, N.hotelCorreo); N.hotelCorreo = null; }
   if (Object.keys(info).length) v.info = info; else delete v.info;
-  S.fichaEdit = false; guardar(); render(); renderDetalle(); toast('✅ Ficha guardada');
+  S.fichaEdit = false; guardar(); render(); renderDetalle(); toast(hotel ? '✅ Guardado · hotel añadido a Reservas' : '✅ Guardado');
 }
 
 function iniciarDetalle() {
   const box = $('#detalleBox');
   box.addEventListener('click', e => {
     const t = e.target;
+    const v = S.viajes.find(x => x.id === S.detalle);
     if (t.id === 'detCerrar') return cerrarDetalle();
-    if (t.id === 'detEditar') return abrirFormulario(S.viajes.find(v => v.id === S.detalle));
-    if (t.id === 'fiEditar') { S.fichaEdit = true; return renderDetalle(); }
-    if (t.id === 'fiCancelar') { S.fichaEdit = false; return renderDetalle(); }
+    if (t.id === 'detEditar') return abrirFormulario(v);
+    const dt = t.closest('[data-dtab]'); if (dt) { S.detTab = dt.dataset.dtab; S.resAbierta = null; renderDetalle(); box.scrollTop = 0; return; }
+    if (t.id === 'fiEditar') { S.fichaEdit = true; N.hotelCorreo = null; return renderDetalle(); }
+    if (t.id === 'fiCancelar') { S.fichaEdit = false; N.hotelCorreo = null; return renderDetalle(); }
     if (t.id === 'fiGuardar') return guardarFicha();
     if (t.id === 'fiRellenar') {
       const r = parsearCorreo($('#fiCorreo').value);
       if (!r.correo) return toast('Pega primero el correo');
       $('#fiCorreo').value = r.correo;
       let n = 0;
-      ['hotel', 'cliente', 'sap', 'contactos'].forEach(k => { if (r[k]) { $('#fi_' + k).value = r[k]; n++; } });
-      return toast(n ? `✨ ${n} ${n === 1 ? 'dato rellenado' : 'datos rellenados'}: revísalos y guarda` : 'No he encontrado datos conocidos; escríbelos a mano');
+      ['cliente', 'sap', 'contactos'].forEach(k => { if (r[k]) { $('#fi_' + k).value = r[k]; n++; } });
+      if (r.hotel) { N.hotelCorreo = r.hotel; n++; }
+      return toast(n ? `✨ ${n} ${n === 1 ? 'dato encontrado' : 'datos encontrados'}${r.hotel ? ' (hotel incluido)' : ''}: revisa y guarda` : 'No he encontrado datos conocidos; escríbelos a mano');
     }
+    if (t.id === 'resAñadir') return añadirReserva(v);
+    const re = t.closest('[data-res-editar]'); if (re) { e.stopPropagation(); return editarReserva(v, re.dataset.resEditar); }
+    if (t.closest('a, .cp')) { const cp = t.closest('[data-copiar]'); if (cp) navigator.clipboard?.writeText(cp.dataset.copiar).then(() => toast('📋 Copiado: ' + cp.dataset.copiar), () => {}); return; }
+    const rs = t.closest('[data-res]'); if (rs) { S.resAbierta = S.resAbierta === rs.dataset.res ? null : rs.dataset.res; return renderDetalle(); }
     if (t.id === 'docAñadir') { N.subirA = null; return $('#fileDocs').click(); }
     if (t.id === 'docGuardarTodo') {
       if (!navigator.onLine) return toast('📴 Hace falta conexión para guardarlos');
       toast('⬇️ Guardando…');
       return precargar(S.detalle).then(() => { renderDetalle(); toast(docsDe(S.detalle).every(d => N.docsLocal.has(d.id)) ? '✓ Disponible sin conexión' : '⚠️ Alguno no se pudo guardar'); });
     }
-    const cp = t.closest('[data-copiar]'); if (cp) { navigator.clipboard?.writeText(cp.dataset.copiar).then(() => toast('📋 Copiado: ' + cp.dataset.copiar), () => {}); return; }
-    const bv = t.closest('[data-vuelo-borrar]'); if (bv) return borrarVuelo(+bv.dataset.vueloBorrar);
     const rn = t.closest('[data-doc-renombrar]'); if (rn) { e.stopPropagation(); return renombrarDoc(S.docs.find(d => d.id === rn.dataset.docRenombrar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
     const a = t.closest('[data-doc-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.docAbrir));
@@ -2288,7 +2570,7 @@ function iniciarDetalle() {
   // Arrastrar archivos (PC)
   box.addEventListener('dragover', e => { if (S.fichaEdit) return; e.preventDefault(); $('#docsCard')?.classList.add('doc-drop'); });
   box.addEventListener('dragleave', e => { if (!box.contains(e.relatedTarget)) $('#docsCard')?.classList.remove('doc-drop'); });
-  box.addEventListener('drop', e => { if (S.fichaEdit) return; e.preventDefault(); $('#docsCard')?.classList.remove('doc-drop'); const fs = [...e.dataTransfer.files]; if (fs.length && S.detalle) subirDocs(S.detalle, fs); });
+  box.addEventListener('drop', e => { if (S.fichaEdit) return; e.preventDefault(); $('#docsCard')?.classList.remove('doc-drop'); const fs = [...e.dataTransfer.files]; if (fs.length && S.detalle) { S.detTab = 'd'; subirDocs(S.detalle, fs); } });
   $('#visorCerrar').onclick = cerrarVisor;
   $('#visorCompartir').onclick = compartirVisor;
 }
@@ -2555,7 +2837,13 @@ function eventos() {
       return preguntar(`¿Volver al calendario ${a} original? Se perderán tus cambios en ese año.`, [{ t: 'Restablecer', cls: 'peligro' }, { t: 'Cancelar' }])
         .then(i => { if (i === 0) { delete S.emp[a]; delete cacheEmp[a]; guardar(); renderAjustes(); toast('Restablecido'); } });
     }
-    const va = e.target.closest('[data-vac-año]'); if (va) { S.añoVac += +va.dataset.vacAño; return renderVacaciones(); }
+    const va = e.target.closest('[data-vac-año]'); if (va) { S.añoVac += +va.dataset.vacAño; S.bolsaEdit = false; return renderVacaciones(); }
+    const pe = e.target.closest('[data-periodo]'); if (pe) { const [a, b] = pe.dataset.periodo.split('|'); return abrirPeriodo(a, b); }
+    if (e.target.id === 'vacVerTodas') { S.verTodasVac = !S.verTodasVac; return renderVacaciones(); }
+    if (e.target.id === 'bolsaEditar') { S.bolsaEdit = true; return renderVacaciones(); }
+    if (e.target.id === 'bolsaListo') { S.bolsaEdit = false; S.bolsaAbierta = true; toast('✅ Bolsa guardada'); return renderVacaciones(); }
+    if (e.target.closest('#bolsaCard')) { S.bolsaAbierta = !S.bolsaAbierta; return renderVacaciones(); }
+    if (e.target.id === 'irAyuda') return $('#ayudaTit').scrollIntoView({ behavior: 'smooth', block: 'start' });
     const cb = e.target.closest('[data-crear-bolsa]');
     if (cb) {
       const a = +cb.dataset.crearBolsa, ant = bolsa(a - 1);
