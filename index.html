@@ -77,7 +77,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .n.t-previo{background:var(--previo-bg)}
 .n.pv{background:var(--viaje);color:#fff;font-weight:700}
 .n.pc{background:var(--vac);color:#fff;font-weight:700}
-.n.pc.parcial{background:var(--vac-bg);color:var(--vac)}
+.n.pc.parcial{color:var(--text);text-shadow:0 0 3px var(--card)}
 .c.jl{padding-left:0}.c.jr{padding-right:0}
 .c.jl .n{border-top-left-radius:0;border-bottom-left-radius:0}
 .c.jr .n{border-top-right-radius:0;border-bottom-right-radius:0}
@@ -562,7 +562,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.3';
+const VERSION = 'v5.4';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -853,6 +853,12 @@ function ampliarConLibres(a, b) {
 // ---- Horas de vacaciones ----
 const HORAS_DIA = 8;   // jornada continua
 const coma = n => String(n).replace('.', ',');
+// Relleno tipo "vaso": la parte de abajo se llena según las horas del día (8 h = lleno)
+function rellenoParcial(s) {
+  if (S.horas[s] === undefined || !laborable(s) || S.horas[s] >= HORAS_DIA) return '';
+  const pct = Math.max(0, Math.min(100, S.horas[s] / HORAS_DIA * 100));
+  return `background:linear-gradient(to top, var(--vac) ${pct}%, var(--vac-bg) ${pct}%);`;
+}
 const horasDe = s => S.horas[s] !== undefined ? S.horas[s] : (laborable(s) ? HORAS_DIA : 0);
 const fmtH = n => (Math.round(n * 100) / 100).toLocaleString('es-ES', { maximumFractionDigits: 2 }) + ' h';
 const fmtD = n => `≈ ${(Math.round(n / HORAS_DIA * 10) / 10).toLocaleString('es-ES')} días`;
@@ -937,7 +943,7 @@ function celda(s, col) {
   if (vj || vc) {
     const mismo = x => vj ? hayViaje(x) : (S.vac.has(x) && !hayViaje(x));
     n += vj ? ' pv' : ' pc';
-    if (!vj && S.horas[s] !== undefined && S.horas[s] < HORAS_DIA && laborable(s)) n += ' parcial';
+    if (!vj && rellenoParcial(s)) n += ' parcial';
     if (col > 0 && mismo(sumar(s, -1))) c += ' jl';
     if (col < 6 && mismo(sumar(s, 1))) c += ' jr';
     if (vj && (col === 0 || !hayViaje(sumar(s, -1)))) extra += `<span class="flag-mini">${bandera(viajesEn(s)[0].pais)}</span>`;
@@ -948,7 +954,8 @@ function celda(s, col) {
   else if (t) n += ' t-' + t;
   if (s === HOY) n += ' hoy';
   if (r && s >= r[0] && s <= r[1]) c += ' sel';
-  return `<div class="${c}" data-d="${s}"><div class="${n}">${+s.slice(8)}${extra}</div></div>`;
+  const est = n.includes('parcial') ? ` style="${rellenoParcial(s)}"` : '';
+  return `<div class="${c}" data-d="${s}"><div class="${n}"${est}>${+s.slice(8)}${extra}</div></div>`;
 }
 function renderMes() {
   const y = S.año, m = S.mes;
@@ -1023,7 +1030,8 @@ function renderAño() {
       else if (S.editEmp && t) k = { festivo:'f', puente:'b', vacacional:'o', previo:'g' }[t];
       else if (esFinde(s)) k = 'w';
       else k = { festivo:'f', puente:'b', vacacional:'o', previo:'g' }[t] || '';
-      mini += `<i class="${k}${s === HOY ? ' hoy' : ''}">${d}</i>`;
+      const rp = k === 'p' ? rellenoParcial(s) : '';
+      mini += `<i class="${k}${s === HOY ? ' hoy' : ''}"${rp ? ` style="${rp}color:var(--text)"` : ''}>${d}</i>`;
     }
     const actual = S.año === +HOY.slice(0,4) && m === +HOY.slice(5,7) - 1;
     h += `<div class="ymes ${actual ? 'actual' : ''}" data-mes="${m}"><div class="ymes-t">${MESES_C[m]}</div><div class="ymini">${mini}</div></div>`;
