@@ -1,25 +1,9 @@
+# Calendario Torres de Elorz
 
-# CACHE BREAKER - INSTALACIÓN
+App personal de calendario laboral, vacaciones y viajes de trabajo.
 
-Este paquete **NO toca tu Calendario.html**. 
-PERO necesitas añadir manualmente 2 líneas en tu Calendario.html (lo menos invasivo posible).
+- **Datos:** Firebase (Firestore + Authentication), proyecto `calendario-torres`.
+- **Web:** Netlify, publicada automáticamente desde la rama `main` (carpeta raíz, sin compilación).
+- Funciona sin conexión (service worker + caché de Firestore) y se instala en el iPhone con "Añadir a pantalla de inicio".
 
-## 1️⃣ Mete estos 2 ficheros en el root del repo
-
-- /world/addon_break_99127.js
-- /service-worker-v11.js
-
-## 2️⃣ Añade ESTAS 2 líneas ANTES de </body> en tu Calendario.html
-
-```html
-<script src="./world/addon_break_99127.js"></script>
-<script src="./service-worker-v11.js"></script>
-```
-
-## 3️⃣ Sube a GitHub y espera 1–2 minutos
-## 4️⃣ Borra la PWA
-## 5️⃣ Abre la URL en Safari → recarga fuerte
-## 6️⃣ Vuelve a instalar la PWA
-
-Esto **rompe completamente la caché**.
-Los botones aparecerán **sí o sí** EN PARALELO.
+Para publicar una versión nueva basta con subir los cambios a `main`.
