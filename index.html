@@ -680,7 +680,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.4';
+const VERSION = 'v6.5';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1780,7 +1780,8 @@ function parsearCorreo(t) {
 function abrirDetalle(id) { S.detalle = id; S.fichaEdit = false; renderDetalle(); $('#modalDetalle').classList.add('on'); programarPrecarga(); }
 function cerrarDetalle() { S.detalle = null; S.fichaEdit = false; $('#modalDetalle').classList.remove('on'); }
 const telLinks = s => esc(s).replace(/(\+?\d[\d .]{7,}\d)/g, m => `<a href="tel:${m.replace(/[ .]/g, '')}">${m}</a>`);
-const mapaLink = s => `<a href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(s.replace(/\n/g, ', '))}" target="_blank" rel="noopener">Mapa ↗</a>`;
+const mapaLink = s => { const q = encodeURIComponent(s.replace(/\n/g, ', '));
+  return `<a href="https://www.google.com/maps/search/?api=1&query=${q}" target="_blank" rel="noopener">Google Maps ↗</a> &nbsp;·&nbsp; <a href="https://waze.com/ul?q=${q}&navigate=yes" target="_blank" rel="noopener">Waze ↗</a>`; };
 const CAMPOS_FICHA = [['hotel', '🏨', 'Hotel'], ['cliente', '🏭', 'Dirección del cliente'], ['sap', '🧾', 'Orden de viaje SAP'], ['contactos', '☎️', 'Contactos'], ['notas', '📝', 'Notas']];
 
 function renderDetalle() {
