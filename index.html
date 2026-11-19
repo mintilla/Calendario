@@ -168,6 +168,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .c.sel .n{box-shadow:inset 0 0 0 2.5px var(--text)}
 .dot{position:absolute;top:4px;right:5px;width:6px;height:6px;border-radius:50%;border:1px solid rgba(255,255,255,.8)}
 .flag-mini{position:absolute;top:1px;left:3px;font-size:9px;line-height:1}
+.et{display:none}
 
 .leyenda{display:flex;flex-wrap:wrap;gap:6px 12px;margin-top:12px;font-size:11px;color:var(--muted)}
 .leyenda span{display:flex;align-items:center;gap:5px}
@@ -227,6 +228,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fila-año .chev{color:var(--muted);font-size:18px;width:12px;text-align:right}
 .rec-f{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
 .rec-f:last-child{border-bottom:none}
+.fila-barra.sub{padding-left:14px;opacity:.75;font-size:13px}
 .rec-f[data-viaje],.rec-f[data-ver-pais],.rec-f[data-rec-cliente],.rec-f[data-ir-año],.rec-f[data-dlg-viaje]{cursor:pointer}
 .rec-f .ic{font-size:20px;width:26px;text-align:center;flex:none}
 .rec-f .t{font-size:15px;font-weight:600}
@@ -350,6 +352,24 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .accion.vac{background:var(--vac);color:#fff}
 .accion.vac.quitar{background:var(--vac-bg);color:var(--vac)}
 .accion.via{background:var(--viaje);color:#fff}
+.busca{position:relative}
+.sugs{display:none;border:1px solid var(--line);border-radius:12px;margin-top:4px;overflow:hidden;background:var(--card)}
+.sugs.on{display:block}
+.sugs div{padding:10px 12px;display:flex;justify-content:space-between;gap:8px;cursor:pointer;font-size:15px;border-top:1px solid var(--line)}
+.sugs div:first-child{border-top:none}
+.sugs div small{color:var(--muted);font-size:12px;white-space:nowrap}
+.sugs div.nuevo{color:var(--accent);font-weight:600}
+.chips-planta{display:flex;flex-wrap:wrap;gap:6px;margin-top:6px}
+.chips-planta:empty{display:none}
+.chips-planta button{font-size:13px;padding:5px 11px;border-radius:99px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.chips-planta button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.res-bar{display:none;align-items:center;gap:10px;background:var(--vac);color:#fff;border-radius:14px;padding:10px 12px 10px 14px;margin-bottom:10px}
+.res-bar.on{display:flex}
+.res-bar .t{flex:1;font-size:14px;font-weight:700;line-height:1.25}.res-bar .t small{display:block;font-weight:500;opacity:.9;font-size:12px}
+.res-bar button{background:#fff;color:var(--vac);font-weight:800;border-radius:10px;padding:8px 14px;font-size:14px}
+.dia-links{display:flex;justify-content:flex-end;gap:16px;margin-top:12px}
+.dia-links button{color:var(--accent);font-weight:600;font-size:14px;padding:4px 0}
+.btn-reservar{margin-top:10px}
 
 /* ===== FORMULARIO VIAJE ===== */
 .modal{position:fixed;inset:0;z-index:100;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
@@ -411,7 +431,21 @@ input,select,textarea{font-size:16px !important}
   #calCard.llena{min-height:0}
   #calCard.llena .ygrid{align-content:start}
   .stats{grid-template-columns:repeat(4,1fr)}
-  #tab-cal.on{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);column-gap:20px;align-items:start}
+  #tab-cal.on{display:grid;grid-template-columns:minmax(0,1fr) 290px;column-gap:20px;align-items:start;max-width:1500px}
+  #resBar{grid-column:1/-1}
+  .mgrid{grid-template-columns:28px repeat(7,1fr);row-gap:6px}
+  .wh{font-size:13px}.wk{font-size:11px}
+  .c{height:max(72px,calc((100vh - 250px) / 6))}
+  .n{align-items:flex-start;justify-content:flex-start;padding:8px 10px;font-size:17px;border-radius:10px;overflow:hidden}
+  .n.hoy::after{left:auto;right:10px;top:12px;bottom:auto;margin:0;width:7px;height:7px}
+  .flag-mini{display:none}
+  .et{display:block;position:absolute;left:10px;width:calc(var(--k) * 100% - 16px);overflow:hidden;text-overflow:ellipsis;bottom:8px;font-size:13px;font-weight:600;white-space:nowrap;z-index:1;pointer-events:none}
+  .c.jr .n{overflow:visible}
+  .dot{top:10px;right:10px}
+  .hoy-card{padding:12px 14px;border-radius:16px}
+  .hoy-estado{font-size:17px;margin:2px 0 8px}
+  .hoy-linea{font-size:12px;padding:7px 9px}
+  .ymes-t{font-size:13px}.ymini i{font-size:12px}
   #tab-cal .tab-titulo{grid-column:1/-1}
   #calCard{grid-column:1;grid-row:2/span 3}
   #hoyCard,#agendaWrap{grid-column:2}
@@ -435,6 +469,7 @@ input,select,textarea{font-size:16px !important}
 <!-- ===================== CALENDARIO ===================== -->
 <section class="tab on" id="tab-cal">
   <div class="tab-titulo">Calendario</div>
+  <div class="res-bar" id="resBar"></div>
   <div class="card" id="calCard">
     <div class="mes-nav">
       <div class="mes-titulo tocable" id="mesTitulo"></div>
@@ -586,7 +621,8 @@ input,select,textarea{font-size:16px !important}
     <details><summary>🏭 Clientes</summary><div class="cont">
       <ul>
         <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
-        <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar viaje</b> puedes marcar uno como Feria, Comercial, Interno u Otro. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
+        <li><b>Grupo y planta:</b> al crear un viaje, en <b>Cliente (grupo)</b> escribe unas letras y elige de la lista (Tetra Pak); debajo eliges o escribes la <b>Planta</b> (Limburg). Si escribes uno nuevo que se parece a otro, te avisa antes de crearlo, para no duplicar. En las estadísticas cada grupo suma todas sus plantas.</li>
+        <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar viaje</b> puedes marcar uno como Feria, Comercial o Interno. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
       </ul>
     </div></details>
     <details><summary>🏢 Calendario de empresa</summary><div class="cont">
@@ -677,8 +713,9 @@ input,select,textarea{font-size:16px !important}
       <div class="pais-lista" id="fPaisLista"></div>
     </div>
     <div class="campo"><label>Ciudad (opcional)</label><input id="fCiudad" placeholder="Ej: Hamburgo" autocomplete="off"></div>
-    <div class="campo"><label>Cliente</label><input id="fCliente" list="listaClientes" placeholder="Ej: Airbus" autocomplete="off"><datalist id="listaClientes"></datalist></div>
     <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option></select></div>
+    <div class="campo"><label id="fClienteLbl">Cliente (grupo)</label><div class="busca"><input id="fCliente" placeholder="Busca o escribe uno nuevo" autocomplete="off"><div class="sugs" id="sugCliente"></div></div></div>
+    <div class="campo" id="campoPlanta"><label>Planta <span class="muted" style="font-weight:500">(opcional)</span></label><input id="fPlanta" placeholder="Ej: Limburg" autocomplete="off"><div class="chips-planta" id="chipsPlanta"></div></div>
     <div class="fechas">
       <div class="campo"><label>Ida</label><input type="date" id="fIni"></div>
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
@@ -824,7 +861,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.1';
+const VERSION = 'v8.2';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -991,6 +1028,30 @@ function agrupar(el) {
   });
 }
 agrupar(document.getElementById('tab-aju'));
+// El cliente de un viaje es el grupo (v.cliente) más la planta (v.planta), si la hay
+const nombreCliente = v => (v.cliente || '') + (v.planta ? ' ' + v.planta : '');
+const normCli = t => sinAcentos(t || '').replace(/[^a-z0-9]/g, '');
+function gruposClientes() {
+  const g = {};
+  S.viajes.forEach(v => {
+    if (!v.cliente || v.cliente === 'Sin detalle' || !esCliente(v)) return;
+    const x = g[v.cliente] = g[v.cliente] || { n: 0, plantas: new Set(), ult: '' };
+    x.n++; if (v.planta) x.plantas.add(v.planta); if (v.fechaInicio > x.ult) x.ult = v.fechaInicio;
+  });
+  return g;
+}
+// Parecido entre dos nombres (0..1) para avisar de posibles duplicados
+function parecido(a, b) {
+  a = normCli(a); b = normCli(b);
+  if (!a || !b) return 0;
+  if (a === b) return 1;
+  if (a.length >= 4 && b.length >= 4 && (a.includes(b) || b.includes(a))) return 0.9;
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++)
+    d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return 1 - d[a.length][b.length] / Math.max(a.length, b.length);
+}
 const TIPOS_VIAJE = { feria: '🎪 Ferias', comercial: '💼 Comerciales', interno: '🏢 Internos (MTorres)', sincliente: '⚠️ Sin cliente' };
 const tipoDe = v => !v.cliente || v.cliente === 'Sin detalle' ? 'sincliente' : (v.tipo || 'cliente');
 const esCliente = v => tipoDe(v) === 'cliente';
@@ -1209,7 +1270,7 @@ function renderHoy() {
   let estado;
   if (vjHoy.length) {
     const v = vjHoy[0];
-    estado = `<span data-viaje="${v.id}" style="cursor:pointer">${bandera(v.pais)} En ${esc(v.ciudadDestino || v.pais)} · ${esc(v.cliente)}</span>`;
+    estado = `<span data-viaje="${v.id}" style="cursor:pointer">${bandera(v.pais)} En ${esc(v.ciudadDestino || v.pais)} · ${esc(nombreCliente(v))}</span>`;
   } else if (S.vac.has(HOY)) estado = '🏖️ De vacaciones';
   else if (esFinde(HOY)) estado = '🌴 Fin de semana';
   else if (tipo(HOY)) estado = { festivo:'🎉 Festivo', puente:'🌉 Puente', previo:'⏰ Previo 6h', vacacional:'🏢 Vacacional de empresa' }[tipo(HOY)];
@@ -1254,6 +1315,8 @@ function selRango() {
   const b = S.sel.b || S.sel.a;
   return S.sel.a <= b ? [S.sel.a, b] : [b, S.sel.a];
 }
+// Cuántos días seguidos (en la misma semana) cumplen f desde s
+function tramo(s, col, f) { let k = 1; while (col + k <= 6 && f(sumar(s, k))) k++; return k; }
 function celda(s, col) {
   const t = tipo(s), fin = esFinde(s), ed = !!S.editEmp, vj = !ed && hayViaje(s), vc = !ed && S.vac.has(s);
   const r = selRango();
@@ -1264,7 +1327,8 @@ function celda(s, col) {
     if (!vj && rellenoParcial(s)) n += ' parcial';
     if (col > 0 && mismo(sumar(s, -1))) c += ' jl';
     if (col < 6 && mismo(sumar(s, 1))) c += ' jr';
-    if (vj && (col === 0 || !hayViaje(sumar(s, -1)))) extra += `<span class="flag-mini">${bandera(viajesEn(s)[0].pais)}</span>`;
+    if (vj && (col === 0 || !hayViaje(sumar(s, -1)))) { const v0 = viajesEn(s)[0]; extra += `<span class="flag-mini">${bandera(v0.pais)}</span><span class="et" style="--k:${tramo(s, col, hayViaje)}">${esc(v0.ciudadDestino || v0.pais)}${v0.cliente ? ' · ' + esc(nombreCliente(v0)) : ''}</span>`; }
+    else if (!vj && vc && (col === 0 || !S.vac.has(sumar(s, -1)) || hayViaje(sumar(s, -1)))) extra += `<span class="et" style="--k:${tramo(s, col, x => S.vac.has(x) && !hayViaje(x))}">Vacaciones</span>`;
     if (t && !fin) extra += `<span class="dot" style="background:${COLOR_TIPO[t]}"></span>`;
     else if (vj && vc) extra += `<span class="dot" style="background:var(--vac)"></span>`;
   } else if (ed && t) n += ' t-' + t;
@@ -1311,7 +1375,7 @@ function renderAgenda() {
     const n = diasEntre(v.fechaInicio, v.fechaFin) + 1;
     items.push({ a: v.fechaInicio, color: 'var(--viaje)', id: v.id,
       t: `${bandera(v.pais)} ${esc(v.ciudadDestino ? v.ciudadDestino + ', ' + v.pais : v.pais)}`,
-      s: `${esc(v.cliente)} · ${plural(n, 'día')}`, f: rangoTxt(v.fechaInicio, v.fechaFin) });
+      s: `${esc(nombreCliente(v))} · ${plural(n, 'día')}`, f: rangoTxt(v.fechaInicio, v.fechaFin) });
   });
 
   const vacMes = [...S.vac].filter(s => s >= ini && s <= fin);
@@ -1360,12 +1424,13 @@ function renderAño() {
 
 function renderCal() {
   renderHoy();
-  $('#hoyCard').style.display = S.editEmp || S.vista === 'mes' ? 'none' : '';
+  $('#hoyCard').style.display = S.editEmp || S.reservar || S.vista === 'mes' ? 'none' : '';
   $('#avisoCal').style.display = empresa(S.año).ok ? 'none' : 'block';
   $('#btnVista').textContent = S.vista === 'mes' ? 'Año' : 'Mes';
   if (S.vista === 'mes') { renderMes(); renderAgenda(); $('#agendaWrap').style.display = ''; }
   else { renderAño(); $('#agendaWrap').style.display = 'none'; }
   $('#calCard').classList.toggle('llena', S.vista !== 'mes');
+  renderResBar();
   renderSheet();
 }
 
@@ -1375,6 +1440,7 @@ function renderSheet() {
   const el = $('#sheet'), r = selRango();
   if (!r || S.tab !== 'cal' || S.editEmp) { el.classList.remove('on'); return; }
   const [a, b] = r, dias = [...rango(a, b)];
+  if (!S.reservar) return hojaDia(a);
   const lab = dias.filter(laborable).length;
   const todasVac = dias.every(s => S.vac.has(s));
   const viajes = S.viajes.filter(v => v.fechaInicio <= b && v.fechaFin >= a);
@@ -1385,7 +1451,7 @@ function renderSheet() {
     info += `<div>${esFinde(a) && !t ? '🌴 Fin de semana' : (t ? '📌 ' + NOMBRE_TIPO[t] : '🛠️ Laborable')}</div>`;
     if (S.vac.has(a)) info += `<div>🏖️ Vacaciones · <input type="text" inputmode="decimal" step="0.25" min="0" max="24" value="${coma(horasDe(a))}" data-horas-dia="${a}" class="inp-horas"> h${S.horas[a] !== undefined ? ' <button class="pill-btn" data-horas-reset="' + a + '" style="height:26px;padding:0 8px">↺</button>' : ''}</div>`;
   }
-  viajes.forEach(v => info += `<div data-viaje="${v.id}" style="cursor:pointer">${bandera(v.pais)} <span style="flex:1"><b>${esc(v.ciudadDestino || v.pais)}</b> · ${esc(v.cliente)}<br><span class="muted">${rangoTxt(v.fechaInicio, v.fechaFin)}${v.nota ? ' · ' + esc(v.nota) : ''}</span></span>${marcaDocs(v)}›</div>`);
+  viajes.forEach(v => info += `<div data-viaje="${v.id}" style="cursor:pointer">${bandera(v.pais)} <span style="flex:1"><b>${esc(v.ciudadDestino || v.pais)}</b> · ${esc(nombreCliente(v))}<br><span class="muted">${rangoTxt(v.fechaInicio, v.fechaFin)}${v.nota ? ' · ' + esc(v.nota) : ''}</span></span>${marcaDocs(v)}›</div>`);
 
   el.innerHTML = `
     <div class="sheet-top">
@@ -1398,19 +1464,54 @@ function renderSheet() {
     ${!S.sel.b ? '<div class="sheet-hint">👆 Toca otro día para elegir un rango</div>' : ''}
     ${!todasVac ? (() => { const [x, y] = ampliarConLibres(a, b); return (x !== a || y !== b) ? `<div class="sheet-hint" style="color:var(--muted)">🏖️ Las vacaciones incluirán ${rangoTxt(x, y)} (findes y festivos pegados)</div>` : ''; })() : ''}
     ${info ? `<div class="sheet-info">${info}</div>` : ''}
-    <div class="sheet-acciones">
+    <div class="sheet-acciones" style="grid-template-columns:1fr">
       <button class="accion vac ${todasVac ? 'quitar' : ''}" id="accVac">${todasVac ? '✕ Quitar vacaciones' : '🏖️ Vacaciones'}</button>
-      <button class="accion via" id="accVia">✈️ Viaje</button>
     </div>`;
   el.classList.add('on');
 }
 
+// Hoja informativa de un día (sin acciones de marcar)
+function hojaDia(a) {
+  const el = $('#sheet'), t = tipo(a), vs = viajesEn(a);
+  let info = '';
+  vs.forEach(v => info += `<div data-viaje="${v.id}" style="cursor:pointer;background:color-mix(in srgb,var(--viaje) 12%,transparent)">${bandera(v.pais)} <span style="flex:1"><b>${esc(v.ciudadDestino ? v.ciudadDestino + ', ' + v.pais : v.pais)}</b><br><span class="muted">${esc(nombreCliente(v))} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(diasEntre(v.fechaInicio, v.fechaFin) + 1, 'día')}${v.nota ? ' · ' + esc(v.nota) : ''}</span></span>${marcaDocs(v)}<b style="color:var(--accent);white-space:nowrap">Ficha ›</b></div>`);
+  if (S.vac.has(a)) info += `<div>🏖️ Vacaciones · ${fmtH(horasDe(a))}</div>`;
+  const futuro = a >= HOY;
+  const links = [];
+  if (futuro && laborable(a) && !vs.length && !S.vac.has(a)) links.push('<button id="accMarcar">🏖️ Marcar vacaciones</button>');
+  if (futuro && !vs.length) links.push('<button id="accVia">✈️ Nuevo viaje</button>');
+  el.innerHTML = `
+    <div class="sheet-top">
+      <div>
+        <div class="sheet-t">${cap(fechaLarga(a))}</div>
+        <div class="sheet-s">${esFinde(a) && !t ? 'Fin de semana' : NOMBRE_TIPO[t || '']} · semana ${semanaISO(parse(a))}</div>
+      </div>
+      <button class="sheet-x" id="sheetX">✕</button>
+    </div>
+    <div class="sheet-info">${info || '<div class="muted">Nada apuntado este día</div>'}</div>
+    ${links.length ? `<div class="dia-links">${links.join('')}</div>` : ''}`;
+  el.classList.add('on');
+}
+function renderResBar() {
+  const el = $('#resBar');
+  el.classList.toggle('on', !!S.reservar);
+  if (S.reservar) el.innerHTML = `<div class="t">🏖️ Reservando vacaciones<small>Toca un día, o dos para un rango</small></div><button id="resListo">Listo</button>`;
+}
+function empezarReserva(dia) {
+  const s = dia || (S.añoVac === +HOY.slice(0, 4) ? HOY : `${S.añoVac}-01-01`);
+  S.año = +s.slice(0, 4); S.mes = +s.slice(5, 7) - 1; S.vista = 'mes';
+  if (S.tab !== 'cal') irTab('cal');
+  S.reservar = true; S.sel = dia ? { a: dia, b: null } : null;
+  renderCal(); window.scrollTo(0, 0);
+}
 function tocarDia(s) {
   if (S.editEmp) {
     const t = S.editEmp.tipo;
     ponerTipo(s, tipo(s) === t ? '' : t);
     return renderCal();
   }
+  // Fuera del modo reservar, tocar un día es solo para ver lo que hubo ese día
+  if (!S.reservar) { S.sel = S.sel && S.sel.a === s && !S.sel.b ? null : { a: s, b: null }; return renderCal(); }
   if (!S.sel || S.sel.b) S.sel = { a: s, b: null };
   else if (s === S.sel.a) S.sel = null;
   else S.sel.b = s;
@@ -1471,7 +1572,7 @@ function htmlRecords(porAño) {
   const mesTxt = i => MESES[i];
   const fila = (ic, t, s, big, attr) => `<div class="rec-f"${attr ? ' ' + attr : ''}><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="t">${t}</div><div class="s">${s}</div></div><div class="big">${big}</div>${attr ? '<div class="chev">›</div>' : ''}</div>`;
   let h = `<div class="h-title">🏆 Récords desde ${años.length ? Math.min(...años.map(a => +a[0])) : ''}</div><div class="card" style="padding:2px 14px">`;
-  h += fila('⏱️', 'Viaje más largo', `${bandera(largo.pais)} ${esc(largo.pais)} · ${esc(largo.cliente || '')} · ${MESES[+largo.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${largo.fechaInicio.slice(0, 4)}`, plural(dur(largo), 'día'), `data-viaje="${largo.id}"`);
+  h += fila('⏱️', 'Viaje más largo', `${bandera(largo.pais)} ${esc(largo.pais)} · ${esc(nombreCliente(largo))} · ${MESES[+largo.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${largo.fechaInicio.slice(0, 4)}`, plural(dur(largo), 'día'), `data-viaje="${largo.id}"`);
   if (paises.length) h += fila('🔁', 'País al que más has vuelto', `${bandera(paises[0][0])} ${esc(paises[0][0])}${paises[1] ? ` · luego ${esc(paises[1][0])} (${paises[1][1]})` : ''}${paises[2] ? ` y ${esc(paises[2][0])} (${paises[2][1]})` : ''}`, plural(paises[0][1], 'viaje'), `data-ver-pais="${esc(paises[0][0])}"`);
   if (clis.length) h += fila('🏭', 'Cliente con más días', `${esc(clis[0][0])}${clis[1] ? ` · luego ${esc(clis[1][0])} (${clis[1][1]})` : ''}`, plural(clis[0][1], 'día'), `data-rec-cliente="${esc(clis[0][0])}"`);
   if (años.length) h += fila('📆', 'Año con más días fuera', `${años[1] ? `Luego ${años[1][0]} (${años[1][1]})` : ''}${años[2] ? ` y ${años[2][0]} (${años[2][1]})` : ''}`, `${años[0][0]} · ${años[0][1]}`, `data-ir-año="${años[0][0]}"`);
@@ -1498,12 +1599,16 @@ function listaCliente(c, lista) {
 }
 function renderHistorico() {
   const st = statsPaises();
-  const todos = new Set(), fuera = new Set(), porAño = {}, porCliente = {};
+  const todos = new Set(), fuera = new Set(), porAño = {}, porCliente = {}, porPlanta = {};
   S.viajes.forEach(v => {
     for (const s of rango(v.fechaInicio, v.fechaFin)) {
       todos.add(s); if (v.pais !== PAIS_CASA) fuera.add(s);
       const y = s.slice(0,4); (porAño[y] = porAño[y] || new Set()).add(s);
-      if (esCliente(v)) (porCliente[v.cliente] = porCliente[v.cliente] || new Set()).add(s);
+      if (esCliente(v)) {
+        (porCliente[v.cliente] = porCliente[v.cliente] || new Set()).add(s);
+        const pp = porPlanta[v.cliente] = porPlanta[v.cliente] || {};
+        (pp[v.planta || ''] = pp[v.planta || ''] || new Set()).add(s);
+      }
     }
   });
   const paises = Object.keys(st).filter(p => p !== PAIS_CASA);
@@ -1525,7 +1630,12 @@ function renderHistorico() {
     <div class="card">${Object.entries(st).sort((a, b) => b[1].dias.size - a[1].dias.size).slice(0, 5).map(([p, x]) => filaPais(p, x)).join('')}
       <div class="rec-f" data-ir="map" style="cursor:pointer"><div style="flex:1;color:var(--accent);font-weight:600;font-size:14px">Ver los ${Object.keys(st).length} países en el mapa</div><div class="chev">›</div></div></div>
     <div class="h-title">Clientes con más días</div>
-    <div class="card">${clientes.map(([c, n]) => `<div class="fila-barra"><div class="lbl" style="width:55%">${esc(c)}</div><div class="bar"><i style="width:${n / clientes[0][1] * 100}%"></i></div><div class="num">${n}</div></div>`).join('')}</div>
+    <div class="card">${clientes.map(([c, n]) => {
+      const pl = Object.entries(porPlanta[c] || {}).filter(([k]) => k).map(([k, x]) => [k, x.size]).sort((a, b) => b[1] - a[1]);
+      const sub = pl.length > 1 ? pl.map(([k, m]) => `<div class="fila-barra sub"><div class="lbl" style="width:55%">${esc(k)}</div><div class="bar"><i style="width:${m / clientes[0][1] * 100}%"></i></div><div class="num">${m}</div></div>`).join('') : '';
+      const nom = pl.length === 1 && !(porPlanta[c] || {})[''] ? c + ' ' + pl[0][0] : c;
+      return `<div class="fila-barra" data-rec-cliente="${esc(c)}" style="cursor:pointer"><div class="lbl" style="width:55%">${esc(nom)}</div><div class="bar"><i style="width:${n / clientes[0][1] * 100}%"></i></div><div class="num">${n}</div></div>${sub}`;
+    }).join('')}</div>
     ${htmlRecords(porAño)}`;
   agrupar($('#viaHist'));
 }
@@ -1571,8 +1681,9 @@ function renderVacaciones() {
       <div class="s" style="margin-top:8px">Total del año: ${fmtH(r.total)}</div>
     </div>`;
   }
+  if (año >= +HOY.slice(0, 4)) h += `<button class="btn primario btn-reservar" data-reservar="1">＋ Reservar vacaciones</button>`;
   const pers = periodosVac(año), prox = pers.filter(p => p.b >= HOY), pas = pers.filter(p => p.b < HOY);
-  h += `<div class="det-sec"><span>Próximas vacaciones</span></div><div class="card" style="padding:2px 14px">${prox.map(filaPer).join('') || '<div class="muted" style="font-size:14px;padding:10px 0">Nada marcado de aquí en adelante. Márcalas en el calendario.</div>'}</div>`;
+  h += `<div class="det-sec"><span>Próximas vacaciones</span></div><div class="card" style="padding:2px 14px">${prox.map(filaPer).join('') || '<div class="muted" style="font-size:14px;padding:10px 0">Nada marcado de aquí en adelante.</div>'}</div>`;
   if (pas.length) {
     const vis = S.verTodasVac ? pas : pas.slice(-4);
     h += `<div class="det-sec"><span>Ya disfrutadas</span>${pas.length > 4 ? `<button class="pill-btn" id="vacVerTodas">${S.verTodasVac ? 'Ver menos' : `Ver todas (${pas.length})`}</button>` : ''}</div>
@@ -1746,7 +1857,7 @@ function renderPanelPais() {
     <button class="sheet-x" id="panelX">✕</button></div>`;
   if (x) {
     h += '<div style="margin-top:8px;max-height:260px;overflow-y:auto">' + x.viajes.slice().sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio)).map(v =>
-      `<div class="lin" data-viaje="${v.id}"><span><b>${v.fechaInicio.slice(0,4)}</b> · ${esc(v.cliente)}</span><span class="muted" style="white-space:nowrap">${rangoTxt(v.fechaInicio, v.fechaFin)} · ${diasEntre(v.fechaInicio, v.fechaFin) + 1}d</span></div>`).join('') + '</div>';
+      `<div class="lin" data-viaje="${v.id}"><span><b>${v.fechaInicio.slice(0,4)}</b> · ${esc(nombreCliente(v))}</span><span class="muted" style="white-space:nowrap">${rangoTxt(v.fechaInicio, v.fechaFin)} · ${diasEntre(v.fechaInicio, v.fechaFin) + 1}d</span></div>`).join('') + '</div>';
   } else if (p !== PAIS_CASA) {
     h += `<button class="btn ${esOcio ? 'secundario' : 'primario'}" id="btnOcio">${esOcio ? 'Quitar de visitados' : '🏖️ Marcar como visitado (ocio)'}</button>`;
   }
@@ -1803,7 +1914,7 @@ function renderViajes() {
       <div class="viaje-flag">${bandera(v.pais)}</div>
       <div class="viaje-info">
         <div class="viaje-t">${esc(v.ciudadDestino ? v.ciudadDestino + ', ' + v.pais : v.pais)}</div>
-        <div class="viaje-s">${esc(v.cliente)} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${marcaDocs(v)}</div>${proxVueloTxt(v)}
+        <div class="viaje-s">${esc(nombreCliente(v))} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${marcaDocs(v)}</div>${proxVueloTxt(v)}
       </div>${chip}</div>`;
   }).join('') : `<div class="card vacio">Sin viajes en ${S.año}</div>`;
 }
@@ -1816,19 +1927,73 @@ function abrirFormulario(viaje, ini, fin) {
   S.viajes.forEach(v => usados[v.pais] = (usados[v.pais] || 0) + 1);
   const frecuentes = Object.keys(usados).sort((a, b) => usados[b] - usados[a]);
   S.paisesFrecuentes = frecuentes;
-  $('#listaClientes').innerHTML = [...new Set(S.viajes.map(v => v.cliente))].map(c => `<option value="${esc(c)}">`).join('');
 
   $('#formTitulo').textContent = viaje ? 'Editar viaje' : 'Nuevo viaje';
   elegirPais(viaje?.pais || '');
   $('#fCiudad').value = viaje?.ciudadDestino || '';
   $('#fNota').value = viaje?.nota || '';
   $('#fCliente').value = viaje?.cliente || '';
+  $('#fPlanta').value = viaje?.planta || '';
   $('#fTipo').value = viaje?.tipo || 'cliente';
+  S.cliNuevoOk = null; ajustarTipoForm(); renderChipsPlanta(); $('#sugCliente').classList.remove('on');
   $('#fIni').value = viaje?.fechaInicio || ini || '';
   $('#fFin').value = viaje?.fechaFin || fin || ini || '';
   $('#formEliminar').style.display = viaje ? 'block' : 'none';
   actualizarDuracion();
   $('#modalViaje').classList.add('on');
+}
+// ---- Buscador de cliente (grupo) y planta ----
+function ajustarTipoForm() {
+  const cli = $('#fTipo').value === 'cliente';
+  $('#campoPlanta').style.display = cli ? '' : 'none';
+  $('#fClienteLbl').textContent = cli ? 'Cliente (grupo)' : 'Descripción';
+  $('#fCliente').placeholder = cli ? 'Busca o escribe uno nuevo' : 'Ej: Feria de Hannover';
+  if (!cli) $('#sugCliente').classList.remove('on');
+}
+function renderSugCliente() {
+  const el = $('#sugCliente');
+  if ($('#fTipo').value !== 'cliente') return el.classList.remove('on');
+  const q = $('#fCliente').value.trim(), nq = normCli(q), g = gruposClientes();
+  let lista = Object.entries(g);
+  if (nq) lista = lista.filter(([n]) => normCli(n).includes(nq)).sort((a, b) => (normCli(b[0]).startsWith(nq) - normCli(a[0]).startsWith(nq)) || b[1].n - a[1].n);
+  else lista = lista.sort((a, b) => b[1].ult.localeCompare(a[1].ult));
+  lista = lista.slice(0, nq ? 6 : 5);
+  const exacto = Object.keys(g).some(n => normCli(n) === nq);
+  let h = lista.map(([n, x]) => `<div data-sug-cli="${esc(n)}"><span>${esc(n)}</span><small>${x.plantas.size ? plural(x.plantas.size, 'planta') + ' · ' : ''}${plural(x.n, 'viaje')}</small></div>`).join('');
+  if (q && !exacto) h += `<div class="nuevo" data-sug-nuevo="1">＋ Añadir «${esc(q)}» como cliente nuevo</div>`;
+  el.innerHTML = h; el.classList.toggle('on', !!h);
+}
+function renderChipsPlanta() {
+  const g = gruposClientes()[$('#fCliente').value.trim()], act = normCli($('#fPlanta').value);
+  $('#chipsPlanta').innerHTML = g && $('#fTipo').value === 'cliente' ? [...g.plantas].sort().map(p => `<button type="button" class="${normCli(p) === act ? 'on' : ''}" data-planta="${esc(p)}">${esc(p)}</button>`).join('') : '';
+}
+async function elegirClienteNuevo() {
+  const q = $('#fCliente').value.trim(), g = gruposClientes();
+  const pare = Object.keys(g).map(n => [n, parecido(n, q)]).filter(x => x[1] >= 0.75).sort((a, b) => b[1] - a[1])[0];
+  $('#sugCliente').classList.remove('on');
+  if (pare) {
+    const i = await preguntar(`¿No será ${pare[0]}? Ya existe con ${plural(g[pare[0]].n, 'viaje')}.`, [{ t: `Usar ${pare[0]}`, cls: 'primario' }, { t: `Crear «${q}»` }]);
+    if (i === 0) { $('#fCliente').value = pare[0]; return renderChipsPlanta(); }
+  }
+  S.cliNuevoOk = q; renderChipsPlanta();
+}
+function iniciarBuscaCliente() {
+  const inp = $('#fCliente');
+  inp.addEventListener('input', () => { S.cliNuevoOk = null; renderSugCliente(); renderChipsPlanta(); });
+  inp.addEventListener('focus', renderSugCliente);
+  inp.addEventListener('blur', () => setTimeout(() => $('#sugCliente').classList.remove('on'), 200));
+  $('#sugCliente').addEventListener('mousedown', e => e.preventDefault());
+  $('#sugCliente').addEventListener('click', e => {
+    const c = e.target.closest('[data-sug-cli]');
+    if (c) { inp.value = c.dataset.sugCli; $('#sugCliente').classList.remove('on'); renderChipsPlanta(); return; }
+    if (e.target.closest('[data-sug-nuevo]')) elegirClienteNuevo();
+  });
+  $('#fPlanta').addEventListener('input', renderChipsPlanta);
+  $('#chipsPlanta').addEventListener('click', e => {
+    const b = e.target.closest('[data-planta]'); if (!b) return;
+    $('#fPlanta').value = b.classList.contains('on') ? '' : b.dataset.planta; renderChipsPlanta();
+  });
+  $('#fTipo').addEventListener('change', () => { ajustarTipoForm(); renderChipsPlanta(); });
 }
 // ---- Buscador de países ----
 const sinAcentos = t => t.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
@@ -1862,18 +2027,40 @@ function actualizarDuracion() {
   $('#fFin').min = a || '';
   $('#fDuracion').textContent = a && b && b >= a ? `${plural(diasEntre(a, b) + 1, 'día')} de viaje` : '';
 }
-function guardarFormulario() {
-  const pais = $('#fPais').value, cliente = $('#fCliente').value.trim(), ciudad = $('#fCiudad').value.trim();
+// Antes de guardar: usar la grafía de un grupo/planta que ya existe, o preguntar si se parece mucho a otro
+async function guardarFormulario() {
+  const tipoF = $('#fTipo').value;
+  let cliente = $('#fCliente').value.trim(), planta = tipoF === 'cliente' ? $('#fPlanta').value.trim() : '';
+  if (cliente && tipoF === 'cliente') {
+    const g = gruposClientes(), nombres = Object.keys(g);
+    const igual = nombres.find(n => normCli(n) === normCli(cliente));
+    if (igual) cliente = igual;
+    else if (S.cliNuevoOk !== cliente) {
+      const pare = nombres.map(n => [n, parecido(n, cliente)]).filter(x => x[1] >= 0.75).sort((a, b) => b[1] - a[1])[0];
+      if (pare) {
+        const i = await preguntar(`«${cliente}» no existe todavía.\n¿No será ${pare[0]}? (${plural(g[pare[0]].n, 'viaje')})`, [{ t: `Usar ${pare[0]}`, cls: 'primario' }, { t: `Crear «${cliente}»` }, { t: 'Cancelar' }]);
+        if (i === 2 || i === undefined || i < 0) return;
+        if (i === 0) cliente = pare[0];
+      }
+    }
+    if (planta) { const pi = [...(g[cliente]?.plantas || [])].find(p => normCli(p) === normCli(planta)); if (pi) planta = pi; }
+  }
+  $('#fCliente').value = cliente; $('#fPlanta').value = planta;
+  guardarFormulario2(cliente, planta);
+}
+function guardarFormulario2(cliente, planta) {
+  const pais = $('#fPais').value, ciudad = $('#fCiudad').value.trim();
   const a = $('#fIni').value, b = $('#fFin').value;
   if (!pais || !cliente || !a || !b) return toast('Falta país, cliente o fechas');
   if (b < a) return toast('La vuelta es antes que la ida');
   // Se parte del viaje que había para no perder ficha, vuelos, reservas…
-  const previo = { ...(S.editando || {}) }; delete previo.nota; delete previo.tipo;
+  const previo = { ...(S.editando || {}) }; delete previo.nota; delete previo.tipo; delete previo.planta;
   const tipoV = $('#fTipo').value;
   const v = { ...previo, id: S.editando?.id || 'viaje_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
               pais, ciudadDestino: ciudad, fechaInicio: a, fechaFin: b, cliente,
               ...($('#fNota').value.trim() ? { nota: $('#fNota').value.trim() } : {}),
               ...(tipoV !== 'cliente' ? { tipo: tipoV } : {}),
+              ...(planta ? { planta } : {}),
               fechaCreacion: S.editando?.fechaCreacion || new Date().toISOString() };
   const i = S.viajes.findIndex(x => x.id === v.id);
   if (i >= 0) S.viajes[i] = v; else S.viajes.push(v);
@@ -2659,7 +2846,7 @@ function renderDetalle() {
   const info = v.info || {}, docs = docsDe(v.id), n = diasEntre(v.fechaInicio, v.fechaFin) + 1;
   const tab = S.detTab || 'r';
   let h = `<div class="modal-head"><button class="pill-btn" id="detCerrar">Cerrar</button><h2>${bandera(v.pais)} ${esc(v.ciudadDestino || v.pais)}</h2><button class="pill-btn" id="detEditar">✏️ Editar viaje</button></div>
-    <div class="det-sub">${esc(v.cliente)} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${v.nota ? '<br>' + esc(v.nota) : ''}</div>`;
+    <div class="det-sub">${esc(nombreCliente(v))} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${v.nota ? '<br>' + esc(v.nota) : ''}</div>`;
 
   if (S.fichaEdit) {
     h += `<div class="det-sec">Datos del viaje</div>
@@ -2795,8 +2982,8 @@ function renderClientes() {
   const lista = clientesConteo(true);
   if (S.aju.clientesAntes) { delete S.aju.clientesAntes; guardar(); }
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cliToggle"><span>${plural(lista.length, 'cliente')} en tus viajes</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.cliAbierto ? 'Ocultar' : 'Ver y renombrar ›'}</span></div>`;
-  if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para ver sus viajes. Con ✏️ le cambias el nombre en todos ellos; si pones el de otro que ya existe, se juntan.</div>
-    <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli-ver="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div><div class="s">${plural(n, 'viaje')}</div></div><button class="pill-btn" data-cli="${esc(c)}" aria-label="Cambiar nombre" style="padding:0 10px">✏️</button></div>`).join('')}</div>`;
+  if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para ver sus viajes. Con ✏️ cambias el nombre del grupo en todos sus viajes; si pones el de otro que ya existe, se juntan. La planta se cambia en ✏️ Editar viaje.</div>
+    <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli-ver="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div><div class="s">${(() => { const k = new Set(S.viajes.filter(v => v.cliente === c && v.planta).map(v => v.planta)).size; return k ? plural(k, 'planta') + ' · ' : ''; })()}${plural(n, 'viaje')}</div></div><button class="pill-btn" data-cli="${esc(c)}" aria-label="Cambiar nombre" style="padding:0 10px">✏️</button></div>`).join('')}</div>`;
   const otros = Object.keys(TIPOS_VIAJE).map(t => [t, S.viajes.filter(v => tipoDe(v) === t)]).filter(([, l]) => l.length);
   if (otros.length) h += `<div class="muted" style="font-size:12px;font-weight:600;margin:14px 0 2px;text-transform:uppercase;letter-spacing:.4px">Otros viajes</div>` +
     otros.map(([t, l]) => `<div class="rec-f" data-otros="${t}" style="cursor:pointer;padding:9px 0"><div style="flex:1"><div class="t" style="font-size:14px">${TIPOS_VIAJE[t]}</div><div class="s">${plural(l.length, 'viaje')}${t === 'sincliente' ? ' · tócalo para ponerles cliente' : ''}</div></div><div class="chev">›</div></div>`).join('') +
@@ -2904,10 +3091,19 @@ function importar(ev) {
   r.onload = e => importarTexto(e.target.result);
   r.readAsText(f);
 }
+// Reparto de clientes en grupo + planta (archivo revisado aparte)
+async function importarGrupos(map) {
+  const afect = S.viajes.filter(v => !v.planta && map[v.cliente]);
+  const i = await preguntar(`Reparto en grupo y planta: cambia ${plural(afect.length, 'viaje')} (${plural(new Set(afect.map(v => v.cliente)).size, 'cliente')}).`, [{ t: 'Aplicar', cls: 'primario' }, { t: 'Cancelar' }]);
+  if (i !== 0) return;
+  afect.forEach(v => { const [g, p] = map[v.cliente]; v.cliente = g; if (p) v.planta = p; });
+  guardar(); render(); toast('Grupos y plantas aplicados');
+}
 function importarTexto(txt) {
   let d;
   try {
     d = JSON.parse(txt);
+    if (d.tipo === 'grupos-clientes' && d.porNombre) return importarGrupos(d.porNombre);
     if (!Array.isArray(d.viajes)) throw new Error();
   } catch (err) {
     return preguntar('❌ Ese texto no es un backup válido.\nCopia el backup entero, desde la primera { hasta la última }.', [{ t: 'Vale', cls: 'primario' }]);
@@ -3004,7 +3200,7 @@ let toastT;
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2000); }
 
 function irTab(t) {
-  if (t !== 'cal') S.editEmp = null;
+  if (t !== 'cal') { S.editEmp = null; S.reservar = false; }
   S.tab = t; S.sel = null;
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 'tab-' + t));
   document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
@@ -3122,6 +3318,9 @@ function eventos() {
     const idia = e.target.closest('[data-ir-dia]');
     if (idia) { const s = idia.dataset.irDia; S.año = +s.slice(0,4); S.mes = +s.slice(5,7) - 1; S.vista = 'mes'; irTab('cal'); S.sel = { a: s, b: null }; return renderCal(); }
     if (e.target.id === 'sheetX') { S.sel = null; return renderCal(); }
+    if (e.target.id === 'accMarcar') return empezarReserva(S.sel.a);
+    if (e.target.id === 'resListo') { S.reservar = false; S.sel = null; return renderCal(); }
+    if (e.target.closest('[data-reservar]')) return empezarReserva();
     if (e.target.id === 'accVac') {
       const [a0, b0] = selRango(), todas = [...rango(a0, b0)].every(s => S.vac.has(s));
       const [a, b] = ampliarConLibres(a0, b0);
@@ -3158,7 +3357,7 @@ function eventos() {
   escribir('version-vista', VERSION);
   iniciarDetalle();
   iniciarMisDocs();
-  iniciarClientes();
+  iniciarClientes(); iniciarBuscaCliente();
   // Tocar la opción activa invierte el orden (Días ↓/↑, Nombre A–Z/Z–A)
   $('#mapOrden').onclick = e => { const b = e.target.closest('[data-orden]'); if (!b) return; if ((S.mapOrden || 'dias') === b.dataset.orden) S.mapAsc = !S.mapAsc; else { S.mapOrden = b.dataset.orden; S.mapAsc = false; } pintarListaPaises(); };
   $('#mapBuscar').addEventListener('input', pintarListaPaises);
