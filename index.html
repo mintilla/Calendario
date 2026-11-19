@@ -333,6 +333,12 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .aviso-sync.on{display:block}
 /* iPhone: los campos con letra < 16px provocan zoom automático al tocarlos */
 input,select,textarea{font-size:16px !important}
+.ptr{position:fixed;left:50%;top:calc(6px + env(safe-area-inset-top));z-index:190;transform:translate(-50%,-60px);opacity:0;pointer-events:none;
+  background:var(--card);color:var(--accent);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;box-shadow:var(--shadow);transition:opacity .15s}
+.ptr.listo{background:var(--accent);color:#fff}
+.aviso-act{position:fixed;left:50%;bottom:calc(78px + env(safe-area-inset-bottom));transform:translateX(-50%);z-index:180;display:none;
+  background:var(--accent);color:#fff;border-radius:22px;padding:10px 16px;font-size:14px;font-weight:700;box-shadow:var(--shadow);white-space:nowrap;cursor:pointer}
+.aviso-act.on{display:block}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-150%);z-index:200;background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:20px;font-size:14px;font-weight:600;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast:not(.on){opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
@@ -518,7 +524,7 @@ input,select,textarea{font-size:16px !important}
         <li>Funciona sin cobertura: los cambios se guardan en el dispositivo y se envían al volver la conexión.</li>
         <li>En el iPhone solo sincroniza con la app <b>abierta</b>. Si arriba sale el aviso de cambios pendientes, déjala abierta con conexión hasta que desaparezca.</li>
         <li>Si cambias lo mismo en dos sitios sin conexión: las vacaciones y horas se juntan; en viajes, bolsa y ajustes gana el último que se envía.</li>
-        <li>Las actualizaciones de la app llegan solas: si no ves un cambio, ciérrala y ábrela otra vez.</li>
+        <li><b>Actualizaciones:</b> la app comprueba sola si hay versión nueva al abrirla y te muestra abajo «✨ Nueva versión · Toca para actualizar». También puedes <b>deslizar hacia abajo</b> desde arriba del todo, o en Ajustes → <b>buscar actualización</b>.</li>
       </ul>
     </div></details>
     <details><summary>🔧 Cómo está montado</summary><div class="cont">
@@ -535,6 +541,8 @@ input,select,textarea{font-size:16px !important}
 </section>
 
 <!-- ===================== HOJA SELECCIÓN ===================== -->
+<div class="ptr" id="ptr">↓ Desliza para actualizar</div>
+<div class="aviso-act" id="avisoAct"></div>
 <div class="sheet" id="sheet"></div>
 <div class="sheet" id="editBar"></div>
 
@@ -707,7 +715,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.2';
+const VERSION = 'v7.3';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2327,7 +2335,8 @@ function añadirAño() {
 function renderAjustes() {
   $('#cuentaEmail').textContent = '👤 ' + N.email;
   $('#cuentaEstado').textContent = estadoNube();
-  $('#verTxt').innerHTML = `Versión <b>${VERSION}</b> · datos en la nube y copia en este dispositivo`;
+  $('#verTxt').innerHTML = `Versión <b>${VERSION}</b> · <u id="btnBuscarAct" style="cursor:pointer;color:var(--accent)">buscar actualización</u>`;
+  $('#btnBuscarAct').onclick = async () => { if (await buscarActualizacion(true)) actualizarApp(); };
   renderEmpCard();
   $('#backupInfo').textContent = `${plural(S.viajes.length, 'viaje')} y ${plural(S.vac.size, 'día')} de vacaciones guardados (todos los años).`;
 }
@@ -2628,6 +2637,57 @@ $('#lOlvido').onclick = olvideContraseña;
 window.addEventListener('online', actualizarAvisoSync);
 window.addEventListener('offline', actualizarAvisoSync);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js');
+
+// ===== Actualizaciones: comprobar si hay versión nueva y aplicarla sin cerrar la app =====
+let versionNueva = null;
+async function buscarActualizacion(manual) {
+  if (!navigator.onLine) { if (manual) toast('📴 Sin conexión'); return null; }
+  try {
+    const t = await (await fetch('./sw.js?v=' + Date.now(), { cache: 'no-store' })).text();
+    const v = (t.match(/calendario-(v[\d.]+)/) || [])[1];
+    if (v && v !== VERSION) { versionNueva = v; const a = $('#avisoAct'); a.textContent = `✨ Nueva versión ${v} · Toca para actualizar`; a.classList.add('on'); return v; }
+    if (manual) toast(`✓ Tienes la última versión (${VERSION})`);
+  } catch (e) { if (manual) toast('No se pudo comprobar'); }
+  return null;
+}
+async function actualizarApp() {
+  toast('⬇️ Actualizando…');
+  try { const r = await navigator.serviceWorker?.getRegistration(); if (r) await r.update(); } catch (e) {}
+  try { const ks = await caches.keys(); await Promise.all(ks.filter(k => k.startsWith('calendario-')).map(k => caches.delete(k))); } catch (e) {}
+  location.reload();
+}
+$('#avisoAct').onclick = actualizarApp;
+setTimeout(() => buscarActualizacion(false), 2500);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) buscarActualizacion(false); });
+
+// Deslizar hacia abajo desde arriba del todo para actualizar
+(() => {
+  const ptr = $('#ptr'); let y0 = null, d = 0;
+  const hayCapa = () => document.querySelector('.modal.on, .visor.on, .sheet.on');
+  document.addEventListener('touchstart', e => {
+    y0 = (window.scrollY <= 0 && !hayCapa() && !e.target.closest('#mapaWrap, .pdf-hojas, textarea')) ? e.touches[0].clientY : null; d = 0;
+  }, { passive: true });
+  document.addEventListener('touchmove', e => {
+    if (y0 === null) return;
+    d = e.touches[0].clientY - y0;
+    if (d <= 0 || window.scrollY > 0) { ptr.style.opacity = 0; return; }
+    const listo = d > 130;
+    ptr.style.opacity = Math.min(1, d / 80);
+    ptr.style.transform = `translate(-50%, ${Math.min(d / 2.5, 50) - 10}px)`;
+    ptr.classList.toggle('listo', listo);
+    ptr.textContent = listo ? '↻ Suelta para actualizar' : '↓ Desliza para actualizar';
+  }, { passive: true });
+  document.addEventListener('touchend', async () => {
+    if (y0 === null) return;
+    const listo = d > 130; y0 = null;
+    if (!listo) { ptr.style.opacity = 0; ptr.style.transform = 'translate(-50%,-60px)'; return; }
+    ptr.textContent = '↻ Comprobando…';
+    const v = await buscarActualizacion(false);
+    ptr.style.opacity = 0; ptr.style.transform = 'translate(-50%,-60px)'; ptr.classList.remove('listo');
+    if (v) return actualizarApp();
+    render(); toast(`✓ Al día · ${VERSION}`);
+  });
+})();
 </script>
 <script type="module">
 import * as FB from './firebase.js';
