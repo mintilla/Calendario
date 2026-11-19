@@ -76,7 +76,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .vuelo .vr{display:flex;align-items:baseline;gap:8px;margin:3px 0 2px;font-size:20px;font-weight:700}
 .vuelo .vr small{font-size:12px;color:var(--muted);font-weight:600}
 .vuelo .vd{font-size:13px;color:var(--muted);line-height:1.45}
-.vuelo .cp{color:var(--accent);font-weight:600;cursor:pointer}
+.vuelo .cp{color:var(--accent);font-weight:600;cursor:pointer;text-decoration:none}
 .vuelo .x{width:26px;height:26px;border-radius:13px;background:var(--soft);color:var(--muted);font-size:12px}
 .correo-txt{white-space:pre-wrap;font-size:13px;line-height:1.45;word-break:break-word;margin-top:8px;max-height:60vh;overflow:auto}
 .campo textarea{width:100%;border:none;background:none;color:var(--text);font-size:16px;padding:6px 0 10px;outline:none;resize:vertical;font-family:inherit;line-height:1.4}
@@ -367,8 +367,9 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VIAJES ===================== -->
 <section class="tab" id="tab-via">
-  <div class="seg" id="segVia"><button data-modo="año" class="on">Por año</button><button data-modo="hist">Histórico</button></div>
+  <div class="seg" id="segVia"><button data-modo="año" class="on">Por año</button><button data-modo="hist">Histórico</button><button data-modo="docs">🔒 Mis docs</button></div>
   <div id="viaHist" style="display:none"></div>
+  <div id="viaDocs" style="display:none"></div>
   <div id="viaAño">
   <div class="mes-nav" style="margin-top:4px">
     <div class="mes-titulo tocable" id="viaTitulo">Viajes</div>
@@ -438,13 +439,14 @@ input,select,textarea{font-size:16px !important}
   <div class="card">
     <div class="muted" style="font-size:13px" id="backupInfo"></div>
     <button class="btn primario" id="btnExportar">💾 Exportar backup</button>
+    <button class="btn secundario" id="btnImportar">📂 Importar backup</button>
+    <details style="margin-top:8px"><summary class="muted" style="cursor:pointer;font-size:13px;padding:6px 2px">Más opciones (como texto)</summary>
     <button class="btn secundario" id="btnCopiar">📋 Copiar backup al portapapeles</button>
-    <button class="btn secundario" id="btnImportar">📂 Importar backup (archivo)</button>
     <button class="btn secundario" id="btnPegar">📥 Pegar backup (texto)</button>
     <div id="pegarWrap" style="display:none;margin-top:8px">
       <textarea id="txtPegar" placeholder="Pega aquí el texto del backup" style="width:100%;height:140px;border-radius:12px;border:1px solid var(--line);background:var(--soft);color:var(--text);padding:10px;font-size:12px;font-family:Menlo,monospace"></textarea>
       <button class="btn primario" id="btnPegarOk">Importar texto pegado</button>
-    </div>
+    </div></details>
     <input type="file" id="fileImport" accept=".json,application/json,text/plain" style="display:none">
   </div>
 
@@ -456,7 +458,7 @@ input,select,textarea{font-size:16px !important}
         <li><b>Marcar:</b> en la vista mes toca un día y luego otro para elegir un rango. Abajo sale una hoja con <b>🏖️ Vacaciones</b> y <b>✈️ Viaje</b>.</li>
         <li><b>Vacaciones:</b> se amplían solas a los findes y festivos pegados. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
         <li><b>Días parciales:</b> toca un solo día de vacaciones y cambia sus horas (por defecto 8 h). El día se rellena como un vaso según las horas. <b>↺</b> vuelve a 8 h.</li>
-        <li><b>Viajes:</b> toca un viaje en la hoja o en la lista del mes para editarlo o borrarlo.</li>
+        <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar</b> para cambiarlo o borrarlo.</li>
         <li>Los festivos, puentes y vacacionales de empresa no cuentan horas. El vacacional y el previo sí son laborables: si coges vacaciones ahí, cuentan.</li>
       </ul>
     </div></details>
@@ -485,15 +487,23 @@ input,select,textarea{font-size:16px !important}
         <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
       </ul>
     </div></details>
-    <details><summary>📎 Documentos del viaje</summary><div class="cont">
+    <details><summary>📎 Ficha, vuelos y documentos del viaje</summary><div class="cont">
       <ul>
-        <li>Para crear un viaje: el botón <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al crear un viaje se abre su ficha directamente. En el calendario, la tarjeta de hoy también abre la ficha del viaje en curso o del próximo. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
-        <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora y también «Hotel: …» o un nombre de hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba: revisa y guarda. El correo completo queda guardado al final.</li>
-        <li><b>Correo de la agencia (.eml):</b> los «mime-attachment» de CWT guárdalos en Archivos y súbelos con <b>＋ Añadir documento</b>. La app saca los <b>vuelos</b> (horarios, terminal, asiento, localizador) y los PDFs adjuntos. Toca el localizador o el billete para copiarlo.</li>
-        <li><b>Documentos:</b> <b>＋ Añadir documento</b> para PDFs o imágenes (máx. 7 MB cada uno). En el PC también puedes arrastrarlos. Se sincronizan entre dispositivos.</li>
-        <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días se guardan solos en el dispositivo (✓ sin conexión). Para otro viaje, pulsa <b>⬇️ Guardar sin conexión</b>. Antes de salir, abre el viaje con conexión y comprueba que pone ✓.</li>
-        <li>Con <b>✏️</b> le cambias el nombre (p. ej. «QR entrada Indonesia»). Al abrir un documento, <b>Compartir</b> te deja guardarlo en Archivos, imprimirlo o mandarlo.</li>
-        <li>Los documentos no van en el backup: están en Firebase. Si borras el viaje, se borran también sus documentos.</li>
+        <li><b>Crear un viaje:</b> el <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al guardarlo se abre su ficha. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
+        <li><b>Correo de la agencia (.eml):</b> en Mail, pulsa el adjunto «mime-attachment» → Compartir → Guardar en Archivos, y súbelo con <b>＋ Añadir documento</b>. La app saca los <b>vuelos</b> y los PDFs adjuntos. Si lo subes dos veces, no duplica nada.</li>
+        <li><b>Vuelos:</b> número, día, horas (+1 si llegas al día siguiente), terminal, asiento, equipaje y localizador. Toca el localizador o el billete para copiarlo. <b>🔎 Estado</b> abre Flightradar24, Google o Mensajes con el número de vuelo. Desde 3 días antes, el vuelo sale en la tarjeta de hoy.</li>
+        <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora, «Hotel: …» o un hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba. Las direcciones abren Google Maps o Waze.</li>
+        <li><b>Documentos:</b> PDFs o imágenes (máx. 7 MB). En el PC también puedes arrastrarlos. <b>✏️</b> cambia el nombre. Al abrirlo, <b>Compartir</b> lo guarda en Archivos, lo imprime o lo manda. En el móvil, <b>−/＋</b> amplía.</li>
+        <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días, y todos los de Mis documentos, se guardan solos en el dispositivo (✓). Para otro viaje: <b>⬇️ Guardar sin conexión</b>.</li>
+        <li>Si borras un viaje, se borran también sus documentos.</li>
+      </ul>
+    </div></details>
+    <details><summary>🔒 Mis documentos</summary><div class="cont">
+      <ul>
+        <li>En <b>Viajes → 🔒 Mis docs</b>: tus <b>datos personales</b> (pasaporte, DNI, caducidades, fidelización…; toca uno para copiarlo) y <b>documentos generales</b> (pasaporte, DNI, seguro, guía para viajeros…).</li>
+        <li>Cada documento puede salir en <b>todos los viajes</b>, en los de <b>un país</b> o en ninguno, y tener <b>validez</b>. Ej.: el seguro de Indonesia 2026, para Indonesia del 01/01 al 31/12/2026. Los que aplican aparecen solos en la ficha de cada viaje.</li>
+        <li><b>Avisos:</b> si el pasaporte caduca menos de 6 meses después de la vuelta, o si un documento vence antes de acabar el viaje.</li>
+        <li><b>Face ID:</b> en Seguridad puedes pedir Face ID (o huella / Windows Hello) para abrir Mis documentos y los marcados como 🔒 privados. Se activa en cada dispositivo y se vuelve a pedir al salir de la app.</li>
       </ul>
     </div></details>
     <details><summary>📶 Sin conexión y sincronización</summary><div class="cont">
@@ -509,7 +519,7 @@ input,select,textarea{font-size:16px !important}
         <li><b>Web:</b> GitHub Pages, <code>mintilla.github.io/Calendario</code>. El código está en GitHub, repositorio <code>mintilla/Calendario</code> (público, sin datos personales). Cada cambio en la rama <code>main</code> se publica solo en 1–2 minutos.</li>
         <li><b>Datos:</b> Firebase, proyecto <code>calendario-torres</code> (plan gratuito Spark, sin tarjeta). Entras con correo y contraseña; cada usuario solo ve sus datos.</li>
         <li><b>Copia local:</b> cada dispositivo guarda una copia para abrir sin conexión.</li>
-        <li><b>Backup:</b> exporta de vez en cuando con <b>💾 Exportar backup</b> y guárdalo (iCloud, OneDrive…). Se recupera con <b>Importar backup</b>.</li>
+        <li><b>Backup:</b> los datos ya están en Firebase y en cada dispositivo; el backup es un seguro extra. Exporta de vez en cuando con <b>💾 Exportar backup</b> y guárdalo (iCloud, OneDrive…). Se recupera con <b>📂 Importar backup</b>. Incluye viajes, vacaciones, fichas, vuelos y datos personales; <b>los archivos (PDFs) no</b>, esos están solo en Firebase.</li>
         <li><b>Si algo falla:</b> cierra y abre la app; prueba en el navegador normal; mira que estás conectado (arriba, en Cuenta). Si no abre en ningún sitio, revisa en <code>github.com/mintilla/Calendario</code> → Settings → Pages que siga activo.</li>
         <li><b>Para cambiar algo:</b> pásale el repositorio a Claude y explícale lo que quieres.</li>
       </ul>
@@ -523,6 +533,7 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== DETALLE DE VIAJE ===================== -->
 <div class="modal" id="modalDetalle"><div class="modal-box" id="detalleBox"></div></div>
+<div class="modal" id="modalDocGen"><div class="modal-box" id="docGenBox"></div></div>
 <input type="file" id="fileDocs" multiple style="display:none">
 <div class="visor" id="visor">
   <div class="visor-bar"><button class="pill-btn" id="visorCerrar">Cerrar</button><span id="visorNombre"></span><button class="pill-btn" id="visorCompartir">Compartir</button></div>
@@ -689,7 +700,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.7';
+const VERSION = 'v6.8';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1463,8 +1474,10 @@ function barras(titulo, mapa) {
 function renderViajes() {
   document.querySelectorAll('#segVia button').forEach(b => b.classList.toggle('on', b.dataset.modo === S.modoVia));
   $('#viaHist').style.display = S.modoVia === 'hist' ? 'block' : 'none';
-  $('#viaAño').style.display = S.modoVia === 'hist' ? 'none' : 'block';
+  $('#viaDocs').style.display = S.modoVia === 'docs' ? 'block' : 'none';
+  $('#viaAño').style.display = S.modoVia === 'hist' || S.modoVia === 'docs' ? 'none' : 'block';
   if (S.modoVia === 'hist') return renderHistorico();
+  if (S.modoVia === 'docs') { if (!S.persEdit) renderMisDocs(); return; }
   $('#viaTitulo').textContent = `Viajes ${S.año}`;
   const lista = viajesDelAño();
   const ini = `${S.año}-01-01`, fin = `${S.año}-12-31`;
@@ -1620,7 +1633,8 @@ async function subirDocs(viajeId, files) {
   }
   if (normales.length) await subirArchivos(viajeId, normales);
 }
-async function subirArchivos(viajeId, files) {
+async function subirArchivos(viajeId, files, extra) {
+  const nuevos = [];
   for (const f of files) {
     if (f.size > DOC_MAX) { toast(`⚠️ ${f.name}: máximo 7 MB`); continue; }
     try {
@@ -1633,16 +1647,18 @@ async function subirArchivos(viajeId, files) {
         lote.set(N.FB.doc(N.db, ...base, 'partes', 'p' + i), { i, d: b64.slice(i * DOC_TROZO, (i + 1) * DOC_TROZO) });
         enviar(lote);
       }
-      const meta = { id, viaje: viajeId, nombre: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString() };
+      const meta = { id, viaje: viajeId, nombre: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString(), ...(extra || {}) };
       const lote = N.FB.writeBatch(N.db);
       lote.set(N.FB.doc(N.db, ...base), meta);
       enviar(lote);
       await guardarDocLocal(id, f);
       if (!(S.docs || []).some(d => d.id === id)) S.docs = [...(S.docs || []), meta];
+      nuevos.push(meta);
       toast(`📎 ${f.name} añadido`);
     } catch (e) { console.error(e); toast(`⚠️ No se pudo añadir ${f.name}`); }
   }
   guardarCopiaLocal(); render();
+  return nuevos;
 }
 
 // Bajar un documento de la nube (juntando sus trozos)
@@ -1672,6 +1688,7 @@ async function precargar(soloViaje) {
   if (!navigator.onLine || !N.uid) return 0;
   const lim = sumar(HOY, 30);
   const vale = new Set(S.viajes.filter(v => soloViaje ? v.id === soloViaje : (v.fechaFin >= HOY && v.fechaInicio <= lim)).map(v => v.id));
+  if (!soloViaje || soloViaje === MIOS) vale.add(MIOS);
   let n = 0;
   for (const d of (S.docs || []).filter(d => vale.has(d.viaje) && !N.docsLocal.has(d.id))) {
     try { await obtenerDoc(d); n++; } catch (e) { console.warn('No se pudo guardar', d.nombre, e); }
@@ -1995,10 +2012,167 @@ function htmlVuelos(v) {
     const det = [f.deNom && f.aNom ? `${esc(f.deNom)}${f.terminal ? ' (T' + esc(f.terminal) + ')' : ''} → ${esc(f.aNom)}` : '', f.dur ? '⏱ ' + esc(f.dur) : ''].filter(Boolean).join(' · ');
     const det2 = [f.asiento ? '💺 ' + esc(f.asiento) : '', f.clase ? esc(f.clase) : '', f.equipaje ? '🧳 ' + esc(f.equipaje) : ''].filter(Boolean).join(' · ');
     const det3 = [f.loc ? `Localizador <span class="cp" data-copiar="${esc(f.loc)}">${esc(f.loc)}</span>` : '', f.billete ? `Billete <span class="cp" data-copiar="${esc(f.billete)}">${esc(f.billete)}</span>` : ''].filter(Boolean).join(' · ');
+    const q = encodeURIComponent(f.num || '');
+    const estado = f.num ? `<div class="vd">🔎 Estado: <a class="cp" href="https://www.flightradar24.com/data/flights/${q.toLowerCase()}" target="_blank" rel="noopener">Flightradar24</a> · <a class="cp" href="https://www.google.com/search?q=${q}+flight+status" target="_blank" rel="noopener">Google</a>${/iPhone|iPad/.test(navigator.userAgent) ? ` · <a class="cp" href="sms:&body=${q}">Mensajes</a>` : ''}</div>` : '';
     return `<div class="vuelo"><div class="vc"><span>✈️ ${esc(f.num || '')}${f.aerolinea ? ' · ' + esc(f.aerolinea.replace(/-ROYAL DUTCH AIRLINES/i, '')) : ''} · ${diaVuelo(f.sal)}</span><button class="x" data-vuelo-borrar="${i}">✕</button></div>
       <div class="vr">${esc(f.de || '')} ${f.sal ? f.sal.slice(11, 16) : ''} <small>→</small> ${esc(f.a || '')} ${f.lle ? f.lle.slice(11, 16) : ''}${dias > 0 ? ` <small>+${dias}</small>` : ''}${f.utc ? ' <small>UTC</small>' : ''}</div>
-      ${det ? `<div class="vd">${det}</div>` : ''}${det2 ? `<div class="vd">${det2}</div>` : ''}${det3 ? `<div class="vd">${det3}</div>` : ''}</div>`;
+      ${det ? `<div class="vd">${det}</div>` : ''}${det2 ? `<div class="vd">${det2}</div>` : ''}${det3 ? `<div class="vd">${det3}</div>` : ''}${estado}</div>`;
   }).join('') + '</div>';
+}
+
+// =====================================================================
+//  MIS DOCUMENTOS: pasaporte, DNI, seguro, guía… (con Face ID opcional)
+// =====================================================================
+const MIOS = '__mios';
+const CAMPOS_PERS = [['pasaporte', 'Nº de pasaporte'], ['pasExp', 'Expedición del pasaporte', 'date'], ['pasCad', 'Caducidad del pasaporte', 'date'],
+  ['dni', 'Nº de DNI'], ['dniCad', 'Caducidad del DNI', 'date'], ['nac', 'Fecha de nacimiento', 'date'], ['lugarNac', 'Lugar de nacimiento'],
+  ['fidel', 'Tarjetas de fidelización'], ['notasPers', 'Notas']];
+const fechaES = s => s ? s.split('-').reverse().join('/') : '';
+const mas6meses = s => { const f = parse(s); f.setMonth(f.getMonth() + 6); return iso(f); };
+const misDocs = () => (S.docs || []).filter(d => d.viaje === MIOS).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
+function aplicaA(d, v) {
+  const amb = d.ambito || 'todos';
+  if (amb === 'ninguno') return false;
+  if (amb !== 'todos' && amb !== v.pais) return false;
+  if (d.desde && d.desde > v.fechaFin) return false;
+  if (d.hasta && d.hasta < v.fechaInicio) return false;
+  return true;
+}
+const ambitoTxt = d => ({ todos: 'Todos los viajes', ninguno: 'Solo aquí' })[d.ambito || 'todos'] || `Viajes a ${bandera(d.ambito)} ${esc(d.ambito)}`;
+
+// Bloqueo con Face ID / Touch ID / Windows Hello (WebAuthn). Es un cerrojo de este dispositivo.
+const b64url = buf => btoa(String.fromCharCode(...new Uint8Array(buf))).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+const deB64url = s => Uint8Array.from(atob(s.replace(/-/g, '+').replace(/_/g, '/')), c => c.charCodeAt(0));
+const claveBloqueo = () => 'bloqueo-' + N.uid;
+const bloqueoActivo = () => !!leer(claveBloqueo());
+const desbloqueado = () => !bloqueoActivo() || (N.desbloqueoHasta && Date.now() < N.desbloqueoHasta);
+async function activarBloqueo() {
+  if (!window.PublicKeyCredential || !(await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable().catch(() => false)))
+    return toast('Este dispositivo no permite Face ID / huella aquí');
+  try {
+    const cred = await navigator.credentials.create({ publicKey: {
+      challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Calendario Torres', id: location.hostname },
+      user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'Mis documentos', displayName: 'Mis documentos' },
+      pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
+      authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' }, timeout: 60000 } });
+    escribir(claveBloqueo(), b64url(cred.rawId));
+    N.desbloqueoHasta = Date.now() + 5 * 60000;
+    toast('🔒 Bloqueo activado en este dispositivo'); renderMisDocs();
+  } catch (e) { console.warn(e); toast('No se activó el bloqueo'); }
+}
+async function desbloquear() {
+  if (desbloqueado()) return true;
+  try {
+    await navigator.credentials.get({ publicKey: { challenge: crypto.getRandomValues(new Uint8Array(32)), rpId: location.hostname,
+      allowCredentials: [{ type: 'public-key', id: deB64url(leer(claveBloqueo())), transports: ['internal'] }], userVerification: 'required', timeout: 60000 } });
+    N.desbloqueoHasta = Date.now() + 5 * 60000;
+    return true;
+  } catch (e) { toast('🔒 Sin desbloquear'); return false; }
+}
+async function quitarBloqueo() {
+  if (!(await desbloquear())) return;
+  if ((await preguntar('¿Quitar el Face ID de Mis documentos en este dispositivo?', [{ t: 'Quitar', cls: 'peligro' }, { t: 'Cancelar' }])) !== 0) return;
+  localStorage.removeItem(claveBloqueo()); toast('Bloqueo quitado'); renderMisDocs();
+}
+document.addEventListener('visibilitychange', () => { if (document.hidden) { N.desbloqueoHasta = 0; if (S.tab === 'via' && S.modoVia === 'docs') { S.persEdit = false; renderMisDocs(); } } });
+
+function filaDoc(d, conAcciones) {
+  const sub = [d.privado ? '🔒 Privado' : '', ambitoTxt(d), d.hasta ? 'hasta ' + fechaES(d.hasta) : '', N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'].filter(Boolean).join(' · ');
+  const caduca = d.hasta && d.hasta < HOY ? ' <b style="color:#e5484d">· caducado</b>' : '';
+  return `<div class="doc-f" data-gen-abrir="${d.id}"><div class="ic">${d.privado ? '🔒' : (d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${sub}${caduca}</div></div>${conAcciones ? `<button class="x" data-gen-editar="${d.id}">✏️</button><button class="x" data-doc-borrar="${d.id}">✕</button>` : ''}</div>`;
+}
+function renderMisDocs() {
+  const box = $('#viaDocs');
+  if (!desbloqueado()) {
+    box.innerHTML = `<div class="card" style="text-align:center;padding:28px 16px"><div style="font-size:44px">🔒</div><div style="font-weight:700;margin:8px 0 4px">Mis documentos</div><div class="muted" style="font-size:14px;margin-bottom:14px">Protegidos con Face ID en este dispositivo</div><button class="btn primario" id="mdDesbloquear">Desbloquear</button></div>`;
+    return;
+  }
+  const p = (S.aju && S.aju.personal) || {};
+  let h = '';
+  if (S.persEdit) {
+    h += `<div class="det-sec">Datos personales</div><div class="card">${CAMPOS_PERS.map(([k, t, ty]) => `<div class="campo"><label>${t}</label>${k === 'notasPers' || k === 'fidel' ? `<textarea id="pe_${k}" rows="2">${esc(p[k] || '')}</textarea>` : `<input id="pe_${k}" type="${ty || 'text'}" value="${esc(p[k] || '')}">`}</div>`).join('')}
+      <button class="btn primario" id="peGuardar">Guardar</button><button class="btn secundario" id="peCancelar">Cancelar</button></div>`;
+  } else {
+    const filas = CAMPOS_PERS.filter(([k]) => p[k]).map(([k, t, ty]) => {
+      const val = ty === 'date' ? fechaES(p[k]) : p[k];
+      const aviso = k === 'pasCad' && p[k] < mas6meses(HOY) ? ' <b style="color:#e5484d">⚠️ menos de 6 meses</b>' : '';
+      const copiable = ty !== 'date' && k !== 'notasPers';
+      return `<div class="ficha-f" ${copiable ? `data-copiar-pers="${esc(p[k])}" style="cursor:pointer"` : ''}><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${esc(val)}${aviso}</div></div>${copiable ? '<div class="muted" style="font-size:12px;align-self:center">copiar</div>' : ''}</div>`;
+    }).join('');
+    h += `<div class="det-sec"><span>Datos personales</span><button class="pill-btn" id="peEditar">${filas ? '✏️ Editar' : '＋ Rellenar'}</button></div>
+      <div class="card">${filas || '<div class="muted" style="font-size:14px">Nº de pasaporte, caducidad, DNI… Para copiarlos con un toque al rellenar formularios de inmigración.</div>'}</div>`;
+  }
+  const docs = misDocs();
+  h += `<div class="det-sec">Documentos</div><div class="card">
+    ${docs.map(d => filaDoc(d, true)).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Pasaporte, DNI, seguro de viaje, guía para viajeros… Los que pongas para «todos los viajes» o para un país aparecen solos en la ficha de cada viaje.</div>'}
+    <button class="btn primario" id="mdAñadir">＋ Añadir documento</button></div>`;
+  h += `<div class="det-sec">Seguridad</div><div class="card"><div class="muted" style="font-size:13px;margin-bottom:8px">${bloqueoActivo() ? '🔒 En este dispositivo, Mis documentos y los documentos privados piden Face ID.' : 'Puedes pedir Face ID (o huella / Windows Hello) para abrir Mis documentos y los documentos marcados como privados. Se activa en cada dispositivo.'}</div>
+    ${bloqueoActivo() ? '<button class="btn secundario" id="mdQuitarBloqueo">Quitar Face ID en este dispositivo</button>' : '<button class="btn primario" id="mdActivarBloqueo">🔒 Activar Face ID</button>'}</div>`;
+  box.innerHTML = h;
+}
+function guardarPersonal() {
+  const o = {};
+  CAMPOS_PERS.forEach(([k]) => { const x = $('#pe_' + k).value.trim(); if (x) o[k] = x; });
+  S.aju = { ...S.aju, personal: o }; S.persEdit = false; guardar(); renderMisDocs(); toast('✅ Datos guardados');
+}
+function editarDocGen(d) {
+  const paises = Object.keys(PAISES).sort((a, b) => a.localeCompare(b, 'es'));
+  const amb = d.ambito || 'todos';
+  $('#docGenBox').innerHTML = `<div class="modal-head"><button class="pill-btn" id="dgCancelar">Cancelar</button><h2>Documento</h2><button class="pill-btn" id="dgGuardar" style="font-weight:700">Guardar</button></div>
+    <div class="campo"><label>Nombre</label><input id="dgNombre" value="${esc((d.nombre || '').replace(/\.[a-z0-9]{2,5}$/i, ''))}"></div>
+    <div class="campo"><label>Aparece en</label><select id="dgAmbito" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)">
+      <option value="todos"${amb === 'todos' ? ' selected' : ''}>Todos los viajes</option><option value="ninguno"${amb === 'ninguno' ? ' selected' : ''}>Ningún viaje (solo en Mis documentos)</option>
+      <optgroup label="Solo viajes a…">${paises.map(x => `<option${amb === x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</optgroup></select></div>
+    <div class="campo"><label>Válido desde (opcional)</label><input id="dgDesde" type="date" value="${d.desde || ''}"></div>
+    <div class="campo"><label>Válido hasta (opcional)</label><input id="dgHasta" type="date" value="${d.hasta || ''}"></div>
+    <label class="campo" style="display:flex;align-items:center;gap:10px;cursor:pointer"><input id="dgPrivado" type="checkbox" ${d.privado ? 'checked' : ''} style="width:22px;height:22px;flex:none"><span>🔒 Privado (pide Face ID si está activado)</span></label>
+    <div class="muted" style="font-size:12px;margin-top:6px">Ej.: pasaporte → todos los viajes, privado. Seguro Indonesia 2026 → Indonesia, válido del 01/01 al 31/12/2026. Guía para viajeros → todos los viajes.</div>`;
+  $('#modalDocGen').classList.add('on');
+  $('#dgCancelar').onclick = () => $('#modalDocGen').classList.remove('on');
+  $('#dgGuardar').onclick = () => {
+    const ext = (d.nombre.match(/\.[a-z0-9]{2,5}$/i) || [''])[0];
+    const meta = { ...d, nombre: ($('#dgNombre').value.trim() || 'Documento') + ext, ambito: $('#dgAmbito').value, privado: $('#dgPrivado').checked };
+    const de = $('#dgDesde').value, ha = $('#dgHasta').value;
+    if (de) meta.desde = de; else delete meta.desde;
+    if (ha) meta.hasta = ha; else delete meta.hasta;
+    const lote = N.FB.writeBatch(N.db);
+    lote.set(N.FB.doc(N.db, 'usuarios', N.uid, 'docs', d.id), meta);
+    enviar(lote);
+    S.docs = (S.docs || []).map(x => x.id === d.id ? meta : x);
+    guardarCopiaLocal(); $('#modalDocGen').classList.remove('on'); render(); toast('✅ Guardado');
+  };
+}
+async function abrirDocGen(d) {
+  if (!d) return;
+  if (d.privado && !(await desbloquear())) return;
+  abrirDocumento(d);
+}
+function htmlGeneralesViaje(v) {
+  const docs = misDocs().filter(d => aplicaA(d, v));
+  const p = (S.aju && S.aju.personal) || {};
+  const avisos = [];
+  if (p.pasCad && v.pais !== 'España' && p.pasCad < mas6meses(v.fechaFin)) avisos.push(`⚠️ Tu pasaporte caduca el <b>${fechaES(p.pasCad)}</b>: menos de 6 meses después de la vuelta.`);
+  docs.filter(d => d.hasta && d.hasta < v.fechaFin).forEach(d => avisos.push(`⚠️ <b>${esc(d.nombre)}</b> vale hasta el ${fechaES(d.hasta)}, antes de la vuelta.`));
+  if (!docs.length && !avisos.length) return `<div class="det-sec"><span>Mis documentos</span><button class="pill-btn" id="irMisDocs">🔒 Abrir</button></div>`;
+  return `<div class="det-sec"><span>Mis documentos para este viaje</span><button class="pill-btn" id="irMisDocs">🔒 Todos</button></div><div class="card">
+    ${avisos.map(a => `<div style="font-size:13px;padding:6px 0">${a}</div>`).join('')}${docs.map(d => filaDoc(d, false)).join('')}</div>`;
+}
+function iniciarMisDocs() {
+  $('#viaDocs').addEventListener('click', async e => {
+    const t = e.target;
+    if (t.id === 'mdDesbloquear') { if (await desbloquear()) renderMisDocs(); return; }
+    if (t.id === 'mdActivarBloqueo') return activarBloqueo();
+    if (t.id === 'mdQuitarBloqueo') return quitarBloqueo();
+    if (t.id === 'peEditar') { S.persEdit = true; return renderMisDocs(); }
+    if (t.id === 'peCancelar') { S.persEdit = false; return renderMisDocs(); }
+    if (t.id === 'peGuardar') return guardarPersonal();
+    if (t.id === 'mdAñadir') { N.subirA = MIOS; return $('#fileDocs').click(); }
+    const cp = t.closest('[data-copiar-pers]'); if (cp) { navigator.clipboard?.writeText(cp.dataset.copiarPers).then(() => toast('📋 Copiado'), () => {}); return; }
+    const ed = t.closest('[data-gen-editar]'); if (ed) { e.stopPropagation(); return editarDocGen(S.docs.find(d => d.id === ed.dataset.genEditar)); }
+    const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
+    const a = t.closest('[data-gen-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.genAbrir));
+  });
+  $('#detalleBox').addEventListener('click', e => { const a = e.target.closest('[data-gen-abrir]'); if (a) abrirDocGen(S.docs.find(d => d.id === a.dataset.genAbrir)); });
 }
 
 // Pantalla de detalle
@@ -2036,6 +2210,7 @@ function renderDetalle() {
         <button class="btn primario" id="docAñadir">＋ Añadir documento</button>
         ${sinGuardar ? '<button class="btn secundario" id="docGuardarTodo">⬇️ Guardar sin conexión</button>' : ''}
       </div>`;
+    h += htmlGeneralesViaje(v);
     if (info.correo) h += `<div class="det-sec">Correo de la gestora</div><div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px">Ver correo completo</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
   }
   $('#detalleBox').innerHTML = h;
@@ -2071,7 +2246,7 @@ function iniciarDetalle() {
       ['hotel', 'cliente', 'sap', 'contactos'].forEach(k => { if (r[k]) { $('#fi_' + k).value = r[k]; n++; } });
       return toast(n ? `✨ ${n} ${n === 1 ? 'dato rellenado' : 'datos rellenados'}: revísalos y guarda` : 'No he encontrado datos conocidos; escríbelos a mano');
     }
-    if (t.id === 'docAñadir') return $('#fileDocs').click();
+    if (t.id === 'docAñadir') { N.subirA = null; return $('#fileDocs').click(); }
     if (t.id === 'docGuardarTodo') {
       if (!navigator.onLine) return toast('📴 Hace falta conexión para guardarlos');
       toast('⬇️ Guardando…');
@@ -2082,9 +2257,16 @@ function iniciarDetalle() {
     const rn = t.closest('[data-doc-renombrar]'); if (rn) { e.stopPropagation(); return renombrarDoc(S.docs.find(d => d.id === rn.dataset.docRenombrar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
     const a = t.closest('[data-doc-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.docAbrir));
+    if (t.id === 'irMisDocs') { cerrarDetalle(); S.modoVia = 'docs'; return irTab('via'); }
   });
   $('#modalDetalle').addEventListener('click', e => { if (e.target.id === 'modalDetalle' && !S.fichaEdit) cerrarDetalle(); });
-  $('#fileDocs').onchange = e => { const fs = [...e.target.files]; e.target.value = ''; if (fs.length && S.detalle) subirDocs(S.detalle, fs); };
+  $('#fileDocs').onchange = async e => {
+    const fs = [...e.target.files]; e.target.value = '';
+    const destino = N.subirA; N.subirA = null;
+    if (!fs.length) return;
+    if (destino === MIOS) { const nuevos = await subirArchivos(MIOS, fs, { ambito: 'todos', privado: false }); if (nuevos && nuevos.length === 1) editarDocGen(nuevos[0]); return; }
+    if (S.detalle) subirDocs(S.detalle, fs);
+  };
   // Arrastrar archivos (PC)
   box.addEventListener('dragover', e => { if (S.fichaEdit) return; e.preventDefault(); $('#docsCard')?.classList.add('doc-drop'); });
   box.addEventListener('dragleave', e => { if (!box.contains(e.relatedTarget)) $('#docsCard')?.classList.remove('doc-drop'); });
@@ -2406,6 +2588,7 @@ function eventos() {
   if (vVista && vVista !== VERSION) setTimeout(() => toast(`✨ App actualizada a ${VERSION}`), 1800);
   escribir('version-vista', VERSION);
   iniciarDetalle();
+  iniciarMisDocs();
   $('#formEliminar').onclick = eliminarViaje;
   $('#fIni').onchange = () => { if (!$('#fFin').value || $('#fFin').value < $('#fIni').value) $('#fFin').value = $('#fIni').value; actualizarDuracion(); };
   $('#fFin').onchange = actualizarDuracion;
