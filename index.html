@@ -558,7 +558,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.1';
+const VERSION = 'v5.2';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1623,8 +1623,17 @@ function eventos() {
       guardar(); toast(`Bolsa ${a} creada: revisa las horas`); return renderVacaciones();
     }
     if (e.target.dataset.conAdd) { cambiarBolsa(b => b.conceptos.push({ n: '', h: 0 })); return renderVacaciones(); }
-    const cd = e.target.closest('[data-con-del]'); if (cd) { cambiarBolsa(b => b.conceptos.splice(+cd.dataset.conDel, 1)); return renderVacaciones(); }
-    if (e.target.dataset.pendAuto) { cambiarBolsa(b => b.pendienteManual = null); return renderVacaciones(); }
+    const cd = e.target.closest('[data-con-del]');
+    if (cd) {
+      const i = +cd.dataset.conDel, c = bolsa(S.añoVac).conceptos[i];
+      return preguntar(`¿Borrar "${c.n || 'sin nombre'}" (${fmtH(+c.h || 0)}) de la bolsa ${S.añoVac}?`, [{ t: 'Borrar', cls: 'peligro' }, { t: 'Cancelar' }])
+        .then(r => { if (r === 0) { cambiarBolsa(b => b.conceptos.splice(i, 1)); renderVacaciones(); toast('Concepto borrado'); } });
+    }
+    if (e.target.dataset.pendAuto) {
+      const r = resumenVac(S.añoVac);
+      return preguntar(`¿Quitar tu corrección (${fmtH(r.pendiente)}) y usar el cálculo automático (${fmtH(r.pendAuto)})?`, [{ t: 'Usar automático', cls: 'peligro' }, { t: 'Cancelar' }])
+        .then(i => { if (i === 0) { cambiarBolsa(b => b.pendienteManual = null); renderVacaciones(); } });
+    }
     const hr = e.target.closest('[data-horas-reset]'); if (hr) { delete S.horas[hr.dataset.horasReset]; guardar(); return renderCal(); }
     const idia = e.target.closest('[data-ir-dia]');
     if (idia) { const s = idia.dataset.irDia; S.año = +s.slice(0,4); S.mes = +s.slice(5,7) - 1; S.vista = 'mes'; irTab('cal'); S.sel = { a: s, b: null }; return renderCal(); }
