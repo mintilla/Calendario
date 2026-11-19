@@ -1,13 +1,14 @@
 // Guarda la app en el dispositivo para que abra sin conexión.
 // Estrategia: responde desde la copia guardada y la actualiza en segundo plano.
-const CACHE = 'calendario-v5.9';
+const CACHE = 'calendario-v6.0';
 const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
   e.waitUntil(caches.open(CACHE).then(c => c.addAll(ARCHIVOS)).then(() => self.skipWaiting()));
 });
+// Solo borra versiones viejas de la app; nunca la caché de documentos (docs-v1)
 self.addEventListener('activate', e => {
-  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE).map(k => caches.delete(k)))).then(() => self.clients.claim()));
+  e.waitUntil(caches.keys().then(ks => Promise.all(ks.filter(k => k !== CACHE && k.startsWith('calendario-')).map(k => caches.delete(k)))).then(() => self.clients.claim()));
 });
 self.addEventListener('fetch', e => {
   const req = e.request;
