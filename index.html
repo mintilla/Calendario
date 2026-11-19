@@ -526,7 +526,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v4.3';
+const VERSION = 'v4.4';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), emp: {}, aju: '{}' } };
 
@@ -1337,10 +1337,13 @@ function importarTexto(txt) {
 // Devuelve una promesa con el índice del botón pulsado (null si se cierra)
 // Selector de año: rejilla con todos los años (los que tienen viajes, subrayados)
 function elegirAño(alElegir) {
-  const conViajes = new Set(S.viajes.map(v => +v.fechaInicio.slice(0,4)));
   const actual = +HOY.slice(0,4);
-  const min = Math.min(actual, ...conViajes), max = actual + 2;
-  const años = []; for (let a = max; a >= min; a--) años.push(a);
+  const conViajes = new Set();
+  S.viajes.forEach(v => { for (let y = +v.fechaInicio.slice(0,4); y <= +v.fechaFin.slice(0,4); y++) conViajes.add(y); });
+  // Solo los años con algo: viajes, vacaciones o calendario de empresa (editando: solo los de empresa)
+  const conEmpresa = añosConCalendario();
+  const años = [...new Set(S.editEmp ? [...conEmpresa, S.año]
+    : [actual, ...conViajes, ...[...S.vac].map(s => +s.slice(0,4)), ...conEmpresa])].sort((a, b) => b - a);
   $('#dlgTxt').innerHTML = '<b>Elige año</b>';
   $('#dlgBtns').innerHTML = `<div class="años-grid">${años.map(a => `<button data-año-sel="${a}" class="${a === S.año ? 'on' : ''} ${conViajes.has(a) ? 'con' : ''}">${a}</button>`).join('')}</div>
     <button class="btn secundario" data-año-sel="hoy">📍 Ir a hoy</button>`;
