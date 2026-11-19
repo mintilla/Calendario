@@ -393,6 +393,41 @@ input,select,textarea{font-size:16px !important}
   padding:10px 16px;border-radius:20px;font-size:14px;font-weight:600;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast:not(.on){opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
 .toast.on{transform:translate(-50%,0)}
+
+/* ===== PANTALLA ANCHA (PC) ===== */
+@media (min-width:1000px){
+  body{max-width:none;margin:0;padding:28px 36px 40px 256px}
+  .tab.on{max-width:1120px;margin:0 auto}
+  #tab-vac.on{max-width:760px}
+  .modal-box{max-height:min(88vh,820px)}
+  .tabbar{top:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:4px;
+    border-top:none;border-right:1px solid var(--line);padding:22px 12px}
+  .tabbar::before{content:'Calendario Torres';font-size:15px;font-weight:800;color:var(--text);padding:0 12px 14px}
+  .tabbar button{flex:none;flex-direction:row;gap:12px;font-size:15px;padding:10px 12px;border-radius:12px;text-align:left}
+  .tabbar button .ic{font-size:20px}
+  .tabbar button:hover{background:var(--soft)}
+  .tabbar button.on{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .ygrid{grid-template-columns:repeat(4,1fr)}
+  #calCard.llena{min-height:0}
+  #calCard.llena .ygrid{align-content:start}
+  .stats{grid-template-columns:repeat(4,1fr)}
+  #tab-cal.on{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);column-gap:20px;align-items:start}
+  #tab-cal .tab-titulo{grid-column:1/-1}
+  #calCard{grid-column:1;grid-row:2/span 3}
+  #hoyCard,#agendaWrap{grid-column:2}
+  #agendaWrap .h-title:first-child{margin-top:0}
+  .cols{column-count:2;column-gap:20px}
+  .cols > :not(.grupo){column-span:all}
+  .cols > .grupo{break-inside:avoid;display:inline-block;width:100%}
+  .cols > .grupo > :first-child{margin-top:4px}
+  #viaLista{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  #viaLista .viaje{margin:0}
+  #viaLista .vacio{grid-column:1/-1}
+  .modal{align-items:center}
+  .modal-box{max-width:720px;border-radius:22px;max-height:88vh;padding-bottom:20px}
+  .sheet{left:256px;right:36px;bottom:24px}
+  .deshacer,.aviso-act{left:calc(50% + 110px);bottom:24px}
+}
 </style>
 </head>
 <body>
@@ -643,7 +678,7 @@ input,select,textarea{font-size:16px !important}
     </div>
     <div class="campo"><label>Ciudad (opcional)</label><input id="fCiudad" placeholder="Ej: Hamburgo" autocomplete="off"></div>
     <div class="campo"><label>Cliente</label><input id="fCliente" list="listaClientes" placeholder="Ej: Airbus" autocomplete="off"><datalist id="listaClientes"></datalist></div>
-    <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option><option value="otro">Otro (proveedor, socio…)</option></select></div>
+    <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option></select></div>
     <div class="fechas">
       <div class="campo"><label>Ida</label><input type="date" id="fIni"></div>
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
@@ -789,7 +824,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.0';
+const VERSION = 'v8.1';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -939,12 +974,24 @@ function trasCambio() {
   }
   if (!N.migrandoVac && !S.aju.migVac1 && todos.every(k => N.servidor[k])) { N.migrandoVac = true; migrarVacacionesExcel(); }
   if (!N.migrandoTipos && !S.aju.migTipos1 && todos.every(k => N.servidor[k])) { N.migrandoTipos = true; migrarTipos(); }
+  if (!N.migrandoTipos2 && !S.aju.migTipos2 && todos.every(k => N.servidor[k])) { N.migrandoTipos2 = true; migrarTipos2(); }
   if (renderPendiente) return;
   renderPendiente = true;
   requestAnimationFrame(() => { renderPendiente = false; render(); });
 }
 // Una sola vez: bolsa de 2026 y días parciales de la hoja "Vacaciones'26" del Excel
-const TIPOS_VIAJE = { feria: '🎪 Ferias', comercial: '💼 Comerciales', interno: '🏢 Internos (MTorres)', otro: '🤝 Otros (proveedor, socio…)', sincliente: '⚠️ Sin cliente' };
+// En PC: junta cada título con sus tarjetas para poder ponerlos en dos columnas
+function agrupar(el) {
+  if (!el) return;
+  el.classList.add('cols');
+  let g = null;
+  [...el.children].forEach(n => {
+    if (n.matches('.h-title, .det-sec')) { g = document.createElement('div'); g.className = 'grupo'; el.insertBefore(g, n); }
+    if (g && n !== g) g.appendChild(n);
+  });
+}
+agrupar(document.getElementById('tab-aju'));
+const TIPOS_VIAJE = { feria: '🎪 Ferias', comercial: '💼 Comerciales', interno: '🏢 Internos (MTorres)', sincliente: '⚠️ Sin cliente' };
 const tipoDe = v => !v.cliente || v.cliente === 'Sin detalle' ? 'sincliente' : (v.tipo || 'cliente');
 const esCliente = v => tipoDe(v) === 'cliente';
 // Una sola vez: ferias, viajes comerciales e internos que venían del Excel como si fueran clientes
@@ -955,9 +1002,20 @@ function migrarTipos() {
     if (/^feria\b/i.test(c)) v.tipo = 'feria';
     else if (/comercial/i.test(c)) v.tipo = 'comercial';
     else if (/^(m\.?\s?torres\b|mtt$)/i.test(c)) v.tipo = 'interno';
-    else if (/^fosber$/i.test(c)) v.tipo = 'otro';
   });
   S.aju.migTipos1 = true;
+  guardar();
+}
+// Una sola vez: el tipo "otro" desaparece; el viaje "Fosber" era a VPK Packaging Polonia (proyecto Fosber)
+function migrarTipos2() {
+  S.viajes.forEach(v => {
+    if (v.tipo === 'otro') delete v.tipo;
+    if (/^fosber$/i.test(v.cliente || '')) {
+      v.cliente = 'VPK Packaging Polonia';
+      if (!/fosber/i.test(v.nota || '')) v.nota = (v.nota ? v.nota + ' · ' : '') + 'Proyecto Fosber';
+    }
+  });
+  S.aju.migTipos2 = true;
   guardar();
 }
 function migrarVacacionesExcel() {
@@ -1469,6 +1527,7 @@ function renderHistorico() {
     <div class="h-title">Clientes con más días</div>
     <div class="card">${clientes.map(([c, n]) => `<div class="fila-barra"><div class="lbl" style="width:55%">${esc(c)}</div><div class="bar"><i style="width:${n / clientes[0][1] * 100}%"></i></div><div class="num">${n}</div></div>`).join('')}</div>
     ${htmlRecords(porAño)}`;
+  agrupar($('#viaHist'));
 }
 
 // =====================================================================
