@@ -36,11 +36,9 @@ html,body{background:var(--bg)}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Arial,sans-serif;
   color:var(--text);-webkit-font-smoothing:antialiased;
-  padding:calc(12px + env(safe-area-inset-top)) 12px calc(96px + env(safe-area-inset-bottom));
+  padding:12px 12px calc(96px + env(safe-area-inset-bottom));
   max-width:640px;margin:0 auto;
 }
-/* Franja opaca bajo la barra de estado: evita ver el contenido borroso al desplazar */
-body::before{content:'';position:fixed;left:0;right:0;top:0;height:env(safe-area-inset-top);background:var(--bg);z-index:40;pointer-events:none}
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .card{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
 .h-title{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.4px;margin:18px 4px 8px}
@@ -566,7 +564,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.7';
+const VERSION = 'v5.8';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
