@@ -558,7 +558,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.0';
+const VERSION = 'v5.1';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1134,7 +1134,12 @@ function renderVacaciones() {
   $('#vacTitulo').textContent = `Vacaciones ${año}`;
   const r = resumenVac(año), b = bolsa(año);
   let h = '';
-  if (!b) {
+  if (!b && año < +HOY.slice(0,4)) {
+    h += `<div class="card" style="text-align:center">
+      <div style="font-size:15px;font-weight:600">${fmtH(r.reservadas)} de vacaciones en ${año}</div>
+      <div class="muted" style="font-size:13px;margin-top:4px">${fmtD(r.reservadas)} · año anterior, sin bolsa de horas</div>
+    </div>`;
+  } else if (!b) {
     const ant = bolsa(año - 1);
     h += `<div class="card" style="text-align:center">
       <div style="font-size:15px;font-weight:600;margin-bottom:6px">Sin bolsa de horas para ${año}</div>
