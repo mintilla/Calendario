@@ -275,6 +275,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .aviso-sync{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:150;display:none;
   background:#ff9500;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:nowrap}
 .aviso-sync.on{display:block}
+/* iPhone: los campos con letra < 16px provocan zoom automático al tocarlos */
+input,select,textarea{font-size:16px !important}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-150%);z-index:200;background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:20px;font-size:14px;font-weight:600;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast:not(.on){opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
@@ -562,7 +564,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.4';
+const VERSION = 'v5.5';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
