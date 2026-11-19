@@ -168,6 +168,13 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .ymini i.o{background:var(--vacacional);color:#fff}
 .ymini i.g{background:var(--previo);color:#fff}
 .ymini i.w{opacity:.45}
+/* Vista año a pantalla completa: la tarjeta de hoy queda debajo, al bajar */
+#calCard.llena{display:flex;flex-direction:column;min-height:calc(100vh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom));min-height:calc(100dvh - 84px - env(safe-area-inset-top) - env(safe-area-inset-bottom))}
+#calCard.llena #calCuerpo{flex:1;display:flex}
+#calCard.llena .ygrid{flex:1;grid-template-rows:repeat(4,1fr)}
+#calCard.llena .ymes{display:flex;flex-direction:column}
+#calCard.llena .ymini{flex:1;grid-template-rows:auto;grid-auto-rows:1fr}
+#calCard.llena .ymini i{aspect-ratio:auto;min-height:14px;font-size:10px}
 .ymini i.hoy{box-shadow:inset 0 0 0 1.5px var(--accent);color:var(--accent);font-weight:800}
 .ymini i.hoy.v,.ymini i.hoy.p,.ymini i.hoy.b,.ymini i.hoy.o,.ymini i.hoy.g{color:#fff;box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--text)}
 .ymini i.hoy.f{color:var(--text);box-shadow:0 0 0 1.5px var(--text)}
@@ -700,7 +707,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.1';
+const VERSION = 'v7.2';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1201,6 +1208,7 @@ function renderCal() {
   $('#btnVista').textContent = S.vista === 'mes' ? 'Año' : 'Mes';
   if (S.vista === 'mes') { renderMes(); renderAgenda(); $('#agendaWrap').style.display = ''; }
   else { renderAño(); $('#agendaWrap').style.display = 'none'; }
+  $('#calCard').classList.toggle('llena', S.vista !== 'mes');
   renderSheet();
 }
 
