@@ -700,7 +700,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.0';
+const VERSION = 'v7.1';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2373,6 +2373,13 @@ function importarTexto(txt) {
       vac.forEach(s => S.vac.add(s));
       if (d.horas) Object.assign(S.horas, d.horas);
       if (d.empresa) Object.assign(S.emp, d.empresa);
+      // Ajustes: completar lo que falte (bolsas de años que no tengas, datos personales…) sin pisar lo actual
+      if (d.ajustes) {
+        const b = d.ajustes;
+        S.aju = { ...b, ...S.aju, bolsas: { ...(b.bolsas || {}), ...(S.aju.bolsas || {}) },
+                  ocio: [...new Set([...(b.ocio || []), ...(S.aju.ocio || [])])], personal: S.aju.personal || b.personal };
+        if (!S.aju.personal) delete S.aju.personal;
+      }
     } else if (i === 1) {
       S.viajes = viajes;
       S.vac = new Set(vac);
