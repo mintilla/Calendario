@@ -480,7 +480,7 @@ input,select,textarea{font-size:16px !important}
     <details><summary>📎 Documentos del viaje</summary><div class="cont">
       <ul>
         <li>Para crear un viaje: el botón <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al crear un viaje se abre su ficha directamente. En el calendario, la tarjeta de hoy también abre la ficha del viaje en curso o del próximo. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
-        <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Revisa y guarda. El correo completo queda guardado al final.</li>
+        <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora y también «Hotel: …» o un nombre de hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba: revisa y guarda. El correo completo queda guardado al final.</li>
         <li><b>Documentos:</b> <b>＋ Añadir documento</b> para PDFs o imágenes (máx. 7 MB cada uno). En el PC también puedes arrastrarlos. Se sincronizan entre dispositivos.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días se guardan solos en el dispositivo (✓ sin conexión). Para otro viaje, pulsa <b>⬇️ Guardar sin conexión</b>. Antes de salir, abre el viaje con conexión y comprueba que pone ✓.</li>
         <li>Con <b>✏️</b> le cambias el nombre (p. ej. «QR entrada Indonesia»). Al abrir un documento, <b>Compartir</b> te deja guardarlo en Archivos, imprimirlo o mandarlo.</li>
@@ -680,7 +680,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.5';
+const VERSION = 'v6.6';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1749,6 +1749,19 @@ async function compartirVisor() {
   const a = document.createElement('a'); a.href = visorURL; a.download = visorNombre; document.body.appendChild(a); a.click(); a.remove();
 }
 
+// Hotel cuando el correo no sigue la plantilla de la gestora
+const CADENAS_HOTEL = /^(?:the\s+)?(?:hotel\b|h[oó]tel\b|novotel|mercure|ibis|pullman|sofitel|swiss[oô]tel|hilton|doubletree|hampton|marriott|courtyard|sheraton|westin|four points|renaissance|ritz|hyatt|radisson|holiday inn|crowne plaza|intercontinental|nh\s|meli[aá]|ac hotel|best western|premier inn|motel one|b&b hotel|prime plaza|aston|accor|grand\s|aloft|moxy|kempinski|shangri|novum|leonardo|barcel[oó]|eurostars|catalonia|hesperia|ilunion|parador)/i;
+function buscarHotel(lin) {
+  const tras = i => { const out = []; for (let j = i; j < lin.length && out.length < 5; j++) { if (!lin[j]) { if (out.length) break; continue; } out.push(lin[j]); } return out.join('\n'); };
+  // "Hotel: Novotel Karawang" / "Alojamiento:" / "Accommodation:"
+  for (let i = 0; i < lin.length; i++) {
+    const m = lin[i].match(/^(?:hotel|alojamiento|hospedaje|accommodation|hotel reservado|hotel reservation)\s*:\s*(.*)$/i);
+    if (m) { const resto = tras(i + 1); return m[1] ? [m[1], resto].filter(Boolean).join('\n') : resto; }
+  }
+  // Una línea corta que empiece por "Hotel …" o una cadena conocida, con su dirección detrás
+  const i = lin.findIndex(l => l.length < 70 && CADENAS_HOTEL.test(l) && !/[.?!]$/.test(l) && l.split(' ').length <= 8);
+  return i >= 0 ? tras(i) : '';
+}
 // Leer el correo de la gestora: hotel, cliente, orden SAP y teléfonos
 function parsearCorreo(t) {
   t = (t || '').replace(/[ ​‎]/g, ' ').replace(/\r/g, '');
@@ -1762,7 +1775,7 @@ function parsearCorreo(t) {
     for (let j = i + 1; j < lin.length && out.length < 8; j++) { if (!lin[j]) { if (out.length) break; continue; } out.push(lin[j].replace(/^​/, '')); }
     return out.join('\n');
   };
-  const r = { correo: t, hotel: bloque(/el hotel es|hotel:$/i), cliente: bloque(/direcci[oó]n del cliente/i), sap: '', contactos: '' };
+  const r = { correo: t, hotel: bloque(/el hotel es|hotel:$/i) || buscarHotel(lin), cliente: bloque(/direcci[oó]n del cliente/i), sap: '', contactos: '' };
   const sap = t.match(/orden de viaje en SAP[^\d]{0,20}(\d{3,})/i); if (sap) r.sap = sap[1];
   const tel = /(\+?\d{2,3}[ .]?)?\d{3}[ .]?\d{3}[ .]?\d{3}/;
   const cont = [];
