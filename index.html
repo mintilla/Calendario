@@ -526,7 +526,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v4.1';
+const VERSION = 'v4.2';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), emp: {}, aju: '{}' } };
 
@@ -542,10 +542,44 @@ function iniciarNube(FB) {
   } catch (e) {
     N.db = FB.initializeFirestore(app, { experimentalAutoDetectLongPolling: true });
   }
-  FB.onAuthStateChanged(N.auth, u => u ? entrar(u) : mostrarLogin());
+  FB.onAuthStateChanged(N.auth, u => {
+    if (u) return entrar(u);
+    // Sin conexión Firebase a veces no confirma la sesión: si hay copia, abrir con ella
+    if (!navigator.onLine && abrirConCopia()) return;
+    mostrarLogin();
+  });
+  setTimeout(() => { if (!N.mostrado) abrirConCopia(); }, 3000);
 }
 
+// ---- Copia completa en el dispositivo (para abrir siempre, con o sin conexión) ----
+let copiaT;
+function guardarCopiaLocal() {
+  clearTimeout(copiaT);
+  copiaT = setTimeout(() => {
+    if (!N.uid) return;
+    escribir('copia-' + N.uid, { viajes: S.viajes, vac: [...S.vac], emp: S.emp, aju: S.aju, email: N.email, t: Date.now() });
+    escribir('ultimo-uid', N.uid);
+  }, 300);
+}
+function abrirConCopia() {
+  if (N.mostrado) return true;
+  const uid = N.uid || leer('ultimo-uid');
+  const c = uid && leer('copia-' + uid);
+  if (!c) return false;
+  N.uid = uid; N.email = N.email || c.email || '';
+  S.viajes = limpiarViajes(c.viajes); S.vac = new Set((c.vac || []).filter(fechaOk));
+  S.emp = c.emp || {}; S.aju = Object.assign({ diasVac: 0 }, c.aju || {});
+  Object.keys(cacheEmp).forEach(k => delete cacheEmp[k]);
+  N.sync = { via: new Map(S.viajes.map(v => [v.id, JSON.stringify(v)])), vac: new Set(S.vac), emp: JSON.parse(JSON.stringify(S.emp)), aju: JSON.stringify(S.aju) };
+  N.mostrado = true;
+  $('#login').style.display = 'none';
+  $('#cargando').style.display = 'none';
+  render();
+  if (!navigator.onLine) toast('📴 Sin conexión · usando la copia del móvil');
+  return true;
+}
 function mostrarLogin() {
+  if (N.mostrado) return;
   $('#cargando').style.display = 'none';
   $('#login').style.display = 'flex';
 }
@@ -581,23 +615,28 @@ function entrar(u) {
   const opts = { includeMetadataChanges: true };
   const meta = (k, snap) => { N.llegado[k] = true; if (!snap.metadata.fromCache) N.servidor[k] = true; N.pendiente[k] = snap.metadata.hasPendingWrites; };
 
+  const cacheVacia = (snap, vacio, hayDatos) => snap.metadata.fromCache && vacio && hayDatos;
   N.subs.push(FB.onSnapshot(FB.collection(N.db, ...base, 'viajes'), opts, snap => {
+    if (cacheVacia(snap, snap.empty, S.viajes.length)) { N.llegado.via = true; return trasCambio(); }
     S.viajes = limpiarViajes(snap.docs.map(d => d.data()));
     N.sync.via = new Map(S.viajes.map(v => [v.id, JSON.stringify(v)]));
     meta('via', snap); trasCambio();
   }, errorNube));
   N.subs.push(FB.onSnapshot(FB.doc(N.db, ...base, 'datos', 'vacaciones'), opts, snap => {
+    if (cacheVacia(snap, !snap.exists(), S.vac.size)) { N.llegado.vac = true; return trasCambio(); }
     S.vac = new Set(((snap.data() || {}).dias || []).filter(fechaOk));
     N.sync.vac = new Set(S.vac);
     meta('vac', snap); trasCambio();
   }, errorNube));
   N.subs.push(FB.onSnapshot(FB.doc(N.db, ...base, 'datos', 'empresa'), opts, snap => {
+    if (cacheVacia(snap, !snap.exists(), Object.keys(S.emp).length)) { N.llegado.emp = true; return trasCambio(); }
     S.emp = (snap.data() || {}).anios || {};
     N.sync.emp = JSON.parse(JSON.stringify(S.emp));
     Object.keys(cacheEmp).forEach(k => delete cacheEmp[k]);
     meta('emp', snap); trasCambio();
   }, errorNube));
   N.subs.push(FB.onSnapshot(FB.doc(N.db, ...base, 'datos', 'ajustes'), opts, snap => {
+    if (cacheVacia(snap, !snap.exists(), N.mostrado)) { N.llegado.aju = true; N.inicializado = true; return trasCambio(); }
     const d = snap.data() || {};
     N.inicializado = !!d.inicializado;
     delete d.inicializado;
@@ -615,7 +654,9 @@ let renderPendiente = false;
 function trasCambio() {
   const todos = ['via', 'vac', 'emp', 'aju'];
   if (!todos.every(k => N.llegado[k])) return;
+  guardarCopiaLocal();
   $('#cargando').style.display = 'none';
+  N.mostrado = true;
   // Primera vez en la nube: subir el histórico del Excel y los datos de 2026
   if (!N.sembrado && !N.inicializado && todos.every(k => N.servidor[k])) {
     N.sembrado = true;
@@ -642,6 +683,7 @@ function sembrar() {
 // Guarda en la nube SOLO lo que ha cambiado (sin conexión queda en cola y se sube al volver)
 function guardar(forzarAjustes) {
   if (!N.uid || !N.db) return;
+  guardarCopiaLocal();
   const FB = N.FB, db = N.db, base = ['usuarios', N.uid];
   const ops = [];
   const act = new Map(S.viajes.map(v => [v.id, JSON.stringify(v)]));
