@@ -272,6 +272,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .login-box{width:100%;max-width:340px;text-align:center}
 .login-box h1{font-size:24px;margin:8px 0 4px}
 .login-box input{width:100%;padding:14px;border-radius:14px;border:1px solid var(--line);background:var(--card);color:var(--text);font-size:16px;margin-bottom:10px}
+.aviso-sync{position:fixed;left:50%;top:calc(8px + env(safe-area-inset-top));transform:translateX(-50%);z-index:150;display:none;
+  background:#ff9500;color:#fff;font-size:12px;font-weight:700;padding:6px 12px;border-radius:14px;box-shadow:0 4px 14px rgba(0,0,0,.18);white-space:nowrap}
+.aviso-sync.on{display:block}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-150%);z-index:200;background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:20px;font-size:14px;font-weight:600;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast:not(.on){opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
@@ -433,6 +436,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 </div>
 
 <div class="toast" id="toast"></div>
+<div class="aviso-sync" id="avisoSync"></div>
 
 <div class="login" id="cargando" style="display:flex"><div class="login-box"><div style="font-size:48px">📅</div><div class="muted">Cargando…</div></div></div>
 <div class="login" id="login" style="display:none">
@@ -558,7 +562,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v5.2';
+const VERSION = 'v5.3';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -685,6 +689,7 @@ function errorNube(e) {
 
 let renderPendiente = false;
 function trasCambio() {
+  actualizarAvisoSync();
   const todos = ['via', 'vac', 'emp', 'aju'];
   if (!todos.every(k => N.llegado[k])) return;
   guardarCopiaLocal();
@@ -761,11 +766,23 @@ function guardar(forzarAjustes) {
   for (let i = 0; i < ops.length; i += 400) {
     const b = FB.writeBatch(db);
     ops.slice(i, i + 400).forEach(f => f(b));
-    b.commit().catch(e => { console.error(e); toast('⚠️ No se pudo guardar: ' + (e.code || e.message)); });
+    N.enviando = (N.enviando || 0) + 1; actualizarAvisoSync();
+    b.commit().catch(e => { console.error(e); toast('⚠️ No se pudo guardar: ' + (e.code || e.message)); })
+      .finally(() => { N.enviando--; actualizarAvisoSync(); });
   }
 }
+// Aviso arriba si hay cambios sin subir a la nube
+function hayPendiente() { return (N.enviando || 0) > 0 || Object.values(N.pendiente).some(Boolean); }
+function actualizarAvisoSync() {
+  const el = $('#avisoSync');
+  if (!el) return;
+  const pend = hayPendiente();
+  el.textContent = navigator.onLine ? '⏳ Subiendo cambios…' : '📴 Sin conexión · cambios pendientes de subir';
+  el.classList.toggle('on', pend);
+  if (S.tab === 'aju' && $('#cuentaEstado')) $('#cuentaEstado').textContent = estadoNube();
+}
 function estadoNube() {
-  const pend = Object.values(N.pendiente).some(Boolean);
+  const pend = hayPendiente();
   if (!navigator.onLine) return pend ? '📴 Sin conexión · cambios pendientes de subir' : '📴 Sin conexión · trabajando con la copia del dispositivo';
   return pend ? '⏳ Subiendo cambios…' : '☁️ Todo sincronizado';
 }
@@ -1687,8 +1704,8 @@ eventos();
 $('#lEntrar').onclick = hacerLogin;
 $('#lPass').onkeydown = e => { if (e.key === 'Enter') hacerLogin(); };
 $('#lOlvido').onclick = olvideContraseña;
-window.addEventListener('online', () => S.tab === 'aju' && renderAjustes());
-window.addEventListener('offline', () => S.tab === 'aju' && renderAjustes());
+window.addEventListener('online', actualizarAvisoSync);
+window.addEventListener('offline', actualizarAvisoSync);
 if ('serviceWorker' in navigator && location.protocol === 'https:') navigator.serviceWorker.register('./sw.js');
 </script>
 <script type="module">
