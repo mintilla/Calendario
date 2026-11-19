@@ -267,9 +267,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media (prefers-color-scheme: dark){.btn.peligro{background:#3a1010;color:#ff8a80}}
 
 /* ===== SEGMENTADO ===== */
-.seg{display:flex;background:var(--soft);border-radius:12px;padding:3px;margin-bottom:12px}
-.seg button{flex:1;padding:8px;border-radius:9px;font-size:14px;font-weight:600;color:var(--muted)}
-.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.12)}
+.seg{display:flex;background:color-mix(in srgb,var(--text) 9%,var(--bg));border:1px solid color-mix(in srgb,var(--text) 10%,transparent);border-radius:12px;padding:3px;margin-bottom:12px}
+.seg button{flex:1;padding:8px;border-radius:9px;font-size:14px;font-weight:600;color:color-mix(in srgb,var(--text) 65%,transparent)}
+.seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.18)}
 .mes-titulo.tocable{cursor:pointer}
 .mes-titulo.tocable::after{content:'▾';display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:13px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:15px;margin-left:8px;vertical-align:middle;position:relative;top:-2px}
 .años-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:50vh;overflow-y:auto;margin:10px 0 4px}
@@ -484,7 +484,7 @@ input,select,textarea{font-size:16px !important}
   </div>
   <div class="card pais-panel" id="paisPanel" style="display:none"></div>
   <div class="h-title">Todos los países</div>
-  <div class="seg" id="mapOrden" style="margin-bottom:8px"><button data-orden="dias" class="on">Más días</button><button data-orden="az">A–Z</button></div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="muted" style="font-size:13px;white-space:nowrap">Ordenar por</span><div class="seg" id="mapOrden" style="margin:0;flex:1"><button data-orden="dias" class="on">Días ↓</button><button data-orden="nombre">Nombre A–Z</button></div></div>
   <input id="mapBuscar" type="search" placeholder="Buscar país…" autocomplete="off" style="width:100%;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);margin-bottom:8px">
   <div class="card" id="mapLista"></div>
 </section>
@@ -550,7 +550,7 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>🏭 Clientes</summary><div class="cont">
       <ul>
-        <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para cambiarle el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
+        <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
         <li>Los viajes sin cliente salen aparte (⚠️). Tócalo para verlos y ponles cliente desde su ficha con <b>✏️ Editar viaje</b>.</li>
       </ul>
     </div></details>
@@ -567,7 +567,7 @@ input,select,textarea{font-size:16px !important}
         <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
         <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> y <b>países</b> son sin España.</li>
         <li><b>Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
-        <li>En <b>Todos los países</b> puedes ordenar por <b>Más días</b> o <b>A–Z</b> y buscar escribiendo. Para países pequeños, tócalos en la lista: el mapa se amplía y los centra. Con <b>＋/−</b> llegas hasta ×16.</li>
+        <li>En <b>Todos los países</b> puedes ordenar por <b>Días</b> o por <b>Nombre</b> (tócalo otra vez para invertir el orden) y buscar escribiendo. Para países pequeños, tócalos en la lista: el mapa se amplía y los centra. Con <b>＋/−</b> llegas hasta ×16.</li>
         <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
       </ul>
     </div></details>
@@ -788,7 +788,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v7.8';
+const VERSION = 'v7.9';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1622,9 +1622,13 @@ function renderMapa() {
 const sinTildes = s => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 function pintarListaPaises() {
   const st = N.mapaSt || {}, ocio = N.mapaOcio || [], q = sinTildes(($('#mapBuscar') || {}).value || '').trim();
-  const az = S.mapOrden === 'az', ok = p => !q || sinTildes(p).includes(q);
-  document.querySelectorAll('#mapOrden button').forEach(b => b.classList.toggle('on', b.dataset.orden === (az ? 'az' : 'dias')));
-  const filas = Object.entries(st).filter(([p]) => ok(p)).sort((a, b) => az ? a[0].localeCompare(b[0], 'es') : b[1].dias.size - a[1].dias.size).map(([p, x]) => filaPais(p, x));
+  const por = S.mapOrden || 'dias', asc = !!S.mapAsc, ok = p => !q || sinTildes(p).includes(q);
+  document.querySelectorAll('#mapOrden button').forEach(b => {
+    b.classList.toggle('on', b.dataset.orden === por);
+    b.textContent = b.dataset.orden === 'dias' ? `Días ${por === 'dias' && asc ? '↑' : '↓'}` : `Nombre ${por === 'nombre' && asc ? 'Z–A' : 'A–Z'}`;
+  });
+  const cmp = por === 'nombre' ? (a, b) => a[0].localeCompare(b[0], 'es') * (asc ? -1 : 1) : (a, b) => (b[1].dias.size - a[1].dias.size) * (asc ? -1 : 1);
+  const filas = Object.entries(st).filter(([p]) => ok(p)).sort(cmp).map(([p, x]) => filaPais(p, x));
   const ocioF = ocio.filter(ok).sort((a, b) => a.localeCompare(b, 'es')).map(p => `<div class="fila-pais" data-ver-pais="${esc(p)}"><div class="fl">${bandera(p)}</div><div class="tx"><div class="t">${esc(p)}</div><div class="s">Ocio</div></div><div class="n" style="color:#2ec4a6">🏖️</div></div>`);
   $('#mapLista').innerHTML = [...filas, ...ocioF].join('') || `<div class="muted" style="font-size:14px;padding:8px 0">Ningún país visitado coincide con «${esc(q)}».</div>`;
 }
@@ -2710,8 +2714,8 @@ function renderClientes() {
   const lista = clientesConteo().filter(([c]) => c !== 'Sin detalle');
   if (S.aju.clientesAntes) { delete S.aju.clientesAntes; guardar(); }
   let h = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cliToggle"><span>${plural(lista.length, 'cliente')} en tus viajes</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.cliAbierto ? 'Ocultar' : 'Ver y renombrar ›'}</span></div>`;
-  if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para cambiarle el nombre en todos sus viajes. Si pones el nombre de otro que ya existe, se juntan.</div>
-    <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div></div><div class="muted" style="font-size:13px">${plural(n, 'viaje')}</div><div class="chev">›</div></div>`).join('')}</div>`;
+  if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para ver sus viajes. Con ✏️ le cambias el nombre en todos ellos; si pones el de otro que ya existe, se juntan.</div>
+    <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli-ver="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div><div class="s">${plural(n, 'viaje')}</div></div><button class="pill-btn" data-cli="${esc(c)}" aria-label="Cambiar nombre" style="padding:0 10px">✏️</button></div>`).join('')}</div>`;
   const sin = S.viajes.filter(v => !v.cliente || v.cliente === 'Sin detalle');
   if (sin.length) h += `<div class="rec-f" id="cliSin" style="cursor:pointer;margin-top:6px;border-top:1px solid var(--line)"><div class="ic">⚠️</div><div style="flex:1"><div class="t" style="font-size:14px">${plural(sin.length, 'viaje sin cliente', 'viajes sin cliente')}</div><div class="s">Tócalo para verlos y ponerles cliente</div></div><div class="chev">›</div></div>`;
   $('#cliCard').innerHTML = h;
@@ -2730,6 +2734,7 @@ function iniciarClientes() {
     if (e.target.closest('#cliToggle')) { S.cliAbierto = !S.cliAbierto; return renderClientes(); }
     if (e.target.closest('#cliSin')) return listaCliente('Sin detalle', S.viajes.filter(v => !v.cliente || v.cliente === 'Sin detalle'));
     const c = e.target.closest('[data-cli]'); if (c) return renombrarCliente(c.dataset.cli);
+    const cv = e.target.closest('[data-cli-ver]'); if (cv) return listaCliente(cv.dataset.cliVer);
   });
 }
 
@@ -3071,7 +3076,8 @@ function eventos() {
   iniciarDetalle();
   iniciarMisDocs();
   iniciarClientes();
-  $('#mapOrden').onclick = e => { const b = e.target.closest('[data-orden]'); if (b) { S.mapOrden = b.dataset.orden; pintarListaPaises(); } };
+  // Tocar la opción activa invierte el orden (Días ↓/↑, Nombre A–Z/Z–A)
+  $('#mapOrden').onclick = e => { const b = e.target.closest('[data-orden]'); if (!b) return; if ((S.mapOrden || 'dias') === b.dataset.orden) S.mapAsc = !S.mapAsc; else { S.mapOrden = b.dataset.orden; S.mapAsc = false; } pintarListaPaises(); };
   $('#mapBuscar').addEventListener('input', pintarListaPaises);
   $('#formEliminar').onclick = eliminarViaje;
   $('#fIni').onchange = () => { if (!$('#fFin').value || $('#fFin').value < $('#fIni').value) $('#fFin').value = $('#fIni').value; actualizarDuracion(); };
