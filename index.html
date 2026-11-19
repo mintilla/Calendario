@@ -70,6 +70,14 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .doc-f .s{font-size:12px;color:var(--muted)}
 .doc-f .x{width:30px;height:30px;border-radius:15px;background:var(--soft);color:var(--muted);flex:none;font-size:13px}
 .doc-drop{border:2px dashed var(--accent);border-radius:14px}
+.vuelo{padding:11px 0;border-bottom:1px solid var(--line)}
+.vuelo:last-child{border-bottom:none}
+.vuelo .vc{display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--muted);font-weight:600}
+.vuelo .vr{display:flex;align-items:baseline;gap:8px;margin:3px 0 2px;font-size:20px;font-weight:700}
+.vuelo .vr small{font-size:12px;color:var(--muted);font-weight:600}
+.vuelo .vd{font-size:13px;color:var(--muted);line-height:1.45}
+.vuelo .cp{color:var(--accent);font-weight:600;cursor:pointer}
+.vuelo .x{width:26px;height:26px;border-radius:13px;background:var(--soft);color:var(--muted);font-size:12px}
 .correo-txt{white-space:pre-wrap;font-size:13px;line-height:1.45;word-break:break-word;margin-top:8px;max-height:60vh;overflow:auto}
 .campo textarea{width:100%;border:none;background:none;color:var(--text);font-size:16px;padding:6px 0 10px;outline:none;resize:vertical;font-family:inherit;line-height:1.4}
 .visor{position:fixed;inset:0;z-index:120;background:var(--bg);display:none;flex-direction:column}
@@ -481,6 +489,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li>Para crear un viaje: el botón <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al crear un viaje se abre su ficha directamente. En el calendario, la tarjeta de hoy también abre la ficha del viaje en curso o del próximo. Toca un viaje para ver su <b>ficha</b> y sus <b>documentos</b>. <b>✏️ Editar</b> (arriba) cambia país, fechas o cliente.</li>
         <li><b>Ficha:</b> pega el correo de la gestora y pulsa <b>✨ Rellenar ficha con el correo</b>: saca hotel, dirección del cliente, orden SAP y teléfonos. Reconoce la plantilla de la gestora y también «Hotel: …» o un nombre de hotel conocido (Novotel, Hilton…) con su dirección debajo. Lo que no reconoce lo deja como estaba: revisa y guarda. El correo completo queda guardado al final.</li>
+        <li><b>Correo de la agencia (.eml):</b> los «mime-attachment» de CWT guárdalos en Archivos y súbelos con <b>＋ Añadir documento</b>. La app saca los <b>vuelos</b> (horarios, terminal, asiento, localizador) y los PDFs adjuntos. Toca el localizador o el billete para copiarlo.</li>
         <li><b>Documentos:</b> <b>＋ Añadir documento</b> para PDFs o imágenes (máx. 7 MB cada uno). En el PC también puedes arrastrarlos. Se sincronizan entre dispositivos.</li>
         <li><b>Sin conexión:</b> los documentos de los viajes en curso y de los próximos 30 días se guardan solos en el dispositivo (✓ sin conexión). Para otro viaje, pulsa <b>⬇️ Guardar sin conexión</b>. Antes de salir, abre el viaje con conexión y comprueba que pone ✓.</li>
         <li>Con <b>✏️</b> le cambias el nombre (p. ej. «QR entrada Indonesia»). Al abrir un documento, <b>Compartir</b> te deja guardarlo en Archivos, imprimirlo o mandarlo.</li>
@@ -514,7 +523,7 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== DETALLE DE VIAJE ===================== -->
 <div class="modal" id="modalDetalle"><div class="modal-box" id="detalleBox"></div></div>
-<input type="file" id="fileDocs" accept="application/pdf,image/*,.pdf" multiple style="display:none">
+<input type="file" id="fileDocs" multiple style="display:none">
 <div class="visor" id="visor">
   <div class="visor-bar"><button class="pill-btn" id="visorCerrar">Cerrar</button><span id="visorNombre"></span><button class="pill-btn" id="visorCompartir">Compartir</button></div>
   <div id="visorCuerpo" style="flex:1;display:flex;position:relative;min-height:0"></div>
@@ -680,7 +689,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v6.6';
+const VERSION = 'v6.7';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1036,6 +1045,12 @@ function renderHoy() {
     const v = vjHoy[0], q = diasEntre(HOY, v.fechaFin);
     lineas.push(`<span data-viaje="${v.id}" style="cursor:pointer;display:block">📎 <b>Ficha y documentos</b> del viaje ›</span>`);
     lineas.push(q === 0 ? '🏠 Vuelves <b>hoy</b>' : `🏠 Vuelves <b>${enDias(q)}</b> (${fechaDia(v.fechaFin)})`);
+  }
+  const ahora = `${HOY}T${dos(new Date().getHours())}:${dos(new Date().getMinutes())}`;
+  const vueloProx = S.viajes.flatMap(v => (v.vuelos || []).map(f => ({ ...f, vid: v.id }))).filter(f => f.sal && f.sal >= ahora && f.sal.slice(0, 10) <= sumar(HOY, 3)).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  if (vueloProx) {
+    const q = diasEntre(HOY, vueloProx.sal.slice(0, 10));
+    lineas.unshift(`<span data-viaje="${vueloProx.vid}" style="cursor:pointer;display:block">✈️ Vuelo <b>${esc(vueloProx.num || '')}</b> ${q === 0 ? '<b>hoy</b>' : q === 1 ? '<b>mañana</b>' : enDias(q)} a las <b>${vueloProx.sal.slice(11, 16)}</b> · ${esc(vueloProx.de || '')} → ${esc(vueloProx.a || '')}${vueloProx.asiento ? ' · 💺 ' + esc(vueloProx.asiento.split(' ')[0]) : ''}</span>`);
   }
   const d = proximoDescanso();
   if (d) {
@@ -1548,6 +1563,7 @@ function guardarFormulario() {
               pais, ciudadDestino: ciudad, fechaInicio: a, fechaFin: b, cliente,
               ...($('#fNota').value.trim() ? { nota: $('#fNota').value.trim() } : {}),
               ...(S.editando?.info ? { info: S.editando.info } : {}),
+              ...(S.editando?.vuelos ? { vuelos: S.editando.vuelos } : {}),
               fechaCreacion: S.editando?.fechaCreacion || new Date().toISOString() };
   const i = S.viajes.findIndex(x => x.id === v.id);
   if (i >= 0) S.viajes[i] = v; else S.viajes.push(v);
@@ -1595,6 +1611,16 @@ function deBase64(b64, tipo) { const bin = atob(b64), u = new Uint8Array(bin.len
 function enviar(lote) { N.enviando++; actualizarAvisoSync(); lote.commit().catch(errorNube).finally(() => { N.enviando--; actualizarAvisoSync(); }); }
 
 async function subirDocs(viajeId, files) {
+  const normales = [];
+  for (const f of files) {
+    const clase = await claseArchivo(f);
+    if (clase === 'eml') await importarEml(viajeId, f);
+    else if (clase === 'ics') await importarIcs(viajeId, f);
+    else normales.push(f);
+  }
+  if (normales.length) await subirArchivos(viajeId, normales);
+}
+async function subirArchivos(viajeId, files) {
   for (const f of files) {
     if (f.size > DOC_MAX) { toast(`⚠️ ${f.name}: máximo 7 MB`); continue; }
     try {
@@ -1789,6 +1815,192 @@ function parsearCorreo(t) {
   return r;
 }
 
+
+// =====================================================================
+//  CORREOS (.eml) Y VUELOS (.ics): se leen en el propio dispositivo
+// =====================================================================
+async function claseArchivo(f) {
+  const n = (f.name || '').toLowerCase();
+  if (n.endsWith('.eml') || f.type === 'message/rfc822') return 'eml';
+  if (n.endsWith('.ics') || /calendar/.test(f.type)) return 'ics';
+  if (/^(application\/pdf|image\/)/.test(f.type) || /\.(pdf|png|jpe?g|heic|gif|webp)$/.test(n)) return 'normal';
+  // Sin extensión (p. ej. «mime-attachment» guardado desde Mail): mirar el contenido
+  const ini = bytesStr(new Uint8Array(await f.slice(0, 4000).arrayBuffer()));
+  if (/^BEGIN:VCALENDAR/m.test(ini)) return 'ics';
+  if (/^(Received|From|MIME-Version|Return-Path|Message-ID|Content-Type|Date|Subject):/im.test(ini) && /^(From|Subject|MIME-Version):/im.test(ini)) return 'eml';
+  return 'normal';
+}
+function bytesStr(u8) { let s = ''; for (let i = 0; i < u8.length; i += 8192) s += String.fromCharCode.apply(null, u8.subarray(i, i + 8192)); return s; }
+function strBytes(s) { const u = new Uint8Array(s.length); for (let i = 0; i < s.length; i++) u[i] = s.charCodeAt(i) & 255; return u; }
+function textoDe(bytes, cs) { try { return new TextDecoder(cs || 'utf-8').decode(bytes); } catch (e) { return new TextDecoder('utf-8').decode(bytes); } }
+function decodificarCab(s) {
+  return (s || '').replace(/\?=\s+=\?/g, '?==?').replace(/=\?([^?]+)\?([BQ])\?([^?]*)\?=/gi, (_, cs, e, t) => {
+    try {
+      const bin = e.toUpperCase() === 'B' ? atob(t) : t.replace(/_/g, ' ').replace(/=([0-9A-F]{2})/gi, (_, x) => String.fromCharCode(parseInt(x, 16)));
+      return textoDe(strBytes(bin), cs);
+    } catch (err) { return t; }
+  });
+}
+function mimeParte(raw) {
+  const m = raw.match(/\r?\n\r?\n/);
+  const cab = m ? raw.slice(0, m.index) : raw, cuerpo = m ? raw.slice(m.index + m[0].length) : '';
+  const hs = {};
+  cab.replace(/\r?\n[ \t]+/g, ' ').split(/\r?\n/).forEach(l => { const i = l.indexOf(':'); if (i > 0) { const k = l.slice(0, i).trim().toLowerCase(); if (!(k in hs)) hs[k] = l.slice(i + 1).trim(); } });
+  const ct = hs['content-type'] || 'text/plain', tipo = ct.split(';')[0].trim().toLowerCase();
+  const par = (hv, k) => {
+    if (!hv) return '';
+    const mm = hv.match(new RegExp('(?:^|;)\\s*' + k + '(\\*?)=\\s*("([^"]*)"|[^;]+)', 'i'));
+    if (!mm) return '';
+    let v = (mm[3] !== undefined ? mm[3] : mm[2]).trim();
+    if (mm[1]) { v = v.replace(/^[^']*'[^']*'/, ''); try { v = decodeURIComponent(v); } catch (e) {} }
+    return v;
+  };
+  const p = { hs, tipo, charset: par(ct, 'charset'), nombre: decodificarCab(par(hs['content-disposition'], 'filename') || par(ct, 'name')),
+              adjunto: /^attachment/i.test(hs['content-disposition'] || ''), inline: /^inline/i.test(hs['content-disposition'] || '') || !!hs['content-id'] };
+  if (tipo.startsWith('multipart/')) {
+    const b = par(ct, 'boundary'); p.partes = [];
+    if (b) { const tr = cuerpo.split('--' + b); for (let i = 1; i < tr.length; i++) { if (tr[i].startsWith('--')) break; p.partes.push(mimeParte(tr[i].replace(/^\r?\n/, ''))); } }
+  } else {
+    const enc = (hs['content-transfer-encoding'] || '').toLowerCase();
+    let bin = cuerpo;
+    if (enc === 'base64') { try { bin = atob(cuerpo.replace(/[^A-Za-z0-9+/=]/g, '')); } catch (e) { bin = ''; } }
+    else if (enc === 'quoted-printable') bin = cuerpo.replace(/=\r?\n/g, '').replace(/=([0-9A-F]{2})/gi, (_, x) => String.fromCharCode(parseInt(x, 16)));
+    p.bytes = strBytes(bin);
+    if (tipo === 'message/rfc822') { p.partes = [mimeParte(bin)]; delete p.bytes; }
+  }
+  return p;
+}
+function hojasMime(p, out = []) { if (p.partes) p.partes.forEach(x => hojasMime(x, out)); else out.push(p); return out; }
+function htmlATexto(s) {
+  // DOMParser no carga imágenes ni nada externo (evita píxeles de seguimiento)
+  const d = new DOMParser().parseFromString(s.replace(/<(script|style)[\s\S]*?<\/\1>/gi, '').replace(/<(br|\/p|\/tr|\/div|\/h\d|\/li)[^>]*>/gi, '\n').replace(/<td[^>]*>/gi, ' '), 'text/html').body;
+  return (d.textContent || '').replace(/[ \t\u00a0]+/g, ' ').replace(/\n[ \t]+/g, '\n').replace(/\n{3,}/g, '\n\n').trim();
+}
+
+// ---- Vuelos ----
+const MESES_ABR = { ene: 1, jan: 1, feb: 2, mar: 3, abr: 4, apr: 4, may: 5, jun: 6, jul: 7, ago: 8, aug: 8, sep: 9, set: 9, oct: 10, nov: 11, dic: 12, dec: 12 };
+const dos = n => String(n).padStart(2, '0');
+function fechaHoraTxt(s) {   // «19:25 - 27 nov. 26» → 2026-11-27T19:25
+  const m = (s || '').match(/(\d{1,2}):(\d{2})\s*-\s*(\d{1,2})\s+([a-zé]{3})[a-z.]*\s+(\d{2,4})/i);
+  if (!m) return '';
+  const mes = MESES_ABR[m[4].toLowerCase().slice(0, 3)]; if (!mes) return '';
+  const a = m[5].length === 2 ? '20' + m[5] : m[5];
+  return `${a}-${dos(mes)}-${dos(m[3])}T${dos(m[1])}:${m[2]}`;
+}
+function parsearIcs(txt) {
+  const lin = txt.replace(/\r?\n[ \t]/g, '').split(/\r?\n/);
+  const vuelos = []; let ev = null;
+  const des = s => s.replace(/\\n/gi, '\n').replace(/\\([,;\\])/g, '$1');
+  for (const l of lin) {
+    if (/^BEGIN:VEVENT/.test(l)) ev = {};
+    else if (/^END:VEVENT/.test(l)) { if (ev) { const v = vueloDeEvento(ev); if (v) vuelos.push(v); } ev = null; }
+    else if (ev) { const i = l.indexOf(':'); if (i > 0) ev[l.slice(0, i).split(';')[0].toUpperCase()] = des(l.slice(i + 1)); }
+  }
+  return vuelos;
+}
+function vueloDeEvento(ev) {
+  const sum = ev.SUMMARY || '', d = ev.DESCRIPTION || '';
+  const campo = re => { const m = d.match(re); return m ? m[1].replace(/<[^>]+>/g, '').trim() : ''; };
+  const fl = d.match(/Flight:\s*([^\n]*?)\s+-\s+([A-Z0-9]{2}\s?\d{1,4})\b/i) || sum.match(/()([A-Z0-9]{2}\s?\d{1,4})/);
+  const cod = sum.match(/\b([A-Z]{3})\s*->\s*([A-Z]{3})\b/);
+  if (!fl && !cod) return null;
+  if (!/flight|vuelo/i.test(sum + d) && !cod) return null;
+  const desde = campo(/Desde:\s*([^\n]+)/i), a = campo(/\bA:\s*([^\n]+)/);
+  const utc = s => { const m = (s || '').match(/^(\d{4})(\d{2})(\d{2})T(\d{2})(\d{2})/); return m ? `${m[1]}-${m[2]}-${m[3]}T${m[4]}:${m[5]}` : ''; };
+  const v = {
+    num: fl ? fl[2].replace(/\s/g, '') : '', aerolinea: fl ? (fl[1] || '').trim() : '',
+    de: cod ? cod[1] : '', a: cod ? cod[2] : '',
+    deNom: desde.split(/\s+-\s+Terminal/i)[0], aNom: a.split(/\s+-\s+Terminal/i)[0],
+    terminal: (desde.match(/Terminal\s*([\w-]+)/i) || [])[1] || '', terminalLleg: (a.match(/Terminal\s*([\w-]+)/i) || [])[1] || '',
+    sal: fechaHoraTxt(campo(/Hora local de salida:\s*([^\n]+)/i)) || utc(ev.DTSTART), lle: fechaHoraTxt(campo(/Hora local de llegada:\s*([^\n]+)/i)) || utc(ev.DTEND),
+    dur: campo(/Duraci[oó]n:\s*([^\n]+)/i), clase: campo(/Clase:\s*([^\n]+)/i), asiento: campo(/Asiento:\s*([^\n]+)/i),
+    loc: campo(/Localizador(?: de reserva)?:\s*([A-Z0-9]{5,8})/i) || (sum.match(/\/\s*([A-Z0-9]{6})\b/) || [])[1] || '',
+    billete: campo(/Billete electr[oó]nico(?: emitido)?:\s*([\d-]+)/i), equipaje: campo(/Franquicia de equipaje\s*:\s*([^\n]+)/i),
+  };
+  if (!fechaHoraTxt(campo(/Hora local de salida:\s*([^\n]+)/i)) && ev.DTSTART) v.utc = true;
+  return v;
+}
+// Si no vienen .ics: «CGK - AMS, KLM-ROYAL DUTCH AIRLINES KL810, nov. 27, 2026, 19:25 - 06:20 +1»
+function vuelosDeTexto(t) {
+  const out = [], re = /\b([A-Z]{3})\s*-\s*([A-Z]{3}),\s*(.+?)\s+([A-Z0-9]{2}\s?\d{1,4}),\s*([a-z]{3})[a-z.]*\s+(\d{1,2}),\s*(\d{4}),\s*(\d{1,2}:\d{2})\s*-\s*(\d{1,2}:\d{2})(\s*\+(\d))?/gi;
+  let m;
+  while ((m = re.exec(t))) {
+    const mes = MESES_ABR[m[5].toLowerCase()]; if (!mes) continue;
+    const f = `${m[7]}-${dos(mes)}-${dos(m[6])}`;
+    out.push({ de: m[1], a: m[2], aerolinea: m[3].trim(), num: m[4].replace(/\s/g, ''), sal: `${f}T${m[8].padStart(5, '0')}`, lle: `${sumar(f, +(m[11] || 0))}T${m[9].padStart(5, '0')}` });
+  }
+  const loc = t.match(/LOCALIZADOR:\s*([A-Z0-9]{6})/i); if (loc) out.forEach(v => v.loc = loc[1]);
+  return out;
+}
+function añadirVuelos(viajeId, nuevos) {
+  const v = S.viajes.find(x => x.id === viajeId); if (!v || !nuevos.length) return 0;
+  const lista = (v.vuelos || []).filter(a => !nuevos.some(b => b.num === a.num && (b.sal || '').slice(0, 10) === (a.sal || '').slice(0, 10)));
+  v.vuelos = [...lista, ...nuevos.map(x => Object.fromEntries(Object.entries(x).filter(([, y]) => y !== '' && y != null)))].sort((a, b) => (a.sal || '').localeCompare(b.sal || ''));
+  guardar(); render();
+  return nuevos.length;
+}
+async function importarIcs(viajeId, f) {
+  const n = añadirVuelos(viajeId, parsearIcs(textoDe(new Uint8Array(await f.arrayBuffer()))));
+  toast(n ? `✈️ ${plural(n, 'vuelo añadido', 'vuelos añadidos')}` : '⚠️ No he encontrado vuelos en ese archivo');
+}
+async function importarEml(viajeId, f) {
+  try {
+    const raiz = mimeParte(bytesStr(new Uint8Array(await f.arrayBuffer())));
+    const hojas = hojasMime(raiz);
+    let vuelos = [];
+    hojas.filter(p => /calendar/.test(p.tipo) || /\.ics$/i.test(p.nombre)).forEach(p => { vuelos = vuelos.concat(parsearIcs(textoDe(p.bytes, p.charset))); });
+    const plano = hojas.filter(p => p.tipo === 'text/plain' && !p.adjunto).map(p => textoDe(p.bytes, p.charset)).join('\n\n');
+    const texto = plano || hojas.filter(p => p.tipo === 'text/html' && !p.adjunto).map(p => htmlATexto(textoDe(p.bytes, p.charset))).join('\n\n');
+    if (!vuelos.length) vuelos = vuelosDeTexto(texto);
+    // Quitar repetidos (el mismo vuelo en varios .ics o en correos reenviados)
+    vuelos = vuelos.filter((v, i) => vuelos.findIndex(w => w.num === v.num && (w.sal || '').slice(0, 10) === (v.sal || '').slice(0, 10)) === i);
+    const nV = añadirVuelos(viajeId, vuelos);
+    // Adjuntos útiles: PDFs e imágenes que no sean logos del cuerpo del correo
+    const docs = hojas.filter(p => p.bytes && p.bytes.length && (p.tipo === 'application/pdf' || /\.pdf$/i.test(p.nombre) || (p.tipo.startsWith('image/') && p.adjunto && !p.inline && p.bytes.length > 30000)))
+      .map((p, i) => new File([p.bytes], p.nombre || `adjunto-${i + 1}.pdf`, { type: p.tipo === 'application/octet-stream' ? 'application/pdf' : p.tipo }));
+    const ya = new Set(docsDe(viajeId).map(d => d.nombre + '|' + d.tam));
+    const docsNuevos = docs.filter(d => !ya.has(d.name + '|' + d.size));
+    // Ficha: si es un correo de la gestora, rellenar lo que falte
+    const v = S.viajes.find(x => x.id === viajeId), r = parsearCorreo(texto);
+    let nF = 0;
+    if (v && (r.hotel || r.cliente || r.sap)) {
+      const info = { ...(v.info || {}) };
+      ['hotel', 'cliente', 'sap', 'contactos'].forEach(k => { if (r[k] && !info[k]) { info[k] = r[k]; nF++; } });
+      if (!info.correo) info.correo = r.correo;
+      v.info = info; guardar(); render();
+    }
+    if (docsNuevos.length) await subirArchivos(viajeId, docsNuevos);
+    const partes = [];
+    if (nV) partes.push(`✈️ ${plural(nV, 'vuelo', 'vuelos')}`);
+    if (docsNuevos.length) partes.push(`📎 ${plural(docsNuevos.length, 'documento', 'documentos')}`);
+    if (nF) partes.push(`🏨 ${plural(nF, 'dato', 'datos')} de la ficha`);
+    toast(partes.length ? 'Correo leído: ' + partes.join(' · ') : '⚠️ No he encontrado vuelos ni adjuntos en ese correo');
+  } catch (e) { console.error(e); toast('⚠️ No se pudo leer ese correo'); }
+}
+function borrarVuelo(i) {
+  const v = S.viajes.find(x => x.id === S.detalle); if (!v || !v.vuelos) return;
+  const f = v.vuelos[i];
+  preguntar(`¿Quitar el vuelo ${f.num || ''} ${f.de || ''}→${f.a || ''}?`, [{ t: 'Quitar', cls: 'peligro' }, { t: 'Cancelar' }]).then(r => {
+    if (r !== 0) return;
+    v.vuelos.splice(i, 1); if (!v.vuelos.length) delete v.vuelos;
+    guardar(); render();
+  });
+}
+const DIAS_SEM = ['dom', 'lun', 'mar', 'mié', 'jue', 'vie', 'sáb'];
+function diaVuelo(s) { if (!s) return ''; const f = parse(s.slice(0, 10)); return `${DIAS_SEM[f.getDay()]} ${f.getDate()} ${MESES[f.getMonth()].slice(0, 3).toLowerCase()}`; }
+function htmlVuelos(v) {
+  if (!v.vuelos || !v.vuelos.length) return '';
+  return `<div class="det-sec">Vuelos</div><div class="card">` + v.vuelos.map((f, i) => {
+    const dias = f.sal && f.lle ? diasEntre(f.sal.slice(0, 10), f.lle.slice(0, 10)) : 0;
+    const det = [f.deNom && f.aNom ? `${esc(f.deNom)}${f.terminal ? ' (T' + esc(f.terminal) + ')' : ''} → ${esc(f.aNom)}` : '', f.dur ? '⏱ ' + esc(f.dur) : ''].filter(Boolean).join(' · ');
+    const det2 = [f.asiento ? '💺 ' + esc(f.asiento) : '', f.clase ? esc(f.clase) : '', f.equipaje ? '🧳 ' + esc(f.equipaje) : ''].filter(Boolean).join(' · ');
+    const det3 = [f.loc ? `Localizador <span class="cp" data-copiar="${esc(f.loc)}">${esc(f.loc)}</span>` : '', f.billete ? `Billete <span class="cp" data-copiar="${esc(f.billete)}">${esc(f.billete)}</span>` : ''].filter(Boolean).join(' · ');
+    return `<div class="vuelo"><div class="vc"><span>✈️ ${esc(f.num || '')}${f.aerolinea ? ' · ' + esc(f.aerolinea.replace(/-ROYAL DUTCH AIRLINES/i, '')) : ''} · ${diaVuelo(f.sal)}</span><button class="x" data-vuelo-borrar="${i}">✕</button></div>
+      <div class="vr">${esc(f.de || '')} ${f.sal ? f.sal.slice(11, 16) : ''} <small>→</small> ${esc(f.a || '')} ${f.lle ? f.lle.slice(11, 16) : ''}${dias > 0 ? ` <small>+${dias}</small>` : ''}${f.utc ? ' <small>UTC</small>' : ''}</div>
+      ${det ? `<div class="vd">${det}</div>` : ''}${det2 ? `<div class="vd">${det2}</div>` : ''}${det3 ? `<div class="vd">${det3}</div>` : ''}</div>`;
+  }).join('') + '</div>';
+}
+
 // Pantalla de detalle
 function abrirDetalle(id) { S.detalle = id; S.fichaEdit = false; renderDetalle(); $('#modalDetalle').classList.add('on'); programarPrecarga(); }
 function cerrarDetalle() { S.detalle = null; S.fichaEdit = false; $('#modalDetalle').classList.remove('on'); }
@@ -1813,13 +2025,14 @@ function renderDetalle() {
       <button class="btn secundario" id="fiCancelar">Cancelar</button>`;
   } else {
     const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'hotel' || k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
+    h += htmlVuelos(v);
     h += `<div class="det-sec"><span>Ficha del viaje</span><button class="pill-btn" id="fiEditar">${filas ? '✏️ Editar' : '＋ Rellenar'}</button></div>
       <div class="card">${filas || '<div class="muted" style="font-size:14px">Pega aquí el correo de la gestora y se rellenan solos el hotel, el cliente, la orden SAP y los teléfonos. También puedes escribir tus notas.</div>'}</div>`;
 
     const sinGuardar = docs.filter(d => !N.docsLocal.has(d.id)).length;
     h += `<div class="det-sec"><span>Documentos</span>${docs.length ? `<span style="font-size:12px;text-transform:none;letter-spacing:0">${sinGuardar ? `${sinGuardar} sin guardar en este dispositivo` : '✓ Todo disponible sin conexión'}</span>` : ''}</div>
       <div class="card" id="docsCard">
-        ${docs.map(d => `<div class="doc-f" data-doc-abrir="${d.id}"><div class="ic">${(d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${tamTxt(d.tam || 0)} · ${N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'}</div></div><button class="x" data-doc-renombrar="${d.id}" title="Cambiar nombre">✏️</button><button class="x" data-doc-borrar="${d.id}">✕</button></div>`).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Sin documentos. Añade los PDFs del viaje (billetes, visado, reservas…).</div>'}
+        ${docs.map(d => `<div class="doc-f" data-doc-abrir="${d.id}"><div class="ic">${(d.tipo || '').startsWith('image/') ? '🖼️' : '📄'}</div><div class="tx"><div class="t">${esc(d.nombre)}</div><div class="s">${tamTxt(d.tam || 0)} · ${N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'}</div></div><button class="x" data-doc-renombrar="${d.id}" title="Cambiar nombre">✏️</button><button class="x" data-doc-borrar="${d.id}">✕</button></div>`).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Sin documentos. Añade los PDFs del viaje (billetes, visado, reservas…) o el correo de la agencia (.eml): saca los vuelos y los adjuntos solo.</div>'}
         <button class="btn primario" id="docAñadir">＋ Añadir documento</button>
         ${sinGuardar ? '<button class="btn secundario" id="docGuardarTodo">⬇️ Guardar sin conexión</button>' : ''}
       </div>`;
@@ -1864,6 +2077,8 @@ function iniciarDetalle() {
       toast('⬇️ Guardando…');
       return precargar(S.detalle).then(() => { renderDetalle(); toast(docsDe(S.detalle).every(d => N.docsLocal.has(d.id)) ? '✓ Disponible sin conexión' : '⚠️ Alguno no se pudo guardar'); });
     }
+    const cp = t.closest('[data-copiar]'); if (cp) { navigator.clipboard?.writeText(cp.dataset.copiar).then(() => toast('📋 Copiado: ' + cp.dataset.copiar), () => {}); return; }
+    const bv = t.closest('[data-vuelo-borrar]'); if (bv) return borrarVuelo(+bv.dataset.vueloBorrar);
     const rn = t.closest('[data-doc-renombrar]'); if (rn) { e.stopPropagation(); return renombrarDoc(S.docs.find(d => d.id === rn.dataset.docRenombrar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
     const a = t.closest('[data-doc-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.docAbrir));
