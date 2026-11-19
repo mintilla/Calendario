@@ -526,7 +526,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v4.2';
+const VERSION = 'v4.3';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), emp: {}, aju: '{}' } };
 
@@ -1241,7 +1241,7 @@ function renderEmpCard() {
       <div><div style="font-weight:700">${a}${S.emp[a] && CALENDARIOS[a] ? ' <span class="muted" style="font-weight:500;font-size:12px">(editado)</span>' : ''}</div><div class="muted" style="font-size:12px">${resumen}</div></div>
       <div style="display:flex;gap:6px">
         ${S.emp[a] && CALENDARIOS[a] ? `<button class="pill-btn" data-emp-reset="${a}">↺</button>` : ''}
-        ${S.emp[a] && !CALENDARIOS[a] ? `<button class="pill-btn" data-emp-borrar="${a}" style="color:#e53935">🗑</button>` : ''}
+        ${S.emp[a] && !CALENDARIOS[a] && a > actual ? `<button class="pill-btn" data-emp-borrar="${a}" style="color:#e53935">🗑</button>` : ''}
         <button class="pill-btn" data-emp-edit="${a}">✏️ Editar</button>
       </div></div>`;
   }).join('') + `<button class="btn secundario" id="btnAñadirAño">＋ Añadir calendario</button>`;
