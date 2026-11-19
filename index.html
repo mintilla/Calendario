@@ -526,7 +526,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v4.4';
+const VERSION = 'v4.5';
 const N = { FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), emp: {}, aju: '{}' } };
 
@@ -770,7 +770,8 @@ function renderEditBar() {
 const NOMBRE_TIPO = { festivo:'Festivo', puente:'Puente / ajuste', previo:'Previo 6h', vacacional:'Vacacional de empresa', '':'Laborable' };
 const COLOR_TIPO = { festivo:'var(--festivo)', puente:'var(--puente)', previo:'var(--previo)', vacacional:'var(--vacacional)' };
 const esFinde = s => { const g = parse(s).getDay(); return g === 0 || g === 6; };
-const laborable = s => !esFinde(s) && !['festivo','puente','vacacional'].includes(tipo(s));
+// El 'vacacional' de empresa es solo un periodo recomendado: cuenta como laborable
+const laborable = s => !esFinde(s) && !['festivo','puente'].includes(tipo(s));
 const libre = s => !laborable(s) || S.vac.has(s);
 const viajesEn = s => S.viajes.filter(v => v.fechaInicio <= s && s <= v.fechaFin);
 const hayViaje = s => S.viajes.some(v => v.fechaInicio <= s && s <= v.fechaFin);

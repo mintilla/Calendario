@@ -1,6 +1,6 @@
 // Guarda la app en el dispositivo para que abra sin conexión.
 // Estrategia: responde desde la copia guardada y la actualiza en segundo plano.
-const CACHE = 'calendario-v4.4';
+const CACHE = 'calendario-v4.5';
 const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png'];
 
 self.addEventListener('install', e => {
