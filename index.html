@@ -431,6 +431,7 @@ input,select,textarea{font-size:16px !important}
   #calCard.llena{min-height:0}
   #calCard.llena .ygrid{align-content:start}
   .stats{grid-template-columns:repeat(4,1fr)}
+  #viaHist .stats{grid-template-columns:repeat(3,1fr)}
   #tab-cal.on{display:grid;grid-template-columns:minmax(0,1fr) 290px;column-gap:20px;align-items:start;max-width:1500px}
   #resBar{grid-column:1/-1}
   .mgrid{grid-template-columns:28px repeat(7,1fr);row-gap:6px}
@@ -636,7 +637,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li><b>Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ir al viaje, país, cliente o año), en qué meses viajas más y cuántos vuelos llevas.</li>
         <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
-        <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> y <b>países</b> son sin España.</li>
+        <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> es sin España; <b>países visitados</b> cuenta todos: España, los de trabajo y los marcados como ocio.</li>
         <li><b>Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
         <li>En <b>Todos los países</b> puedes ordenar por <b>Días</b> o por <b>Nombre</b> (tócalo otra vez para invertir el orden) y buscar escribiendo. Para países pequeños, tócalos en la lista: el mapa se amplía y los centra. Con <b>＋/−</b> llegas hasta ×16.</li>
         <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
@@ -861,7 +862,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.6';
+const VERSION = 'v8.7';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1522,6 +1523,8 @@ function tocarDia(s) {
 //  VIAJES
 // =====================================================================
 const NOMBRE_DE_ISO = Object.fromEntries(Object.entries(PAISES).map(([n, c]) => [c, n]));
+// Todos los países visitados: los de los viajes, los marcados como ocio y España (casa)
+function paisesVisitados(st = statsPaises()) { return new Set([...Object.keys(st), ...(S.aju.ocio || []), PAIS_CASA]); }
 // Días (sin duplicar), viajes, primer y último año por país, de TODOS los años
 function statsPaises() {
   const r = {};
@@ -1621,14 +1624,16 @@ function renderHistorico() {
       <div class="stat"><b>${todos.size.toLocaleString('es-ES')}</b><span>días de viaje desde ${primerAño}</span></div>
       <div class="stat"><b>${fuera.size.toLocaleString('es-ES')}</b><span>días en el extranjero</span></div>
       <div class="stat"><b>${S.viajes.length}</b><span>viajes</span></div>
-      <div class="stat"><b>${paises.length}</b><span>países (sin España)</span></div>
+      <div class="stat"><b>${paisesVisitados(st).size}</b><span>países visitados</span></div>
+      <div class="stat"><b>${new Set(S.viajes.filter(esCliente).map(nombreCliente)).size}</b><span>clientes</span></div>
+      <div class="stat"><b>${new Set(S.viajes.filter(esCliente).map(v => v.cliente)).size}</b><span>grupos de clientes</span></div>
     </div>
     <div class="h-title">Días por año</div>
     <div class="card">${años.map(y => `
       <div class="fila-barra fila-año" data-ir-año="${y}"><div class="lbl">${y}</div><div class="bar"><i style="width:${Math.max(3, porAño[y].size / maxAño * 100)}%"></i></div><div class="num">${plural(porAño[y].size, 'día')}</div><div class="chev">›</div></div>`).join('')}</div>
     <div class="h-title">Países con más días</div>
     <div class="card">${Object.entries(st).sort((a, b) => b[1].dias.size - a[1].dias.size).slice(0, 5).map(([p, x]) => filaPais(p, x)).join('')}
-      <div class="rec-f" data-ir="map" style="cursor:pointer"><div style="flex:1;color:var(--accent);font-weight:600;font-size:14px">Ver los ${Object.keys(st).length} países en el mapa</div><div class="chev">›</div></div></div>
+      <div class="rec-f" data-ir="map" style="cursor:pointer"><div style="flex:1;color:var(--accent);font-weight:600;font-size:14px">Ver los ${paisesVisitados(st).size} países en el mapa</div><div class="chev">›</div></div></div>
     <div class="h-title">Clientes con más días</div>
     <div class="card">${clientes.map(([c, n]) => {
       const pl = Object.entries(porPlanta[c] || {}).filter(([k]) => k).map(([k, x]) => [k, x.size]).sort((a, b) => b[1] - a[1]);
@@ -1798,7 +1803,7 @@ function renderMapa() {
   aplicarCentroMapa();
 
   const trabajo = Object.keys(st).filter(p => p !== PAIS_CASA);
-  const continentes = trabajo.length + ocio.length;
+  const continentes = paisesVisitados(st).size;
   $('#mapStats').innerHTML = `
     <div class="stat"><b>${continentes}</b><span>países visitados</span></div>
     <div class="stat"><b>${Math.round(continentes / 195 * 100)}%</b><span>del mundo</span></div>`;
