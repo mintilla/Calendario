@@ -861,7 +861,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.3';
+const VERSION = 'v8.4';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1479,6 +1479,7 @@ function hojaDia(a) {
   const links = [];
   if (futuro && laborable(a) && !vs.length && !S.vac.has(a)) links.push('<button id="accMarcar">🏖️ Marcar vacaciones</button>');
   if (futuro && !vs.length) links.push('<button id="accVia">✈️ Nuevo viaje</button>');
+  if (S.vac.has(a)) links.unshift('<button id="accCambiarVac">✏️ Cambiar o quitar vacaciones</button>');
   el.innerHTML = `
     <div class="sheet-top">
       <div>
@@ -3318,6 +3319,13 @@ function eventos() {
     if (idia) { const s = idia.dataset.irDia; S.año = +s.slice(0,4); S.mes = +s.slice(5,7) - 1; S.vista = 'mes'; irTab('cal'); S.sel = { a: s, b: null }; return renderCal(); }
     if (e.target.id === 'sheetX') { S.sel = null; return renderCal(); }
     if (e.target.id === 'accMarcar') return empezarReserva(S.sel.a);
+    if (e.target.id === 'accCambiarVac') {
+      // Abre el modo reservar con todo el periodo seleccionado, listo para quitarlo (o tocar otro día)
+      let x = S.sel.a, y = S.sel.a;
+      while (S.vac.has(sumar(x, -1))) x = sumar(x, -1);
+      while (S.vac.has(sumar(y, 1))) y = sumar(y, 1);
+      empezarReserva(x); S.sel = { a: x, b: y === x ? null : y }; return renderCal();
+    }
     if (e.target.id === 'resListo') { S.reservar = false; S.sel = null; return renderCal(); }
     if (e.target.closest('[data-reservar]')) return empezarReserva();
     if (e.target.id === 'accVac') {
