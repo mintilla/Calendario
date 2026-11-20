@@ -705,7 +705,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li>En la ficha del viaje, <b>📥 Importar correo de la gestora</b>: elige el correo como <b>.eml</b>, <b>.msg</b> (Outlook) o <b>PDF</b>; puedes elegir varios a la vez. En el PC también puedes <b>arrastrarlo desde Outlook</b> y soltarlo en la ficha.</li>
         <li>Saca el <b>ID del viaje</b> (del asunto, «ID.6450»), la <b>orden de servicio</b> si viene en el asunto, los <b>vuelos</b>, el <b>coche</b>, el <b>hotel</b>, el nº de <b>eTA</b>, la dirección del cliente, los teléfonos y los <b>PDF adjuntos</b>.</li>
-        <li>Antes de guardar te enseña una <b>lista con todo marcado</b>: desmarca lo que no esté bien o no quieras y pulsa <b>Guardar lo marcado</b>. Las imágenes del cuerpo del correo (como la captura de SAP) salen sin marcar.</li>
+        <li>Antes de guardar te enseña una <b>lista con todo marcado</b>: desmarca lo que no esté bien o no quieras y pulsa <b>Guardar lo marcado</b>. Solo sale sin marcar lo que parece el logotipo de la firma.</li>
         <li><b>Desde el iPhone:</b> en Mail, mantén pulsado el correo y suéltalo en la app <b>Archivos</b> (crea una carpeta «Correos viajes»); luego impórtalo. O pega el texto en ✏️ Editar · pegar correo, con el <b>asunto en la primera línea</b>.</li>
         <li><b>Desde Outlook en el PC:</b> arrástralo a la ficha; si no deja, arrástralo al escritorio y luego impórtalo.</li>
       </ul>
@@ -923,7 +923,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.0';
+const VERSION = 'v9.1';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2468,6 +2468,26 @@ function buscarHotel(lin) {
   const i = lin.findIndex(l => l.length < 70 && CADENAS_HOTEL.test(l) && !/[.?!]$/.test(l) && l.split(' ').length <= 8);
   return i >= 0 ? tras(i) : '';
 }
+// Dirección del cliente: a veces viene "JOK 1B0" (con O) en el código postal canadiense, y "4EIME" por "4e"
+function limpiarDir(d) {
+  return (d || '')
+    .replace(/\b([A-Z])([0-9O])([A-Z])\s?([0-9O])([A-Z])([0-9O])\b/g, (m, a, b, c, d2, e, f) => /\d/.test(b + d2 + f) ? `${a}${b.replace('O', '0')}${c} ${d2.replace('O', '0')}${e}${f.replace('O', '0')}` : m)
+    .replace(/\b(\d{1,2})\s?(?:I[EÈ]ME|E[IÏ]ME|[EÈ]ME)\b/gi, '$1E');
+}
+// Teléfono en grupos de tres (9 cifras españolas)
+function telBonito(n) {
+  const d = n.replace(/[^\d+]/g, '');
+  const m = d.match(/^(\+34)?(\d{3})(\d{3})(\d{3})$/);
+  return m ? `${m[1] ? m[1] + ' ' : ''}${m[2]} ${m[3]} ${m[4]}` : n.trim().replace(/\.$/, '');
+}
+// "Servicio de traslados … con Transervice … Teléfono de Transervice: 948188888." → "Transervice (traslados aeropuerto) · 948 188 888"
+function contactoCorto(l) {
+  if (l.length < 60) return l;
+  const m = l.match(/tel[ée]fono\s+(?:de|del)\s+([^:]{2,40}?)\s*:\s*(\+?\d[\d .]{7,}\d)/i);
+  if (!m) return l;
+  const para = /traslad/i.test(l) ? (/aeropuerto/i.test(l) ? 'traslados aeropuerto' : 'traslados') : /taxi/i.test(l) ? 'taxi' : /asistencia|emergencia/i.test(l) ? 'asistencia' : /seguro/i.test(l) ? 'seguro' : '';
+  return `${m[1].trim()}${para ? ` (${para})` : ''} · ${telBonito(m[2])}`;
+}
 // Leer el correo de la gestora: hotel, cliente, orden SAP y teléfonos
 function parsearCorreo(t) {
   t = (t || '').replace(/[ ​‎]/g, ' ').replace(/\r/g, '');
@@ -2481,7 +2501,7 @@ function parsearCorreo(t) {
     for (let j = i + 1; j < lin.length && out.length < 8; j++) { if (!lin[j]) { if (out.length) break; continue; } out.push(lin[j].replace(/^​/, '')); }
     return out.join('\n');
   };
-  const r = { correo: t, hotel: bloque(/el hotel es|hotel:$/i) || buscarHotel(lin), cliente: bloque(/direcci[oó]n del cliente/i), sap: '', contactos: '' };
+  const r = { correo: t, hotel: bloque(/el hotel es|hotel:$/i) || buscarHotel(lin), cliente: limpiarDir(bloque(/direcci[oó]n del cliente/i)), sap: '', contactos: '' };
   const sap = t.match(/orden de viaje en SAP[^\d]{0,20}(\d{3,})/i); if (sap) r.sap = sap[1];
   const tel = /(\+?\d{2,3}[ .]?)?\d{3}[ .]?\d{3}[ .]?\d{3}/;
   const cont = [];
@@ -2490,7 +2510,7 @@ function parsearCorreo(t) {
     const nom = lin.slice(ig + 1).find(Boolean), mov = t.match(/^\s*M\.\s*(\+?[\d ]{9,})/m);
     if (nom && nom.length < 40) cont.push('Gestora: ' + nom + (mov ? ' · ' + mov[1].trim() : ''));
   }
-  lin.forEach(l => { if (/(\btel[ée]?f?|tfno|tlf)\.?/i.test(l) && tel.test(l)) cont.push(l.replace(/^[o•·\-]\s+/, '')); });
+  lin.forEach(l => { if (/(\btel[ée]?f?|tfno|tlf)\.?/i.test(l) && tel.test(l)) cont.push(contactoCorto(l.replace(/^[o•·\-]\s+/, ''))); });
   r.contactos = [...new Set(cont)].join('\n');
   return r;
 }
@@ -2785,9 +2805,17 @@ async function leerFuente(f) {
     else if ((f.type || '').startsWith('image/')) d.adjuntos.push({ file: f, inline: false });
   }
   if (!d.vuelos.length && d.texto) d.vuelos = vuelosDeTexto(d.texto);
+  for (const a of d.adjuntos) if (a.inline && a.file.type.startsWith('image/')) a.logo = await pareceLogo(a.file);
   return d;
 }
-// Todo lo encontrado, como lista de casillas (marcadas salvo las imágenes del cuerpo del correo)
+// Logotipo de la firma: imagen bajita, pequeña o muy apaisada (las capturas y tablas son más grandes)
+async function pareceLogo(f) {
+  try {
+    const b = await createImageBitmap(f), w = b.width, h = b.height; if (b.close) b.close();
+    return h < 160 || w * h < 60000 || w / h > 3.2;
+  } catch (e) { return false; }
+}
+// Todo lo encontrado, como lista de casillas (marcadas salvo lo que parezca el logotipo de la firma)
 function hallazgosCorreo(v, ds) {
   const it = [], info = v.info || {};
   const add = (grupo, txt, sub, aplicar, on = true, extra = {}) => it.push({ grupo, txt, sub, aplicar, on, ...extra });
@@ -2816,7 +2844,11 @@ function hallazgosCorreo(v, ds) {
   const hotel = r.hotel || (mh ? mh[1].trim() : '');
   if (hotel) {
     const l1 = hotel.split('\n')[0].trim();
-    if (!(v.reservas || []).some(x => x.tipo === 'hotel' && normCli(x.nombre) === normCli(l1))) add('Reservas', `🏨 ${esc(l1)}`, esc(hotel.split('\n').slice(1).join(' · ')), x => hotelDeTexto(x, hotel));
+    if (!(v.reservas || []).some(x => x.tipo === 'hotel' && normCli(x.nombre) === normCli(l1))) {
+      const fh = fechasHotel(v, ds);
+      const sub = [fh.fecha && fh.fechaFin ? `${diaCorto(fh.fecha)} → ${diaCorto(fh.fechaFin)} · ${plural(noches(fh.fecha, fh.fechaFin), 'noche')}` : '', esc(hotel.split('\n').slice(1).join(' · '))].filter(Boolean).join(' · ');
+      add('Reservas', `🏨 ${esc(l1)}`, sub, x => hotelDeTexto(x, hotel, fh));
+    }
   }
   const eta = texto.match(/\beTA\b[^\n]{0,90}?n[ºo°]\s*:?\s*([A-Z]\d{6,12})\b/i);
   if (eta && eta[1] !== info.eta) add('Datos del viaje', `🛂 eTA: <b>${eta[1]}</b>`, 'autorización de entrada', x => x.info.eta = eta[1]);
@@ -2829,11 +2861,24 @@ function hallazgosCorreo(v, ds) {
       const k = a.file.name + '|' + a.file.size; if (yaDocs.has(k) || vd.has(k)) return; vd.add(k);
       const img = a.file.type.startsWith('image/');
       if (img && a.inline && a.file.size < 25000) return;
-      add('Documentos', `${img ? '🖼️' : '📄'} ${esc(a.file.name)}`, `${tamTxt(a.file.size)}${a.inline ? ' · imagen dentro del correo (p. ej. la captura de SAP)' : ''}`, null, !a.inline, { file: a.file, thumb: img ? URL.createObjectURL(a.file) : '' });
+      add('Documentos', `${img ? '🖼️' : '📄'} ${esc(a.file.name)}`, `${tamTxt(a.file.size)}${a.inline ? (a.logo ? ' · parece el logotipo de la firma' : ' · imagen dentro del correo') : ''}`, null, !a.logo, { file: a.file, thumb: img ? URL.createObjectURL(a.file) : '' });
     });
     if (d.pdf && !yaDocs.has(d.pdf.name + '|' + d.pdf.size)) add('Documentos', `📄 ${esc(d.pdf.name)}`, 'el propio correo en PDF', null, false, { file: d.pdf });
   });
   return it;
+}
+// Noches de hotel: del vuelo que llega al que sale (el hueco más largo entre vuelos); si no, el coche; si no, el viaje
+function fechasHotel(v, ds) {
+  const fs = [...(v.vuelos || []), ...ds.flatMap(d => d.vuelos)].filter(f => f.sal).sort((a, b) => a.sal.localeCompare(b.sal));
+  let best = null;
+  for (let i = 0; i + 1 < fs.length; i++) {
+    const ini = (fs[i].lle || fs[i].sal).slice(0, 10), fin = fs[i + 1].sal.slice(0, 10), n = diasEntre(ini, fin);
+    if (n > 0 && (!best || n > best.n)) best = { fecha: ini, fechaFin: fin, n };
+  }
+  if (best) return { fecha: best.fecha, fechaFin: best.fechaFin };
+  const c = ds.flatMap(d => d.coches).find(x => x.fecha && x.fechaFin);
+  if (c) return { fecha: c.fecha, fechaFin: c.fechaFin };
+  return { fecha: v.fechaInicio, fechaFin: v.fechaFin };
 }
 function checklist(tit, sub, it) {
   return new Promise(res => {
@@ -2861,7 +2906,7 @@ async function importarCorreos(viajeId, fuentes) {
   if (!ds.length) return;
   const it = hallazgosCorreo(v, ds);
   if (!it.length) return toast('No he encontrado nada nuevo en ese correo');
-  const ok = await checklist(`📥 Del correo he sacado esto`, 'Está todo marcado. Desmarca lo que no sea correcto o no quieras guardar.', it);
+  const ok = await checklist(`📥 Del correo he sacado esto`, it.every(x => x.on) ? 'Está todo marcado. Desmarca lo que no sea correcto o no quieras guardar.' : 'Está marcado todo menos lo que parece el logotipo de la firma. Revisa y desmarca lo que no quieras guardar.', it);
   const sel = it.filter(x => x.on);
   if (!ok || !sel.length) return;
   const files = [];
@@ -3105,14 +3150,14 @@ function migrarHotel(v) {
   delete v.info.hotel;
   return true;
 }
-function hotelDeTexto(v, txt) {
+function hotelDeTexto(v, txt, fechas) {
   const l = (txt || '').split('\n').map(x => x.trim()).filter(Boolean);
   if (!l.length) return false;
   v.reservas = v.reservas || [];
   const previo = v.reservas.find(r => r.tipo === 'hotel' && r.origen === 'correo');
-  const datos = { nombre: l[0], dir: l.slice(1).join('\n') };
+  const datos = { nombre: l[0], dir: l.slice(1).join('\n'), ...(fechas && fechas.fecha ? { fecha: fechas.fecha, fechaFin: fechas.fechaFin } : {}) };
   if (previo) Object.assign(previo, datos);
-  else v.reservas.push({ id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo: 'hotel', ...datos, fecha: v.fechaInicio, fechaFin: v.fechaFin, origen: 'correo' });
+  else v.reservas.push({ id: 'r' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), tipo: 'hotel', fecha: v.fechaInicio, fechaFin: v.fechaFin, ...datos, origen: 'correo' });
   return true;
 }
 function itemsReservas(v) {
