@@ -373,6 +373,17 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hr-ed{font-size:13px}.hr-hor{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
 .hr-f{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:4px 0}
 .hr-dia{cursor:pointer;border-bottom:1px solid var(--line)}
+.hr-dia.ab{border-bottom:none;font-weight:700}.hr-hh{font-weight:700}
+.hr-ed-dia{background:var(--soft);border-radius:12px;padding:10px;margin:2px 0 8px}
+.hr-paso{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.hr-paso button{flex:1;padding:12px 0;border-radius:12px;background:var(--card);border:1px solid var(--line);font-size:17px;font-weight:700;color:var(--accent)}
+.hr-paso b{min-width:80px;text-align:center;font-size:22px}
+.hr-atajos{display:flex;flex-wrap:wrap;gap:6px;margin:10px 0}
+.hr-atajos button{flex:1 0 22%;padding:9px 0;border-radius:10px;background:var(--card);border:1px solid var(--line);font-size:15px;font-weight:600;color:var(--text)}
+.hr-atajos button.on{background:var(--accent);border-color:var(--accent);color:#fff}
+.hr-nota{width:100%;font-size:16px;padding:9px 10px;border-radius:10px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.hr-ed-pie{display:flex;justify-content:space-between;margin-top:8px}
+.hr-ed-pie button{font-weight:700;color:var(--accent);font-size:15px;padding:6px 2px}
 .hr-n{font-size:12px;margin-top:2px}
 .hr-tag{font-size:10px;padding:1px 6px;border-radius:99px;background:color-mix(in srgb,var(--accent) 14%,transparent);color:var(--accent);font-weight:700}
 .hr-tag.fes{background:#fff1e0;color:#b45309}
@@ -738,7 +749,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li>En la ficha de cada viaje (Resumen), <b>⏱️ Horas del viaje</b>: toca para desplegar. Arriba ves las <b>horas extra laborables y festivas</b>.</li>
         <li><b>Ida y vuelta:</b> la app las propone a partir de los vuelos y de tus márgenes (Ajustes → Imputar horas y gastos: cuánto antes sales de casa, cuánto tardas en llegar, etc.). Toca la ida o la vuelta para ajustarlas; cada hora lleva su zona horaria.</li>
-        <li><b>Días en destino:</b> cuentan con el horario normal del viaje (toca el horario para cambiarlo). Toca un día solo si fue distinto: hasta más tarde, el sábado, o «No trabajé este día», y deja una nota de por qué.</li>
+        <li><b>Días en destino:</b> se miden en <b>horas trabajadas</b> (sin la comida). Cada día laborable cuenta las horas de un día normal (8 h; toca «normal» para cambiarlo). Toca un día solo si fue distinto: <b>− ½ h / + ½ h</b>, o los atajos <b>Libre · 6 · 8 · 9 · 10 · 11 · 12 h</b>, y una nota si quieres. Puedes dejar puestos también los días que aún no han llegado.</li>
         <li><b>Criterio:</b> el viaje es un bloque continuo (art. 21.2 del convenio): 8 h trabajo, 8 h no computan, desde la hora 17 al 50 %. Cada hora va al día en que ocurre, con el reloj del país de salida. Lo de la hora 17 en adelante es extra; las 8 primeras, extra si es sábado, domingo o festivo, o si ese día ya pasabas de la jornada de 8 h.</li>
         <li>No se guardan precios ni euros: solo horas.</li>
       </ul>
@@ -964,7 +975,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.5';
+const VERSION = 'v9.6';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -3020,7 +3031,15 @@ function deLocal(txt, tz) {
 }
 const margenes = () => ({ casaSal: 200, casaLle: 105, destLle: 60, destSal: 180, ...((S.aju && S.aju.margenes) || {}) });
 const sumarMin = (txt, min, tz) => aLocal(deLocal(txt, tz) + min * 60000, tz);
-const horario = v => ({ ini: '08:00', fin: '17:00', comida: 60, ...((v.horas && v.horas.horario) || {}) });
+// Horas de un día guardado (nuevo: {h}; antiguo: {ini, fin, comida})
+function horasDia(o) {
+  if (!o || o.libre) return 0;
+  if (o.h != null) return +o.h;
+  const [a, b] = [o.ini, o.fin].map(x => { const [h, m] = (x || '0:0').split(':').map(Number); return h * 60 + m; });
+  let min = b - a; if (min < 0) min += 1440;
+  return Math.max(0, min - (+o.comida || 0)) / 60;
+}
+const horario = v => { const h = v.horas && v.horas.horario; return { h: h ? (h.h != null ? +h.h : horasDia(h)) : 8 }; };
 // Ida y vuelta: lo guardado, o lo propuesto a partir de los vuelos
 function tramos(v) {
   const h = v.horas || {}, m = margenes(), tz = tzDestino(v);
@@ -3053,10 +3072,8 @@ function calcHoras(v) {
     const d1 = aLocal(deLocal(t.ida.lle, t.ida.lleTz), tz).slice(0, 10), d2 = aLocal(deLocal(t.vuelta.sal, t.vuelta.salTz), tz).slice(0, 10);
     for (let d = d1; d <= d2; d = sumar(d, 1)) {
       const o = ov[d], extremo = d === d1 || d === d2;
-      const r = o ? (o.libre ? null : o) : (extremo || esDiaFestivo(d) ? null : hor);
-      if (!r) continue;
-      let min = (deLocal(d + 'T' + r.fin, tz) - deLocal(d + 'T' + r.ini, tz)) / 60000; if (min < 0) min += 1440;
-      dia(d).normal += Math.max(0, min - (+r.comida || 0));
+      const hh = o ? horasDia(o) : (extremo || esDiaFestivo(d) ? 0 : hor.h);
+      if (hh > 0) dia(d).normal += hh * 60;
     }
   }
   let lab = 0, fes = 0;
@@ -3087,17 +3104,25 @@ function htmlHoras(v) {
     const d1 = aLocal(deLocal(c.t.ida.lle, c.t.ida.lleTz), tz).slice(0, 10), d2 = aLocal(deLocal(c.t.vuelta.sal, c.t.vuelta.salTz), tz).slice(0, 10);
     for (let d = d1; d <= d2; d = sumar(d, 1)) {
       const o = ov[d], extremo = d === d1 || d === d2, f = esDiaFestivo(d);
-      const txt = o ? (o.libre ? 'libre' : `${o.ini}–${o.fin}`) : extremo ? (d === d1 ? 'llegada' : 'salida') : f ? 'libre' : 'horario normal';
-      dias += `<div class="hr-f hr-dia" data-hr-dia="${d}"><span>${DIAS[parse(d).getDay()].slice(0, 3)} ${+d.slice(8)}${f ? ' <span class="hr-tag fes">festivo</span>' : ''}${o ? ' <span class="hr-tag">cambiado</span>' : ''}</span><span class="${o ? '' : 'muted'}">${txt}${o && o.nota ? ' 📝' : ''}</span></div>`;
+      const hh = o ? horasDia(o) : (extremo || f ? 0 : hor.h);
+      const txt = o ? (o.libre ? 'libre' : nTxt(hh)) : extremo ? (d === d1 ? 'llegada' : 'salida') : f ? 'libre' : nTxt(hh);
+      const ab = S.hrDia === d;
+      dias += `<div class="hr-f hr-dia${ab ? ' ab' : ''}" data-hr-dia="${d}"><span>${DIAS[parse(d).getDay()].slice(0, 3)} ${+d.slice(8)}${f ? ' <span class="hr-tag fes">festivo</span>' : ''}${o ? ' <span class="hr-tag">cambiado</span>' : ''}</span><span class="${o ? 'hr-hh' : 'muted'}">${txt}${o && o.nota ? ' 📝' : ''} ›</span></div>`;
+      if (ab) dias += `<div class="hr-ed-dia">
+        <div class="hr-paso"><button data-hr-paso="-0.5">− ½ h</button><b>${o && o.libre ? 'Libre' : nTxt(hh)}</b><button data-hr-paso="0.5">+ ½ h</button></div>
+        <div class="hr-atajos">${['libre', 6, 8, 9, 10, 11, 12].map(x => `<button data-hr-pon="${x}" class="${(x === 'libre' && o && o.libre) || (o && !o.libre && +x === hh) ? 'on' : ''}">${x === 'libre' ? 'Libre' : x + ' h'}</button>`).join('')}</div>
+        <input class="hr-nota" data-hr-nota="${d}" placeholder="Nota: por qué, quién lo pidió…" value="${esc((o && o.nota) || '')}">
+        <div class="hr-ed-pie">${o ? '<button data-hr-normal="1">Volver a lo normal</button>' : '<span></span>'}<button data-hr-listo="1">Listo</button></div>
+      </div>`;
     }
   }
   const des = c.desglose.filter(x => x.ex > 0).map(x => `<div class="hr-f"><span>${DIAS[parse(x.d).getDay()].slice(0, 3)} ${+x.d.slice(8)} ${MESES[+x.d.slice(5, 7) - 1].slice(0, 3)}</span><span>${hTxt(x.ex)} ${x.f ? '<span class="hr-tag fes">festiva</span>' : 'laborable'}</span></div>`).join('');
   return `<details class="card hr-card"${S.horasAbiertas ? ' open' : ''}><summary><span>⏱️ Horas del viaje</span><span class="hr-sum">${c.lab || c.fes ? `<b>${nTxt(c.lab)}</b> lab · <b class="fes">${nTxt(c.fes)}</b> fest.` : '<span class="muted">sin datos</span>'}</span></summary>
     <div class="hr-res"><div><div class="muted">Extra laborables</div><b>${nTxt(c.lab)}</b></div><div class="fes"><div>Extra festivas</div><b>${nTxt(c.fes)}</b></div></div>
     ${tramo('ida', '🛫', 'Ida')}
-    <div class="hr-tramo"><div class="hr-t">🏭 Días en destino<span class="hr-hor" data-hr-horario="1">${hor.ini}–${hor.fin} · ${hor.comida} min comer ✏️</span></div>
+    <div class="hr-tramo"><div class="hr-t">🏭 Días en destino<span class="hr-hor" data-hr-horario="1">normal: ${nTxt(hor.h)} al día ✏️</span></div>
       ${dias || '<div class="muted hr-n">Pon la ida y la vuelta para ver los días.</div>'}
-      ${dias ? '<div class="muted hr-n">Toca un día solo si fue distinto. Zona: ' + esc(tzNombre(tz)) + '</div>' : ''}</div>
+      ${dias ? '<div class="muted hr-n">Toca un día solo si fue distinto (horas trabajadas, sin la comida). Zona: ' + esc(tzNombre(tz)) + '</div>' : ''}</div>
     ${tramo('vuelta', '🛬', 'Vuelta')}
     ${des ? `<div class="hr-tramo"><div class="hr-t">Horas extra por día</div>${des}</div>` : ''}
     <div class="muted hr-n">Criterio: el viaje es un bloque continuo (8 h trabajo · 8 no computan · desde la 17 al 50 %); cada hora va al día en que ocurre con el reloj del país de salida. Jornada: 8 h.</div>
@@ -3140,26 +3165,21 @@ async function editarTramo(v, k) {
 }
 async function editarHorario(v) {
   const h = horario(v);
-  const r = await formDialogo('🏭 Horario normal en destino', [
-    { k: 'ini', t: 'Empiezo', tipo: 'time', v: h.ini }, { k: 'fin', t: 'Termino', tipo: 'time', v: h.fin },
-    { k: 'comida', t: 'Minutos para comer', tipo: 'number', v: String(h.comida) },
+  const r = await formDialogo('🏭 Día normal en destino', [
+    { k: 'h', t: 'Horas trabajadas en un día normal (sin la comida)', tipo: 'number', v: String(h.h) },
     { k: 'tz', t: 'Zona horaria del destino', tipo: 'select', ops: opsTz(tzDestino(v)), v: tzDestino(v) }]);
   if (!r) return;
-  v.horas = { ...(v.horas || {}), horario: { ini: r.ini || '08:00', fin: r.fin || '17:00', comida: +r.comida || 0 } };
+  const hh = Math.max(0, Math.min(24, Math.round((+String(r.h).replace(',', '.') || 0) * 2) / 2));
+  v.horas = { ...(v.horas || {}), horario: { h: hh } };
   if (r.tz && r.tz !== TZ_PAIS[v.pais]) v.horas.tz = r.tz; else delete v.horas.tz;
   guardar(); render();
 }
-async function editarDiaHoras(v, d) {
-  const o = ((v.horas && v.horas.dias) || {})[d], h = horario(v);
-  const r = await formDialogo(`${cap(fechaLarga(d))}`, [
-    { k: 'libre', t: 'No trabajé este día', tipo: 'check', v: o ? !!o.libre : false },
-    { k: 'ini', t: 'Empecé', tipo: 'time', v: (o && o.ini) || h.ini }, { k: 'fin', t: 'Terminé', tipo: 'time', v: (o && o.fin) || h.fin },
-    { k: 'comida', t: 'Minutos para comer', tipo: 'number', v: String(o && o.comida != null ? o.comida : h.comida) },
-    { k: 'nota', t: 'Nota (por qué, quién lo pidió…)', v: (o && o.nota) || '', ph: 'El sábado lo pidió el cliente' }], o ? 'Volver al horario normal' : '');
-  if (!r) return;
+// Editar un día en línea: −½ / +½, atajos y nota; se guarda al momento
+function ponDia(v, d, f) {
   v.horas = { ...(v.horas || {}) }; v.horas.dias = { ...(v.horas.dias || {}) };
-  if (r === 'extra') delete v.horas.dias[d];
-  else v.horas.dias[d] = r.libre ? { libre: true, ...(r.nota ? { nota: r.nota } : {}) } : { ini: r.ini, fin: r.fin, comida: +r.comida || 0, ...(r.nota ? { nota: r.nota } : {}) };
+  const o = v.horas.dias[d], previo = o ? { ...o } : null;
+  const r = f(previo);
+  if (r === null) delete v.horas.dias[d]; else v.horas.dias[d] = r;
   guardar(); render();
 }
 function borrarVuelo(i) {
@@ -3626,7 +3646,16 @@ function iniciarDetalle() {
     if (t.id === 'fiImportar') { N.subirA = 'correo'; return $('#fileDocs').click(); }
     if (t.closest('.hr-card > summary')) { setTimeout(() => S.horasAbiertas = !!$('.hr-card')?.open, 0); return; }
     const hrT = t.closest('[data-hr-tramo]'); if (hrT) return editarTramo(v, hrT.dataset.hrTramo);
-    const hrD = t.closest('[data-hr-dia]'); if (hrD) return editarDiaHoras(v, hrD.dataset.hrDia);
+    const hrD = t.closest('[data-hr-dia]'); if (hrD) { S.hrDia = S.hrDia === hrD.dataset.hrDia ? null : hrD.dataset.hrDia; return render(); }
+    if (S.hrDia && t.closest('.hr-ed-dia')) {
+      const d = S.hrDia, base = () => { const c = calcHoras(v); const o = ((v.horas && v.horas.dias) || {})[d]; if (o) return horasDia(o); const tz = c.tz, d1 = c.t.ida && aLocal(deLocal(c.t.ida.lle, c.t.ida.lleTz), tz).slice(0, 10), d2 = c.t.vuelta && aLocal(deLocal(c.t.vuelta.sal, c.t.vuelta.salTz), tz).slice(0, 10); return d === d1 || d === d2 || esDiaFestivo(d) ? 0 : horario(v).h; };
+      const nota = o => (o && o.nota ? { nota: o.nota } : {});
+      const pa = t.closest('[data-hr-paso]'); if (pa) { const x = Math.max(0, Math.min(24, base() + +pa.dataset.hrPaso)); return ponDia(v, d, o => x === 0 ? { libre: true, ...nota(o) } : { h: x, ...nota(o) }); }
+      const pn = t.closest('[data-hr-pon]'); if (pn) { const x = pn.dataset.hrPon; return ponDia(v, d, o => x === 'libre' ? { libre: true, ...nota(o) } : { h: +x, ...nota(o) }); }
+      if (t.closest('[data-hr-normal]')) { S.hrDia = null; return ponDia(v, d, () => null); }
+      if (t.closest('[data-hr-listo]')) { S.hrDia = null; return render(); }
+      return;
+    }
     if (t.closest('[data-hr-horario]')) return editarHorario(v);
     if (t.id === 'resAñadir') return añadirReserva(v);
     const re = t.closest('[data-res-editar]'); if (re) { e.stopPropagation(); return editarReserva(v, re.dataset.resEditar); }
@@ -3653,6 +3682,12 @@ function iniciarDetalle() {
     if (S.detalle) subirDocs(S.detalle, fs);
   };
   // Arrastrar archivos (PC)
+  box.addEventListener('change', e => {
+    const n = e.target.closest('[data-hr-nota]'); if (!n) return;
+    const v = S.viajes.find(x => x.id === S.detalle); if (!v) return;
+    const d = n.dataset.hrNota, txt = n.value.trim();
+    ponDia(v, d, o => { const b = o || { h: horasDia(null) || horario(v).h }; const r = { ...b }; if (txt) r.nota = txt; else delete r.nota; return r; });
+  });
   box.addEventListener('dragover', e => { if (S.fichaEdit) return; e.preventDefault(); box.classList.add('soltando'); });
   box.addEventListener('dragleave', e => { if (!box.contains(e.relatedTarget)) box.classList.remove('soltando'); });
   box.addEventListener('drop', e => {
