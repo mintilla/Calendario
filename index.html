@@ -367,6 +367,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .chk-f .t{display:block;font-size:14px}.chk-f .s{display:block;font-size:12px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
 .chk-b{width:22px;height:22px;flex-shrink:0;border-radius:7px;border:2px solid var(--line);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:14px;color:#fff}
 .chk-f.on .chk-b{background:var(--accent);border-color:var(--accent)}
+.chk-mios{display:inline-block;margin-top:5px;font-size:12px;padding:3px 9px;border-radius:12px;border:1px solid var(--line);background:none;color:var(--accent);cursor:pointer}
+.chk-mios.on{background:var(--accent);border-color:var(--accent);color:#fff}
 .chk-img{width:54px;height:40px;object-fit:cover;border-radius:6px;border:1px solid var(--line)}
 #detalleBox.soltando{outline:3px dashed var(--accent);outline-offset:-8px}
 #detalleBox.soltando::after{content:'📥 Suelta aquí el correo';position:sticky;bottom:20px;display:block;margin:10px auto 0;width:max-content;background:var(--accent);color:#fff;font-weight:700;padding:10px 16px;border-radius:12px}
@@ -705,7 +707,7 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li>En la ficha del viaje, <b>📥 Importar correo de la gestora</b>: elige el correo como <b>.eml</b>, <b>.msg</b> (Outlook) o <b>PDF</b>; puedes elegir varios a la vez. En el PC también puedes <b>arrastrarlo desde Outlook</b> y soltarlo en la ficha.</li>
         <li>Saca el <b>ID del viaje</b> (del asunto, «ID.6450»), la <b>orden de servicio</b> si viene en el asunto, los <b>vuelos</b>, el <b>coche</b>, el <b>hotel</b>, el nº de <b>eTA</b>, la dirección del cliente, los teléfonos y los <b>PDF adjuntos</b>.</li>
-        <li>Antes de guardar te enseña una <b>lista con todo marcado</b>: desmarca lo que no esté bien o no quieras y pulsa <b>Guardar lo marcado</b>. Solo sale sin marcar lo que parece el logotipo de la firma.</li>
+        <li>Antes de guardar te enseña una <b>lista con todo marcado</b>: desmarca lo que no esté bien o no quieras y pulsa <b>Guardar lo marcado</b>. Sale sin marcar lo que ya tienes guardado (en Mis documentos u otro viaje), el logotipo de la firma y lo que desmarcaste la otra vez. Con <b>📂 Guardar en Mis documentos</b> un adjunto general (seguro, guía…) va a Mis documentos para todos los viajes, en vez de a este viaje.</li>
         <li><b>Desde el iPhone:</b> en Mail, mantén pulsado el correo y suéltalo en la app <b>Archivos</b> (crea una carpeta «Correos viajes»); luego impórtalo. O pega el texto en ✏️ Editar · pegar correo, con el <b>asunto en la primera línea</b>.</li>
         <li><b>Desde Outlook en el PC:</b> arrástralo a la ficha; si no deja, arrástralo al escritorio y luego impórtalo.</li>
       </ul>
@@ -923,7 +925,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.2';
+const VERSION = 'v9.3';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2295,9 +2297,14 @@ async function reducirFoto(f) {
     return new File([blob], f.name.replace(/\.[a-z0-9]+$/i, '') + '.jpg', { type: 'image/jpeg' });
   } catch (e) { console.warn('No se pudo reducir', f.name, e); return f; }
 }
+// Huella del archivo original (para reconocerlo aunque venga en otro correo o con otro nombre)
+async function huella(f) {
+  try { const h = await crypto.subtle.digest('SHA-256', await f.arrayBuffer()); return [...new Uint8Array(h)].slice(0, 12).map(b => b.toString(16).padStart(2, '0')).join(''); } catch (e) { return ''; }
+}
 async function subirArchivos(viajeId, files, extra) {
   const nuevos = [];
   for (let f of files) {
+    const hu = await huella(f);
     f = await reducirFoto(f);
     if (f.size > DOC_MAX) { toast(`⚠️ ${f.name}: máximo 7 MB`); continue; }
     try {
@@ -2310,7 +2317,7 @@ async function subirArchivos(viajeId, files, extra) {
         lote.set(N.FB.doc(N.db, ...base, 'partes', 'p' + i), { i, d: b64.slice(i * DOC_TROZO, (i + 1) * DOC_TROZO) });
         enviar(lote);
       }
-      const meta = { id, viaje: viajeId, nombre: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString(), ...(extra || {}) };
+      const meta = { id, viaje: viajeId, nombre: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString(), ...(hu ? { huella: hu } : {}), ...(extra || {}) };
       const lote = N.FB.writeBatch(N.db);
       lote.set(N.FB.doc(N.db, ...base), meta);
       enviar(lote);
@@ -2805,7 +2812,7 @@ async function leerFuente(f) {
     else if ((f.type || '').startsWith('image/')) d.adjuntos.push({ file: f, inline: false });
   }
   if (!d.vuelos.length && d.texto) d.vuelos = vuelosDeTexto(d.texto);
-  for (const a of d.adjuntos) if (a.inline && a.file.type.startsWith('image/')) Object.assign(a, await pareceLogo(a.file));
+  for (const a of d.adjuntos) { a.huella = await huella(a.file); if (a.inline && a.file.type.startsWith('image/')) a.logo = await pareceLogo(a.file); }
   return d;
 }
 // Logotipo de la firma: uno que ya desmarcaste antes, con fondo transparente, o bajito/pequeño/muy apaisado.
@@ -2813,20 +2820,26 @@ async function leerFuente(f) {
 async function pareceLogo(f) {
   try {
     const b = await createImageBitmap(f), w = b.width, h = b.height;
-    const firma = `${f.size}|${w}x${h}`;
-    if ((leer('logos-correo') || []).includes(firma)) { if (b.close) b.close(); return { logo: true, firma }; }
     const c = document.createElement('canvas'); c.width = 48; c.height = 48;
     const g = c.getContext('2d'); g.drawImage(b, 0, 0, 48, 48); if (b.close) b.close();
     const px = g.getImageData(0, 0, 48, 48).data; let tr = 0;
     for (let i = 3; i < px.length; i += 4) if (px[i] < 250) tr++;
-    return { logo: tr / (48 * 48) > 0.08 || h < 160 || w * h < 60000 || w / h > 3.2, firma };
-  } catch (e) { return { logo: false }; }
+    return tr / (48 * 48) > 0.08 || h < 160 || w * h < 60000 || w / h > 3.2;
+  } catch (e) { return false; }
 }
-// Lo que desmarcas a mano se recuerda: la próxima vez esa imagen ya sale desmarcada (y al revés)
+// Lo que desmarcas a mano se recuerda: la próxima vez ese adjunto ya sale desmarcado (y al revés)
 function recordarLogos(it) {
-  let l = leer('logos-correo') || [];
-  it.filter(x => x.tocado && x.firma).forEach(x => { l = l.filter(y => y !== x.firma); if (!x.on) l.push(x.firma); });
-  escribir('logos-correo', l.slice(-50));
+  let l = leer('docs-descartados') || [];
+  it.filter(x => x.tocado && x.huella).forEach(x => { l = l.filter(y => y !== x.huella); if (!x.on) l.push(x.huella); });
+  escribir('docs-descartados', l.slice(-100));
+}
+// ¿Ya está guardado en Mis documentos o en otro viaje? (por huella; en los antiguos, por nombre si no es genérico)
+function docYaGuardado(a, viajeId) {
+  const nom = x => (x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/\.[a-z0-9]{2,5}$/, '').replace(/\s*\(\d+\)$/, '').replace(/[^a-z0-9]+/g, ' ').trim();
+  const generico = /^(image|imagen|img|adjunto|attachment|scan)[-_ ]?\d*$/.test(nom(a.file.name));
+  // Iguales, o uno empieza como el otro ("… para viajeros" / "… para viajerosas (4)") si es un nombre largo
+  const parecidos = (x, y) => x === y || (Math.min(x.length, y.length) >= 15 && (x.startsWith(y) || y.startsWith(x)));
+  return (S.docs || []).find(d => d.viaje !== viajeId && ((a.huella && d.huella === a.huella) || (!d.huella && !generico && parecidos(nom(d.nombre), nom(a.file.name)))));
 }
 // Todo lo encontrado, como lista de casillas (marcadas salvo lo que parezca el logotipo de la firma)
 function hallazgosCorreo(v, ds) {
@@ -2874,7 +2887,11 @@ function hallazgosCorreo(v, ds) {
       const k = a.file.name + '|' + a.file.size; if (yaDocs.has(k) || vd.has(k)) return; vd.add(k);
       const img = a.file.type.startsWith('image/');
       if (img && a.inline && a.file.size < 25000) return;
-      add('Documentos', `${img ? '🖼️' : '📄'} ${esc(a.file.name)}`, `${tamTxt(a.file.size)}${a.inline ? (a.logo ? ' · parece el logotipo de la firma' : ' · imagen dentro del correo') : ''}`, null, !a.logo, { file: a.file, thumb: img ? URL.createObjectURL(a.file) : '', firma: a.inline ? a.firma : '' });
+      const otro = docYaGuardado(a, v.id), vo = otro && otro.viaje !== MIOS && S.viajes.find(y => y.id === otro.viaje);
+      const descartado = a.huella && (leer('docs-descartados') || []).includes(a.huella);
+      const nota = otro ? (otro.viaje === MIOS ? ' · ya está en Mis documentos' : ` · ya lo tienes en el viaje ${vo ? 'de ' + esc(vo.ciudadDestino || vo.pais) : 'anterior'}`)
+        : a.logo ? ' · parece el logotipo de la firma' : descartado ? ' · lo desmarcaste la otra vez' : a.inline ? ' · imagen dentro del correo' : '';
+      add('Documentos', `${img ? '🖼️' : '📄'} ${esc(a.file.name)}`, `${tamTxt(a.file.size)}${nota}`, null, !(otro || a.logo || descartado), { file: a.file, thumb: img ? URL.createObjectURL(a.file) : '', huella: a.huella, paraMios: otro ? undefined : false });
     });
     if (d.pdf && !yaDocs.has(d.pdf.name + '|' + d.pdf.size)) add('Documentos', `📄 ${esc(d.pdf.name)}`, 'el propio correo en PDF', null, false, { file: d.pdf });
   });
@@ -2897,15 +2914,17 @@ function checklist(tit, sub, it) {
   return new Promise(res => {
     const grupos = [...new Set(it.map(x => x.grupo))];
     const pinta = () => grupos.map(g => `<div class="chk-g">${g}</div>` + it.map((x, i) => x.grupo !== g ? '' :
-      `<div class="chk-f${x.on ? ' on' : ''}" data-chk="${i}"><span class="chk-b">${x.on ? '✓' : ''}</span><span style="flex:1;min-width:0"><span class="t">${x.txt}</span>${x.sub ? `<span class="s">${x.sub}</span>` : ''}</span>${x.thumb ? `<img src="${x.thumb}" class="chk-img" alt="">` : ''}</div>`).join('')).join('');
+      `<div class="chk-f${x.on ? ' on' : ''}" data-chk="${i}"><span class="chk-b">${x.on ? '✓' : ''}</span><span style="flex:1;min-width:0"><span class="t">${x.txt}</span>${x.sub ? `<span class="s">${x.sub}</span>` : ''}${x.file && x.paraMios !== undefined ? `<button class="chk-mios${x.paraMios ? ' on' : ''}" data-mios="${i}">${x.paraMios ? '✓ Irá a Mis documentos' : '📂 Guardar en Mis documentos'}</button>` : ''}</span>${x.thumb ? `<img src="${x.thumb}" class="chk-img" alt="">` : ''}</div>`).join('')).join('');
     $('#dlgTxt').innerHTML = `<b>${tit}</b><div class="muted" style="font-size:13px">${sub}</div>`;
     $('#dlgBtns').innerHTML = `<div class="rank-lista" id="chkLista">${pinta()}</div><button class="btn primario" data-ok="1">Guardar lo marcado${it.some(x => x.on) ? ` (${it.filter(x => x.on).length})` : ''}</button><button class="btn secundario" data-no="1">Cancelar</button>`;
     const d = $('#dialogo'); d.classList.add('on');
     const fin = r => { d.classList.remove('on'); d.onclick = null; it.forEach(x => x.thumb && URL.revokeObjectURL(x.thumb)); res(r); };
     d.onclick = e => {
       e.stopPropagation();
-      const c = e.target.closest('[data-chk]');
-      if (c) { const x = it[+c.dataset.chk]; x.on = !x.on; x.tocado = true; const l = $('#chkLista'), sc = l.scrollTop; l.innerHTML = pinta(); l.scrollTop = sc; const n = it.filter(y => y.on).length; d.querySelector('[data-ok]').textContent = n ? `Guardar lo marcado (${n})` : 'Guardar lo marcado'; return; }
+      const bm = e.target.closest('[data-mios]'), c = e.target.closest('[data-chk]');
+      if (bm) { const x = it[+bm.dataset.mios]; x.paraMios = !x.paraMios; if (x.paraMios) x.on = true; x.tocado = true; }
+      else if (c) { const x = it[+c.dataset.chk]; x.on = !x.on; x.tocado = true; }
+      if (bm || c) { const l = $('#chkLista'), sc = l.scrollTop; l.innerHTML = pinta(); l.scrollTop = sc; const n = it.filter(y => y.on).length; d.querySelector('[data-ok]').textContent = n ? `Guardar lo marcado (${n})` : 'Guardar lo marcado'; return; }
       if (e.target.closest('[data-ok]')) return fin(true);
       if (e.target.closest('[data-no]') || e.target === d) fin(false);
     };
@@ -2919,7 +2938,7 @@ async function importarCorreos(viajeId, fuentes) {
   if (!ds.length) return;
   const it = hallazgosCorreo(v, ds);
   if (!it.length) return toast('No he encontrado nada nuevo en ese correo');
-  const ok = await checklist(`📥 Del correo he sacado esto`, it.every(x => x.on) ? 'Está todo marcado. Desmarca lo que no sea correcto o no quieras guardar.' : 'Está marcado todo menos lo que parece el logotipo de la firma. Revisa y desmarca lo que no quieras guardar.', it);
+  const ok = await checklist(`📥 Del correo he sacado esto`, it.every(x => x.on) ? 'Está todo marcado. Desmarca lo que no sea correcto o no quieras guardar.' : 'Va sin marcar lo que ya tienes guardado o parece el logotipo de la firma. Revisa y desmarca lo que no quieras guardar.', it);
   recordarLogos(it);
   const sel = it.filter(x => x.on);
   if (!ok || !sel.length) return;
@@ -2929,8 +2948,11 @@ async function importarCorreos(viajeId, fuentes) {
   if (!Object.keys(v.info).length) delete v.info;
   S.fichaEdit = false;
   guardar(); render();
-  if (files.length) await subirArchivos(viajeId, files);
-  toast(`✅ ${plural(sel.length, 'cosa guardada', 'cosas guardadas')}`);
+  const aMios = sel.filter(x => x.file && x.paraMios).map(x => x.file);
+  const alViaje = files.filter(f => !aMios.includes(f));
+  if (alViaje.length) await subirArchivos(viajeId, alViaje);
+  if (aMios.length) await subirArchivos(MIOS, aMios, { ambito: 'todos' });
+  toast(`✅ ${plural(sel.length, 'cosa guardada', 'cosas guardadas')}${aMios.length ? ` (${aMios.length} en Mis documentos, para todos los viajes)` : ''}`);
 }
 function borrarVuelo(i) {
   const v = S.viajes.find(x => x.id === S.detalle); if (!v || !v.vuelos) return;
