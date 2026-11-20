@@ -42,6 +42,8 @@ body{
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .card{background:var(--card);border-radius:18px;padding:14px;box-shadow:var(--shadow);margin-bottom:12px}
 .ayuda details{border-bottom:1px solid var(--line)}
+.ayuda-buscar{width:100%;font-size:16px;padding:11px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text)}
+.ayuda mark{background:#ffe066;color:#000;border-radius:3px;padding:0 1px}
 .ayuda details:last-child{border-bottom:none}
 .ayuda summary{list-style:none;cursor:pointer;padding:11px 2px;font-weight:600;display:flex;justify-content:space-between;align-items:center}
 .ayuda summary::-webkit-details-marker{display:none}
@@ -228,8 +230,15 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .fila-año .chev{color:var(--muted);font-size:18px;width:12px;text-align:right}
 .rec-f{display:flex;align-items:center;gap:10px;padding:11px 0;border-bottom:1px solid var(--line)}
 .rec-f:last-child{border-bottom:none}
+.doc-card{margin-bottom:10px}
+.doc-card-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:15px;margin-bottom:4px}
+.doc-add{width:100%;margin-top:8px;padding:9px;border:1.5px dashed var(--line);border-radius:12px;color:var(--accent);font-weight:600;font-size:14px;background:none}
+.rank-lista{max-height:60vh;overflow:auto;text-align:left;margin:6px 0}
+.rank-f{cursor:pointer}.rank-f .rk{width:26px;flex-shrink:0;font-weight:800;color:var(--accent);font-size:14px}
+.rank-f .big{font-size:14px;white-space:nowrap}
+.rank-f.sub{padding-left:26px;opacity:.75}.rank-f.sub .t{font-size:13px}
 .fila-barra.sub{padding-left:14px;opacity:.75;font-size:13px}
-.rec-f[data-viaje],.rec-f[data-ver-pais],.rec-f[data-rec-cliente],.rec-f[data-ir-año],.rec-f[data-dlg-viaje]{cursor:pointer}
+.rec-f[data-viaje],.rec-f[data-ver-pais],.rec-f[data-rec-cliente],.rec-f[data-rank],.rec-f[data-ir-año],.rec-f[data-dlg-viaje]{cursor:pointer}
 .rec-f .ic{font-size:20px;width:26px;text-align:center;flex:none}
 .rec-f .t{font-size:15px;font-weight:600}
 .rec-f .s{font-size:12px;color:var(--muted);margin-top:1px}
@@ -538,7 +547,7 @@ input,select,textarea{font-size:16px !important}
 <!-- ===================== MAPA ===================== -->
 <section class="tab" id="tab-map">
   <div class="tab-titulo">Mapa</div>
-  <div class="stats" id="mapStats"></div>
+  <div class="stats" id="mapStats" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div>
   <div class="card" style="padding:10px">
     <div class="mapa-caja">
       <div class="zoom"><button id="zoomMas">＋</button><button id="zoomMenos">−</button></div>
@@ -594,7 +603,23 @@ input,select,textarea{font-size:16px !important}
     <input type="file" id="fileImport" accept=".json,application/json,text/plain" style="display:none">
   </div>
 
-  <div class="h-title" id="ayudaTit">Ayuda</div>
+  <div class="card" style="padding:2px 14px"><div class="rec-f" data-abrir-ayuda="1" style="cursor:pointer"><div class="ic">❓</div><div style="flex:1"><div class="t">Ayuda y guía</div><div class="s">Cómo funciona cada parte, con buscador</div></div><div class="chev">›</div></div></div>
+</section>
+
+<!-- ===================== HOJA SELECCIÓN ===================== -->
+<div class="ptr" id="ptr">↓ Desliza para actualizar</div>
+<div class="aviso-act" id="avisoAct"></div>
+<div class="deshacer" id="deshacer"></div>
+<div class="sheet" id="sheet"></div>
+<div class="sheet" id="editBar"></div>
+
+<!-- ===================== DETALLE DE VIAJE ===================== -->
+<div class="modal" id="modalDetalle"><div class="modal-box" id="detalleBox"></div></div>
+<div class="modal" id="modalAyuda"><div class="modal-box">
+  <div class="modal-head"><span style="width:64px"></span><h2>Ayuda</h2><button class="pill-btn" id="ayudaCerrar">Cerrar</button></div>
+  <div class="muted" style="font-size:13px;margin:-4px 0 10px">Cómo funciona cada parte de la app. Escribe una palabra para encontrarla.</div>
+  <input id="ayudaBuscar" class="ayuda-buscar" placeholder="🔍 Buscar en la ayuda (planta, face id, backup…)" autocomplete="off" autocorrect="off" spellcheck="false">
+  <div id="ayudaRes" class="muted" style="font-size:12px;margin:6px 2px 8px"></div>
   <div class="card ayuda">
     <details><summary>📅 Calendario</summary><div class="cont">
       <p>Se abre en la <b>vista año</b>. Toca un mes para verlo en grande; el botón <b>Mes/Año</b> cambia de vista.</p>
@@ -622,7 +647,7 @@ input,select,textarea{font-size:16px !important}
     <details><summary>🏭 Clientes</summary><div class="cont">
       <ul>
         <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
-        <li><b>Grupo y planta:</b> al crear un viaje, en <b>Cliente (grupo)</b> escribe unas letras y elige de la lista (Tetra Pak); debajo eliges o escribes la <b>Planta</b> (Limburg). Si escribes uno nuevo que se parece a otro, te avisa antes de crearlo, para no duplicar. En las estadísticas cada grupo suma todas sus plantas.</li>
+        <li><b>Grupo y planta:</b> al crear un viaje, en <b>Cliente</b> escribe unas letras y elige de la lista (Tetra Pak); debajo eliges o escribes la <b>Planta</b> (Limburg). Si escribes uno nuevo que se parece a otro, te avisa antes de crearlo, para no duplicar. En las estadísticas cada grupo suma todas sus plantas.</li>
         <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar viaje</b> puedes marcar uno como Feria, Comercial o Interno. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
       </ul>
     </div></details>
@@ -635,7 +660,8 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>✈️ Viajes y 🌍 Mapa</summary><div class="cont">
       <ul>
-        <li><b>Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ir al viaje, país, cliente o año), en qué meses viajas más y cuántos vuelos llevas.</li>
+        <li><b>Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ver el ranking completo, del primero al último), en qué meses viajas más (tócalo para el ranking de meses) y cuántos vuelos llevas.</li>
+        <li><b>Países y continentes:</b> países visitados cuenta todos (España, trabajo y ocio). Continentes: 7, con Norte y Sudamérica por separado; toca el número para ver cuáles y sus países.</li>
         <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
         <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> es sin España; <b>países visitados</b> cuenta todos: España, los de trabajo y los marcados como ocio.</li>
         <li><b>Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
@@ -656,7 +682,8 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>🔒 Mis documentos</summary><div class="cont">
       <ul>
-        <li>En <b>Viajes → 🔒 Mis docs</b>: tus <b>datos personales</b> (pasaporte, DNI, caducidades, fidelización…; toca uno para copiarlo) y <b>documentos generales</b> (pasaporte, DNI, seguro, guía para viajeros…).</li>
+        <li>En <b>Viajes → 🔒 Mis docs</b> hay una tarjeta para cada cosa: <b>🛂 Pasaporte</b> y <b>🪪 DNI</b> (número, fechas y su foto o PDF dentro), <b>datos personales</b>, <b>tarjetas de fidelización</b> y <b>notas</b>. Cada una se edita con su ✏️; toca un número para copiarlo.</li>
+        <li>Con <b>＋ Añadir foto o PDF</b> dentro de la tarjeta, el archivo queda como el pasaporte o el DNI (y privado). En ✏️ de un documento, «Es…» cambia a qué tarjeta va. El resto va en <b>Otros documentos</b>.</li>
         <li>Cada documento puede salir en <b>todos los viajes</b>, en los de <b>un país</b> o en ninguno, y tener <b>validez</b>. Ej.: el seguro de Indonesia 2026, para Indonesia del 01/01 al 31/12/2026. Los que aplican aparecen solos en la ficha de cada viaje.</li>
         <li><b>Avisos:</b> si el pasaporte caduca menos de 6 meses después de la vuelta, o si un documento vence antes de acabar el viaje.</li>
         <li><b>Face ID:</b> en Seguridad puedes pedir Face ID (o huella / Windows Hello) para abrir Mis documentos y los marcados como 🔒 privados. Se activa en cada dispositivo y se vuelve a pedir al salir de la app.</li>
@@ -681,17 +708,7 @@ input,select,textarea{font-size:16px !important}
       </ul>
     </div></details>
   </div>
-</section>
-
-<!-- ===================== HOJA SELECCIÓN ===================== -->
-<div class="ptr" id="ptr">↓ Desliza para actualizar</div>
-<div class="aviso-act" id="avisoAct"></div>
-<div class="deshacer" id="deshacer"></div>
-<div class="sheet" id="sheet"></div>
-<div class="sheet" id="editBar"></div>
-
-<!-- ===================== DETALLE DE VIAJE ===================== -->
-<div class="modal" id="modalDetalle"><div class="modal-box" id="detalleBox"></div></div>
+</div></div>
 <div class="modal" id="modalDocGen"><div class="modal-box" id="docGenBox"></div></div>
 <input type="file" id="fileDocs" multiple style="display:none">
 <div class="visor" id="visor">
@@ -715,8 +732,8 @@ input,select,textarea{font-size:16px !important}
     </div>
     <div class="campo"><label>Ciudad (opcional)</label><input id="fCiudad" placeholder="Ej: Hamburgo" autocomplete="off"></div>
     <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option></select></div>
-    <div class="campo"><label id="fClienteLbl">Cliente (grupo)</label><div class="busca"><input id="fCliente" placeholder="Busca o escribe uno nuevo" autocomplete="off"><div class="sugs" id="sugCliente"></div></div></div>
-    <div class="campo" id="campoPlanta"><label>Planta <span class="muted" style="font-weight:500">(opcional)</span></label><input id="fPlanta" placeholder="Ej: Limburg" autocomplete="off"><div class="chips-planta" id="chipsPlanta"></div></div>
+    <div class="campo"><label id="fClienteLbl">Cliente</label><div class="busca"><input id="fCliente" placeholder="Ej: Tetra Pak, Zidan…" autocomplete="off"><div class="sugs" id="sugCliente"></div></div></div>
+    <div class="campo" id="campoPlanta"><label>Planta <span class="muted" style="font-weight:500">(opcional)</span></label><input id="fPlanta" placeholder="Ej: Limburg" autocomplete="off"><div class="muted" style="font-size:12px;margin-top:4px">Si el cliente tiene varias fábricas</div><div class="chips-planta" id="chipsPlanta"></div></div>
     <div class="fechas">
       <div class="campo"><label>Ida</label><input type="date" id="fIni"></div>
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
@@ -784,6 +801,10 @@ const PAISES = {
   "Australia":"AU","Fiyi":"FJ","Islas Marshall":"MH","Islas Salomón":"SB","Kiribati":"KI","Micronesia":"FM","Nauru":"NR","Nueva Zelanda":"NZ","Palaos":"PW","Papúa Nueva Guinea":"PG","Samoa":"WS","Tonga":"TO","Tuvalu":"TV","Vanuatu":"VU"
 };
 const PAIS_CASA = 'España';
+// Continentes (7, con Norte y Sudamérica separadas): códigos ISO de cada uno
+const CONTINENTES = {'Europa':'AL DE AD AT BE BY BA BG CY HR DK SK SI ES EE FI FR GR HU IE IS IT LV LI LT LU MK MT MD MC ME NO NL PL PT GB CZ RO RU SM RS SE CH TR UA','Asia':'AF SA AM AZ BD BH MM BN BT KH QA CN KP KR AE PH GE IN ID IQ IR IL JP JO KZ KG KW LA LB MY MV MN NP OM PK PS SG SY LK TH TW TJ TL TM UZ VN YE','Norteamérica':'BS BB BZ CA CR CU DM SV US GD GT HT HN JM MX NI PA DO KN VC LC TT','Sudamérica':'AR BO BR CL CO EC GY PY PE SR UY VE','África':'AO DZ BJ BW BF BI CV CM TD KM CG CI EG ER SZ ET GA GM GH GN GW GQ KE LS LR LY MG MW ML MA MU MR MZ NA NE NG CF CD RW ST SN SC SL SO ZA SD SS TZ TG TN UG DJ ZM ZW','Oceanía':'AU FJ MH SB KI FM NR NZ PW PG WS TO TV VU','Antártida':''};
+const CONT_DE = {}; Object.entries(CONTINENTES).forEach(([c, l]) => l.split(' ').filter(Boolean).forEach(i => CONT_DE[i] = c));
+const continenteDe = p => CONT_DE[PAISES[p]] || '';
 
 // Histórico importado del Excel "Mi Planning" (2000-2025). Se añade UNA vez.
 const HISTORICO = { viajes: [], vacaciones: [], empresa: {} };  // ya subido a Firebase;
@@ -862,7 +883,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.7';
+const VERSION = 'v8.8';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1524,6 +1545,9 @@ function tocarDia(s) {
 // =====================================================================
 const NOMBRE_DE_ISO = Object.fromEntries(Object.entries(PAISES).map(([n, c]) => [c, n]));
 // Todos los países visitados: los de los viajes, los marcados como ocio y España (casa)
+function continentesVisitados(st = statsPaises()) {
+  const r = {}; paisesVisitados(st).forEach(p => { const c = continenteDe(p); if (c) (r[c] = r[c] || []).push(p); }); return r;
+}
 function paisesVisitados(st = statsPaises()) { return new Set([...Object.keys(st), ...(S.aju.ocio || []), PAIS_CASA]); }
 // Días (sin duplicar), viajes, primer y último año por país, de TODOS los años
 function statsPaises() {
@@ -1575,19 +1599,79 @@ function htmlRecords(porAño) {
   const mesTxt = i => MESES[i];
   const fila = (ic, t, s, big, attr) => `<div class="rec-f"${attr ? ' ' + attr : ''}><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="t">${t}</div><div class="s">${s}</div></div><div class="big">${big}</div>${attr ? '<div class="chev">›</div>' : ''}</div>`;
   let h = `<div class="h-title">🏆 Récords desde ${años.length ? Math.min(...años.map(a => +a[0])) : ''}</div><div class="card" style="padding:2px 14px">`;
-  h += fila('⏱️', 'Viaje más largo', `${bandera(largo.pais)} ${esc(largo.pais)} · ${esc(nombreCliente(largo))} · ${MESES[+largo.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${largo.fechaInicio.slice(0, 4)}`, plural(dur(largo), 'día'), `data-viaje="${largo.id}"`);
-  if (paises.length) h += fila('🔁', 'País al que más has vuelto', `${bandera(paises[0][0])} ${esc(paises[0][0])}${paises[1] ? ` · luego ${esc(paises[1][0])} (${paises[1][1]})` : ''}${paises[2] ? ` y ${esc(paises[2][0])} (${paises[2][1]})` : ''}`, plural(paises[0][1], 'viaje'), `data-ver-pais="${esc(paises[0][0])}"`);
-  if (clis.length) h += fila('🏭', 'Cliente con más días', `${esc(clis[0][0])}${clis[1] ? ` · luego ${esc(clis[1][0])} (${clis[1][1]})` : ''}`, plural(clis[0][1], 'día'), `data-rec-cliente="${esc(clis[0][0])}"`);
-  if (años.length) h += fila('📆', 'Año con más días fuera', `${años[1] ? `Luego ${años[1][0]} (${años[1][1]})` : ''}${años[2] ? ` y ${años[2][0]} (${años[2][1]})` : ''}`, `${años[0][0]} · ${años[0][1]}`, `data-ir-año="${años[0][0]}"`);
-  h += `</div><div class="h-title">Cuándo viajas más</div><div class="card">
+  h += fila('⏱️', 'Viaje más largo', `${bandera(largo.pais)} ${esc(largo.pais)} · ${esc(nombreCliente(largo))} · ${MESES[+largo.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${largo.fechaInicio.slice(0, 4)}`, plural(dur(largo), 'día'), `data-rank="largo"`);
+  if (paises.length) h += fila('🔁', 'País al que más has vuelto', `${bandera(paises[0][0])} ${esc(paises[0][0])}${paises[1] ? ` · luego ${esc(paises[1][0])} (${paises[1][1]})` : ''}${paises[2] ? ` y ${esc(paises[2][0])} (${paises[2][1]})` : ''}`, plural(paises[0][1], 'viaje'), `data-rank="pais"`);
+  if (clis.length) h += fila('🏭', 'Cliente con más días', `${esc(clis[0][0])}${clis[1] ? ` · luego ${esc(clis[1][0])} (${clis[1][1]})` : ''}`, plural(clis[0][1], 'día'), `data-rank="cliente"`);
+  if (años.length) h += fila('📆', 'Año con más días fuera', `${años[1] ? `Luego ${años[1][0]} (${años[1][1]})` : ''}${años[2] ? ` y ${años[2][0]} (${años[2][1]})` : ''}`, `${años[0][0]} · ${años[0][1]}`, `data-rank="año"`);
+  h += `</div><div class="h-title">Cuándo viajas más</div><div class="card" data-rank="mes" style="cursor:pointer">
     <div class="rec-meses">${meses.map((n, i) => `<div style="height:${Math.max(3, n / mx * 100)}%"${i === iMax ? ' class="top"' : ''}></div>`).join('')}</div>
     <div class="rec-ml">${MESES_INI.map(m => `<span>${m}</span>`).join('')}</div>
-    <div class="muted" style="font-size:13px;margin-top:8px">${cap(mesTxt(orden[0][0]))} es tu mes con más días fuera (${orden[0][1]}), seguido de ${mesTxt(orden[1][0])} (${orden[1][1]}).</div></div>`;
+    <div class="muted" style="font-size:13px;margin-top:8px">${cap(mesTxt(orden[0][0]))} es tu mes con más días fuera (${orden[0][1]}), seguido de ${mesTxt(orden[1][0])} (${orden[1][1]}). <span style="color:var(--accent);font-weight:600">Ver ranking ›</span></div></div>`;
   h += `<div class="h-title">Vuelos</div><div class="card" style="padding:2px 14px">
     ${fila('✈️', 'Desde el principio, aproximado', '2 por viaje en Europa y 4 fuera de Europa (con escala)', '≈ ' + est.toLocaleString('es-ES'))}
     ${fila('🛫', 'Registrados en la app', vuelos.length ? `${min ? Math.round(min / 60) + ' h en el aire · ' : ''}${plural(aeros.size, 'aeropuerto')}` : 'Se cuentan desde que subes los correos de la agencia', vuelos.length)}
     </div>`;
   return h;
+}
+// ---- Rankings (al tocar un récord) ----
+function filaRank(n, ic, t, sub, val, attr, subfila) {
+  return `<div class="rec-f rank-f${subfila ? ' sub' : ''}" ${attr}><div class="rk">${n}</div>${ic ? `<div class="ic">${ic}</div>` : ''}<div style="flex:1;min-width:0"><div class="t">${t}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div><div class="big">${val}</div></div>`;
+}
+function abrirRanking(tipo) {
+  const dur = v => diasEntre(v.fechaInicio, v.fechaFin) + 1;
+  let tit = '', sub = '', filas = '';
+  if (tipo === 'largo') {
+    const vs = [...S.viajes].sort((a, b) => dur(b) - dur(a) || b.fechaInicio.localeCompare(a.fechaInicio));
+    tit = 'Viajes por duración'; sub = plural(vs.length, 'viaje');
+    filas = vs.map((v, i) => filaRank(i + 1, bandera(v.pais), esc(v.ciudadDestino || v.pais), `${esc(nombreCliente(v))} · ${MESES[+v.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${v.fechaInicio.slice(0, 4)}`, plural(dur(v), 'día'), `data-rk-viaje="${v.id}"`)).join('');
+  } else if (tipo === 'pais') {
+    const st = statsPaises(), ps = Object.entries(st).filter(([p]) => p !== PAIS_CASA).sort((a, b) => b[1].viajes.length - a[1].viajes.length || b[1].dias.size - a[1].dias.size);
+    tit = 'Países por número de viajes'; sub = plural(ps.length, 'país', 'países') + ' de trabajo (sin España)';
+    filas = ps.map(([p, x], i) => filaRank(i + 1, bandera(p), esc(p), plural(x.dias.size, 'día'), plural(x.viajes.length, 'viaje'), `data-rk-pais="${esc(p)}"`)).join('');
+  } else if (tipo === 'cliente') {
+    const g = {}, pl = {};
+    S.viajes.filter(esCliente).forEach(v => { for (const s of rango(v.fechaInicio, v.fechaFin)) { (g[v.cliente] = g[v.cliente] || new Set()).add(s); if (v.planta) { const k = pl[v.cliente] = pl[v.cliente] || {}; (k[v.planta] = k[v.planta] || new Set()).add(s); } } });
+    const gs = Object.entries(g).map(([c, x]) => [c, x.size]).sort((a, b) => b[1] - a[1]);
+    tit = 'Clientes por días'; sub = `${plural(gs.length, 'grupo')} · ${plural(new Set(S.viajes.filter(esCliente).map(nombreCliente)).size, 'cliente')}`;
+    filas = gs.map(([c, n], i) => {
+      const ps = Object.entries(pl[c] || {}).map(([k, x]) => [k, x.size]).sort((a, b) => b[1] - a[1]);
+      const sola = ps.length === 1 && !S.viajes.some(v => v.cliente === c && !v.planta && esCliente(v));
+      return filaRank(i + 1, '', esc(sola ? c + ' ' + ps[0][0] : c), ps.length > 1 ? plural(ps.length, 'planta') : '', n, `data-rk-cli="${esc(c)}"`) +
+        (ps.length > 1 ? ps.map(([k, m]) => filaRank('', '', esc(k), '', m, `data-rk-cli="${esc(c)}" data-rk-planta="${esc(k)}"`, true)).join('') : '');
+    }).join('');
+  } else if (tipo === 'año') {
+    const pa = {}; S.viajes.forEach(v => { if (v.pais === PAIS_CASA) return; for (const s of rango(v.fechaInicio, v.fechaFin)) (pa[s.slice(0, 4)] = pa[s.slice(0, 4)] || new Set()).add(s); });
+    const as = Object.entries(pa).map(([y, x]) => [y, x.size]).sort((a, b) => b[1] - a[1]);
+    tit = 'Años por días fuera'; sub = 'Días en el extranjero de cada año';
+    filas = as.map(([y, n], i) => filaRank(i + 1, '', y, '', plural(n, 'día'), `data-rk-año="${y}"`)).join('');
+  } else if (tipo === 'mes') {
+    const m = Array(12).fill(0); S.viajes.forEach(v => { for (const s of rango(v.fechaInicio, v.fechaFin)) m[+s.slice(5, 7) - 1]++; });
+    tit = 'Meses por días de viaje'; sub = 'Sumando todos los años';
+    filas = m.map((n, i) => [i, n]).sort((a, b) => b[1] - a[1]).map(([i, n], k) => filaRank(k + 1, '', cap(MESES[i]), '', plural(n, 'día'), `data-rk-mes="${i}"`)).join('');
+  } else if (tipo === 'cont') {
+    const cv = continentesVisitados(), st = statsPaises();
+    tit = 'Continentes'; sub = `${Object.keys(cv).length} de 7 visitados · Norte y Sudamérica por separado`;
+    filas = Object.keys(CONTINENTES).map(c => [c, cv[c] || []]).sort((a, b) => b[1].length - a[1].length).map(([c, ps], i) =>
+      ps.length ? filaRank('✓', '', c, ps.slice().sort((a, b) => ((st[b] || {}).dias?.size || 0) - ((st[a] || {}).dias?.size || 0)).map(p => bandera(p)).join(' '), plural(ps.length, 'país', 'países'), `data-rk-cont="${esc(c)}"`)
+        : filaRank('·', '', `<span class="muted">${c}</span>`, '', '<span class="muted" style="font-weight:500">pendiente</span>', '')).join('');
+  }
+  $('#dlgTxt').innerHTML = `<b>${tit}</b><div class="muted" style="font-size:13px">${sub}</div>`;
+  $('#dlgBtns').innerHTML = `<div class="rank-lista">${filas}</div><button class="btn secundario" data-i="0" style="margin-top:8px">Cerrar</button>`;
+  const d = $('#dialogo'); d.classList.add('on');
+  const cerrar = () => { d.classList.remove('on'); d.onclick = null; };
+  d.onclick = e => {
+    e.stopPropagation();
+    const t = e.target;
+    const v = t.closest('[data-rk-viaje]'); if (v) { cerrar(); return abrirDetalle(v.dataset.rkViaje); }
+    const p = t.closest('[data-rk-pais]'); if (p) { cerrar(); S.paisSel = p.dataset.rkPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); centrarEnPais(S.paisSel); return; }
+    const c = t.closest('[data-rk-cli]'); if (c) { const pl = c.dataset.rkPlanta, g = c.dataset.rkCli; return pl ? listaCliente(g + ' ' + pl, S.viajes.filter(x => x.cliente === g && x.planta === pl)) : listaCliente(g); }
+    const y = t.closest('[data-rk-año]'); if (y) { cerrar(); S.año = +y.dataset.rkAño; S.modoVia = 'año'; if (S.tab !== 'via') irTab('via'); renderViajes(); return window.scrollTo(0, 0); }
+    const m = t.closest('[data-rk-mes]'); if (m) { const i = +m.dataset.rkMes; return listaCliente(cap(MESES[i]), S.viajes.filter(x => [...rango(x.fechaInicio, x.fechaFin)].some(s => +s.slice(5, 7) - 1 === i))); }
+    const ct = t.closest('[data-rk-cont]'); if (ct) { const k = ct.dataset.rkCont, ps = continentesVisitados()[k] || [], st2 = statsPaises();
+      $('#dlgTxt').innerHTML = `<b>${esc(k)}</b><div class="muted" style="font-size:13px">${plural(ps.length, 'país', 'países')}</div>`;
+      $('#dlgBtns').innerHTML = `<div class="rank-lista">${ps.sort((a, b) => ((st2[b] || {}).dias?.size || 0) - ((st2[a] || {}).dias?.size || 0)).map((x, i) => filaRank(i + 1, bandera(x), esc(x), st2[x] ? plural(st2[x].viajes.length, 'viaje') : 'Ocio', st2[x] ? plural(st2[x].dias.size, 'día') : '', `data-rk-pais="${esc(x)}"`)).join('')}</div><button class="btn secundario" data-i="0" style="margin-top:8px">Cerrar</button>`; return; }
+    if (t.closest('[data-i]') || t === d) cerrar();
+  };
 }
 function listaCliente(c, lista) {
   const vs = (lista || S.viajes.filter(v => v.cliente === c)).sort((a, b) => b.fechaInicio.localeCompare(a.fechaInicio));
@@ -1625,8 +1709,8 @@ function renderHistorico() {
       <div class="stat"><b>${fuera.size.toLocaleString('es-ES')}</b><span>días en el extranjero</span></div>
       <div class="stat"><b>${S.viajes.length}</b><span>viajes</span></div>
       <div class="stat"><b>${paisesVisitados(st).size}</b><span>países visitados</span></div>
-      <div class="stat"><b>${new Set(S.viajes.filter(esCliente).map(nombreCliente)).size}</b><span>clientes</span></div>
-      <div class="stat"><b>${new Set(S.viajes.filter(esCliente).map(v => v.cliente)).size}</b><span>grupos de clientes</span></div>
+      <div class="stat" data-rank="cont" style="cursor:pointer"><b>${Object.keys(continentesVisitados(st)).length} <span style="font-size:15px;color:var(--muted);display:inline">de 7</span></b><span>continentes ›</span></div>
+      <div class="stat" data-rank="cliente" style="cursor:pointer"><b>${new Set(S.viajes.filter(esCliente).map(nombreCliente)).size}</b><span>clientes · en ${plural(new Set(S.viajes.filter(esCliente).map(v => v.cliente)).size, 'grupo')} ›</span></div>
     </div>
     <div class="h-title">Días por año</div>
     <div class="card">${años.map(y => `
@@ -1806,6 +1890,7 @@ function renderMapa() {
   const continentes = paisesVisitados(st).size;
   $('#mapStats').innerHTML = `
     <div class="stat"><b>${continentes}</b><span>países visitados</span></div>
+    <div class="stat" data-rank="cont" style="cursor:pointer"><b>${Object.keys(continentesVisitados(st)).length} <span style="font-size:15px;color:var(--muted);display:inline">de 7</span></b><span>continentes ›</span></div>
     <div class="stat"><b>${Math.round(continentes / 195 * 100)}%</b><span>del mundo</span></div>`;
 
   N.mapaSt = st; N.mapaOcio = ocio;
@@ -1951,8 +2036,8 @@ function abrirFormulario(viaje, ini, fin) {
 function ajustarTipoForm() {
   const cli = $('#fTipo').value === 'cliente';
   $('#campoPlanta').style.display = cli ? '' : 'none';
-  $('#fClienteLbl').textContent = cli ? 'Cliente (grupo)' : 'Descripción';
-  $('#fCliente').placeholder = cli ? 'Busca o escribe uno nuevo' : 'Ej: Feria de Hannover';
+  $('#fClienteLbl').textContent = cli ? 'Cliente' : 'Descripción';
+  $('#fCliente').placeholder = cli ? 'Ej: Tetra Pak, Zidan…' : 'Ej: Feria de Hannover';
   if (!cli) $('#sugCliente').classList.remove('on');
 }
 function renderSugCliente() {
@@ -2535,6 +2620,13 @@ const MIOS = '__mios';
 const CAMPOS_PERS = [['pasaporte', 'Nº de pasaporte'], ['pasExp', 'Expedición del pasaporte', 'date'], ['pasCad', 'Caducidad del pasaporte', 'date'],
   ['dni', 'Nº de DNI'], ['dniCad', 'Caducidad del DNI', 'date'], ['nac', 'Fecha de nacimiento', 'date'], ['lugarNac', 'Lugar de nacimiento'],
   ['fidel', 'Tarjetas de fidelización'], ['notasPers', 'Notas']];
+// Mis documentos: una tarjeta por cosa. [clave, título, campos [k, etiqueta, tipo], rol de los archivos]
+const GRUPOS_PERS = [
+  ['pasaporte', '🛂 Pasaporte', [['pasaporte', 'Número'], ['pasExp', 'Expedición', 'date'], ['pasCad', 'Caducidad', 'date']], 'pasaporte'],
+  ['dni', '🪪 DNI', [['dni', 'Número'], ['dniCad', 'Caducidad', 'date']], 'dni'],
+  ['personal', '👤 Datos personales', [['nac', 'Fecha de nacimiento', 'date'], ['lugarNac', 'Lugar de nacimiento']]],
+  ['fidel', '💳 Tarjetas de fidelización', [['fidel', 'Tarjetas', 'area']]],
+  ['notas', '📝 Notas', [['notasPers', 'Notas', 'area']]]];
 const fechaES = s => s ? s.split('-').reverse().join('/') : '';
 const mas6meses = s => { const f = parse(s); f.setMonth(f.getMonth() + 6); return iso(f); };
 const misDocs = () => (S.docs || []).filter(d => d.viaje === MIOS).sort((a, b) => (a.nombre || '').localeCompare(b.nombre || ''));
@@ -2597,30 +2689,36 @@ function renderMisDocs() {
   }
   const p = (S.aju && S.aju.personal) || {};
   let h = '';
-  if (S.persEdit) {
-    h += `<div class="det-sec">Datos personales</div><div class="card">${CAMPOS_PERS.map(([k, t, ty]) => `<div class="campo"><label>${t}</label>${k === 'notasPers' || k === 'fidel' ? `<textarea id="pe_${k}" rows="2">${esc(p[k] || '')}</textarea>` : `<input id="pe_${k}" type="${ty || 'text'}" value="${esc(p[k] || '')}">`}</div>`).join('')}
-      <button class="btn primario" id="peGuardar">Guardar</button><button class="btn secundario" id="peCancelar">Cancelar</button></div>`;
-  } else {
-    const filas = CAMPOS_PERS.filter(([k]) => p[k]).map(([k, t, ty]) => {
+  GRUPOS_PERS.forEach(([g, tit, campos, rol]) => {
+    const docsRol = rol ? misDocs().filter(d => d.rol === rol) : [];
+    if (S.persEdit === g) {
+      h += `<div class="card doc-card"><div class="doc-card-h"><span>${tit}</span></div>${campos.map(([k, t, ty]) => `<div class="campo"><label>${t}</label>${ty === 'area' ? `<textarea id="pe_${k}" rows="3">${esc(p[k] || '')}</textarea>` : `<input id="pe_${k}" type="${ty === 'date' ? 'date' : 'text'}" value="${esc(p[k] || '')}" autocomplete="off">`}</div>`).join('')}
+        <button class="btn primario" id="peGuardar" data-grupo="${g}">Guardar</button><button class="btn secundario" id="peCancelar">Cancelar</button></div>`;
+      return;
+    }
+    const filas = campos.filter(([k]) => p[k]).map(([k, t, ty]) => {
       const val = ty === 'date' ? fechaES(p[k]) : p[k];
       const aviso = k === 'pasCad' && p[k] < mas6meses(HOY) ? ' <b style="color:#e5484d">⚠️ menos de 6 meses</b>' : '';
-      const copiable = ty !== 'date' && k !== 'notasPers';
-      return `<div class="ficha-f" ${copiable ? `data-copiar-pers="${esc(p[k])}" style="cursor:pointer"` : ''}><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${esc(val)}${aviso}</div></div>${copiable ? '<div class="muted" style="font-size:12px;align-self:center">copiar</div>' : ''}</div>`;
+      const copiable = ty !== 'date' && ty !== 'area';
+      return `<div class="ficha-f" ${copiable ? `data-copiar-pers="${esc(p[k])}" style="cursor:pointer"` : ''}><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v" style="white-space:pre-wrap">${esc(val)}${aviso}</div></div>${copiable ? '<div class="muted" style="font-size:12px">📋</div>' : ''}</div>`;
     }).join('');
-    h += `<div class="det-sec"><span>Datos personales</span><button class="pill-btn" id="peEditar">${filas ? '✏️ Editar' : '＋ Rellenar'}</button></div>
-      <div class="card">${filas || '<div class="muted" style="font-size:14px">Nº de pasaporte, caducidad, DNI… Para copiarlos con un toque al rellenar formularios de inmigración.</div>'}</div>`;
-  }
-  const docs = misDocs();
-  h += `<div class="det-sec">Documentos</div><div class="card">
-    ${docs.map(d => filaDoc(d, true)).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Pasaporte, DNI, seguro de viaje, guía para viajeros… Los que pongas para «todos los viajes» o para un país aparecen solos en la ficha de cada viaje.</div>'}
+    h += `<div class="card doc-card"><div class="doc-card-h"><span>${tit}</span><button class="pill-btn" data-pe-editar="${g}">${filas ? '✏️ Editar' : '＋ Rellenar'}</button></div>
+      ${filas}${docsRol.map(d => filaDoc(d, true)).join('')}
+      ${rol ? `<button class="doc-add" data-add-rol="${rol}">＋ ${docsRol.length ? 'Añadir otra foto o PDF' : 'Añadir foto o PDF'}</button>` : ''}
+      ${!filas && !rol ? '<div class="muted" style="font-size:13px">Vacío</div>' : ''}</div>`;
+  });
+  const docs = misDocs().filter(d => !d.rol);
+  h += `<div class="det-sec">Otros documentos</div><div class="card">
+    ${docs.map(d => filaDoc(d, true)).join('') || '<div class="muted" style="font-size:14px;padding-bottom:4px">Seguro de viaje, guía para viajeros… Los que pongas para «todos los viajes» o para un país aparecen solos en la ficha de esos viajes.</div>'}
     <button class="btn primario" id="mdAñadir">＋ Añadir documento</button></div>`;
   h += `<div class="det-sec">Seguridad</div><div class="card"><div class="muted" style="font-size:13px;margin-bottom:8px">${bloqueoActivo() ? '🔒 En este dispositivo, Mis documentos y los documentos privados piden Face ID.' : 'Puedes pedir Face ID (o huella / Windows Hello) para abrir Mis documentos y los documentos marcados como privados. Se activa en cada dispositivo.'}</div>
     ${bloqueoActivo() ? '<button class="btn secundario" id="mdQuitarBloqueo">Quitar Face ID en este dispositivo</button>' : '<button class="btn primario" id="mdActivarBloqueo">🔒 Activar Face ID</button>'}</div>`;
   box.innerHTML = h;
 }
 function guardarPersonal() {
-  const o = {};
-  CAMPOS_PERS.forEach(([k]) => { const x = $('#pe_' + k).value.trim(); if (x) o[k] = x; });
+  const o = { ...((S.aju && S.aju.personal) || {}) };
+  const g = GRUPOS_PERS.find(x => x[0] === S.persEdit);
+  (g ? g[2] : []).forEach(([k]) => { const el = $('#pe_' + k); if (!el) return; const x = el.value.trim(); if (x) o[k] = x; else delete o[k]; });
   S.aju = { ...S.aju, personal: o }; S.persEdit = false; guardar(); renderMisDocs(); toast('✅ Datos guardados');
 }
 function editarDocGen(d) {
@@ -2628,6 +2726,7 @@ function editarDocGen(d) {
   const amb = d.ambito || 'todos';
   $('#docGenBox').innerHTML = `<div class="modal-head"><button class="pill-btn" id="dgCancelar">Cancelar</button><h2>Documento</h2><button class="pill-btn" id="dgGuardar" style="font-weight:700">Guardar</button></div>
     <div class="campo"><label>Nombre</label><input id="dgNombre" value="${esc((d.nombre || '').replace(/\.[a-z0-9]{2,5}$/i, ''))}"></div>
+    <div class="campo"><label>Es…</label><select id="dgRol" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="">Otro documento</option><option value="pasaporte"${d.rol === 'pasaporte' ? ' selected' : ''}>El pasaporte</option><option value="dni"${d.rol === 'dni' ? ' selected' : ''}>El DNI</option></select></div>
     <div class="campo"><label>Aparece en</label><select id="dgAmbito" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)">
       <option value="todos"${amb === 'todos' ? ' selected' : ''}>Todos los viajes</option><option value="ninguno"${amb === 'ninguno' ? ' selected' : ''}>Ningún viaje (solo en Mis documentos)</option>
       <optgroup label="Solo viajes a…">${paises.map(x => `<option${amb === x ? ' selected' : ''}>${esc(x)}</option>`).join('')}</optgroup></select></div>
@@ -2642,6 +2741,7 @@ function editarDocGen(d) {
   $('#dgGuardar').onclick = () => {
     const ext = (d.nombre.match(/\.[a-z0-9]{2,5}$/i) || [''])[0];
     const meta = { ...d, nombre: ($('#dgNombre').value.trim() || 'Documento') + ext, ambito: $('#dgAmbito').value, privado: !!$('#dgPrivado [data-priv="1"].on') };
+    if ($('#dgRol').value) meta.rol = $('#dgRol').value; else delete meta.rol;
     const de = $('#dgDesde').value, ha = $('#dgHasta').value;
     if (de) meta.desde = de; else delete meta.desde;
     if (ha) meta.hasta = ha; else delete meta.hasta;
@@ -2673,10 +2773,11 @@ function iniciarMisDocs() {
     if (t.id === 'mdDesbloquear') { if (await desbloquear()) renderMisDocs(); return; }
     if (t.id === 'mdActivarBloqueo') return activarBloqueo();
     if (t.id === 'mdQuitarBloqueo') return quitarBloqueo();
-    if (t.id === 'peEditar') { S.persEdit = true; return renderMisDocs(); }
+    const pe = t.closest('[data-pe-editar]'); if (pe) { S.persEdit = pe.dataset.peEditar; return renderMisDocs(); }
+    const ar = t.closest('[data-add-rol]'); if (ar) { N.subirA = MIOS; N.subirRol = ar.dataset.addRol; return $('#fileDocs').click(); }
     if (t.id === 'peCancelar') { S.persEdit = false; return renderMisDocs(); }
     if (t.id === 'peGuardar') return guardarPersonal();
-    if (t.id === 'mdAñadir') { N.subirA = MIOS; return $('#fileDocs').click(); }
+    if (t.id === 'mdAñadir') { N.subirA = MIOS; N.subirRol = null; return $('#fileDocs').click(); }
     const cp = t.closest('[data-copiar-pers]'); if (cp) { navigator.clipboard?.writeText(cp.dataset.copiarPers).then(() => toast('📋 Copiado'), () => {}); return; }
     const ed = t.closest('[data-gen-editar]'); if (ed) { e.stopPropagation(); return editarDocGen(S.docs.find(d => d.id === ed.dataset.genEditar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
@@ -2963,7 +3064,7 @@ function iniciarDetalle() {
     const fs = [...e.target.files]; e.target.value = '';
     const destino = N.subirA; N.subirA = null;
     if (!fs.length) return;
-    if (destino === MIOS) { const nuevos = await subirArchivos(MIOS, fs, { ambito: 'todos', privado: false }); if (nuevos && nuevos.length === 1) editarDocGen(nuevos[0]); return; }
+    if (destino === MIOS) { const rol = N.subirRol; N.subirRol = null; const nuevos = await subirArchivos(MIOS, fs, { ambito: 'todos', privado: !!rol, ...(rol ? { rol } : {}) }); if (nuevos && nuevos.length === 1 && !rol) editarDocGen(nuevos[0]); return; }
     if (S.detalle) subirDocs(S.detalle, fs);
   };
   // Arrastrar archivos (PC)
@@ -3202,6 +3303,44 @@ function preguntar(texto, botones) {
   });
 }
 let toastT;
+// ---- Ayuda: pantalla propia con buscador ----
+function abrirAyuda() {
+  const b = $('#ayudaBuscar'); b.value = ''; filtrarAyuda('');
+  $('#modalAyuda').classList.add('on');
+}
+function filtrarAyuda(q) {
+  const nq = sinAcentos(q.trim());
+  const secs = [...document.querySelectorAll('#modalAyuda .ayuda details')];
+  let n = 0;
+  secs.forEach(d => {
+    const c = d.querySelector('.cont');
+    if (!c.dataset.orig) c.dataset.orig = c.innerHTML;
+    c.innerHTML = c.dataset.orig;
+    if (!nq) { d.style.display = ''; d.open = false; return; }
+    const hit = sinAcentos(d.textContent).includes(nq);
+    d.style.display = hit ? '' : 'none'; d.open = hit;
+    if (!hit) return;
+    n++;
+    const w = document.createTreeWalker(c, NodeFilter.SHOW_TEXT), nodos = [];
+    while (w.nextNode()) nodos.push(w.currentNode);
+    nodos.forEach(t => {
+      const raw = t.nodeValue, norm = sinAcentos(raw);
+      if (norm.length !== raw.length || !norm.includes(nq)) return;
+      const f = document.createDocumentFragment(); let i = 0, k;
+      while ((k = norm.indexOf(nq, i)) >= 0) {
+        f.append(raw.slice(i, k));
+        const m = document.createElement('mark'); m.textContent = raw.slice(k, k + nq.length); f.append(m);
+        i = k + nq.length;
+      }
+      f.append(raw.slice(i)); t.replaceWith(f);
+    });
+  });
+  $('#ayudaRes').textContent = nq ? (n ? `${plural(n, 'sección', 'secciones')} con «${q.trim()}»` : `No hay nada sobre «${q.trim()}». Prueba con otra palabra.`) : '';
+}
+function iniciarAyuda() {
+  $('#ayudaBuscar').addEventListener('input', e => filtrarAyuda(e.target.value));
+  $('#ayudaCerrar').onclick = () => $('#modalAyuda').classList.remove('on');
+}
 function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2000); }
 
 function irTab(t) {
@@ -3261,6 +3400,7 @@ function eventos() {
     const ee = e.target.closest('[data-emp-edit]'); if (ee) return empezarEdicion(+ee.dataset.empEdit);
     if (e.target.id === 'btnAñadirAño') return añadirAño();
     const md = e.target.closest('#segVia [data-modo]'); if (md) { S.modoVia = md.dataset.modo; return renderViajes(); }
+    const rk = e.target.closest('[data-rank]'); if (rk && !e.target.closest('#dialogo')) return abrirRanking(rk.dataset.rank);
     const rc = e.target.closest('[data-rec-cliente]'); if (rc) { const c = rc.dataset.recCliente, pl = rc.dataset.recPlanta; return pl ? listaCliente(c + ' ' + pl, S.viajes.filter(v => v.cliente === c && v.planta === pl)) : listaCliente(c); }
     const ia = e.target.closest('[data-ir-año]'); if (ia) { S.año = +ia.dataset.irAño; S.modoVia = 'año'; renderViajes(); return window.scrollTo(0, 0); }
     const vp = e.target.closest('[data-ver-pais]');
@@ -3299,7 +3439,7 @@ function eventos() {
     if (e.target.id === 'bolsaEditar') { S.bolsaEdit = true; return renderVacaciones(); }
     if (e.target.id === 'bolsaListo') { S.bolsaEdit = false; S.bolsaAbierta = true; toast('✅ Bolsa guardada'); return renderVacaciones(); }
     if (e.target.closest('#bolsaCard')) { S.bolsaAbierta = !S.bolsaAbierta; return renderVacaciones(); }
-    if (e.target.id === 'irAyuda') return $('#ayudaTit').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    if (e.target.id === 'irAyuda' || e.target.closest('[data-abrir-ayuda]')) return abrirAyuda();
     const cb = e.target.closest('[data-crear-bolsa]');
     if (cb) {
       const a = +cb.dataset.crearBolsa, ant = bolsa(a - 1);
@@ -3368,7 +3508,7 @@ function eventos() {
   escribir('version-vista', VERSION);
   iniciarDetalle();
   iniciarMisDocs();
-  iniciarClientes(); iniciarBuscaCliente();
+  iniciarClientes(); iniciarBuscaCliente(); iniciarAyuda();
   // Tocar la opción activa invierte el orden (Días ↓/↑, Nombre A–Z/Z–A)
   $('#mapOrden').onclick = e => { const b = e.target.closest('[data-orden]'); if (!b) return; if ((S.mapOrden || 'dias') === b.dataset.orden) S.mapAsc = !S.mapAsc; else { S.mapOrden = b.dataset.orden; S.mapAsc = false; } pintarListaPaises(); };
   $('#mapBuscar').addEventListener('input', pintarListaPaises);
