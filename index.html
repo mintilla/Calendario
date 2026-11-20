@@ -861,7 +861,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.5';
+const VERSION = 'v8.6';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2981,7 +2981,7 @@ function clientesConteo(soloClientes) {
 function renderClientes() {
   const lista = clientesConteo(true);
   if (S.aju.clientesAntes) { delete S.aju.clientesAntes; guardar(); }
-  let h = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cliToggle"><span>${plural(lista.length, 'cliente')} en tus viajes</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.cliAbierto ? 'Ocultar' : 'Ver y renombrar ›'}</span></div>`;
+  let h = `<div style="display:flex;justify-content:space-between;align-items:center;cursor:pointer" id="cliToggle"><span>${(() => { const n = new Set(S.viajes.filter(v => esCliente(v)).map(nombreCliente)).size; return n === lista.length ? plural(n, 'cliente') : `${plural(n, 'cliente')} <span class="muted" style="font-size:13px">en ${plural(lista.length, 'grupo')}</span>`; })()}</span><span style="color:var(--accent);font-weight:600;font-size:14px">${S.cliAbierto ? 'Ocultar' : 'Ver y renombrar ›'}</span></div>`;
   if (S.cliAbierto) h += `<div class="muted" style="font-size:12px;margin:8px 0 2px">Toca un cliente para ver sus viajes. Con ✏️ cambias el nombre del grupo en todos sus viajes; si pones el de otro que ya existe, se juntan. La planta se cambia en ✏️ Editar viaje.</div>
     <div style="margin-top:4px">${lista.map(([c, n]) => `<div class="rec-f" data-cli-ver="${esc(c)}" style="cursor:pointer;padding:9px 0"><div style="flex:1;min-width:0"><div class="t" style="font-size:14px">${esc(c)}</div><div class="s">${(() => { const k = new Set(S.viajes.filter(v => v.cliente === c && v.planta).map(v => v.planta)).size; return k ? plural(k, 'planta') + ' · ' : ''; })()}${plural(n, 'viaje')}</div></div><button class="pill-btn" data-cli="${esc(c)}" aria-label="Cambiar nombre" style="padding:0 10px">✏️</button></div>`).join('')}</div>`;
   const otros = Object.keys(TIPOS_VIAJE).map(t => [t, S.viajes.filter(v => tipoDe(v) === t)]).filter(([, l]) => l.length);
