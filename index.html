@@ -707,17 +707,26 @@ input,select,textarea{font-size:16px !important}
       <ul>
         <li>En la ficha del viaje, <b>📥 Importar correo de la gestora</b>: elige el correo como <b>.eml</b>, <b>.msg</b> (Outlook) o <b>PDF</b>; puedes elegir varios a la vez. En el PC también puedes <b>arrastrarlo desde Outlook</b> y soltarlo en la ficha.</li>
         <li>Saca el <b>ID del viaje</b> (del asunto, «ID.6450»), la <b>orden de servicio</b> si viene en el asunto, los <b>vuelos</b>, el <b>coche</b>, el <b>hotel</b>, el nº de <b>eTA</b>, la dirección del cliente, los teléfonos y los <b>PDF adjuntos</b>.</li>
+        <li>El <b>hotel</b> se guarda con sus noches (de la llegada del vuelo de ida a la salida del de vuelta). En la dirección del cliente corrige el código postal de Canadá (J0K con cero). Los teléfonos de frases largas quedan resumidos, p. ej. «Transervice (traslados aeropuerto) · 948 188 888».</li>
         <li>Antes de guardar te enseña una <b>lista con todo marcado</b>: desmarca lo que no esté bien o no quieras y pulsa <b>Guardar lo marcado</b>. Sale sin marcar lo que ya tienes guardado (en Mis documentos u otro viaje), el logotipo de la firma y lo que desmarcaste la otra vez. Con <b>📂 Guardar en Mis documentos</b> un adjunto general (seguro, guía…) va a Mis documentos para todos los viajes, en vez de a este viaje.</li>
         <li><b>Desde el iPhone:</b> en Mail, mantén pulsado el correo y suéltalo en la app <b>Archivos</b> (crea una carpeta «Correos viajes»); luego impórtalo. O pega el texto en ✏️ Editar · pegar correo, con el <b>asunto en la primera línea</b>.</li>
         <li><b>Desde Outlook en el PC:</b> arrástralo a la ficha; si no deja, arrástralo al escritorio y luego impórtalo.</li>
       </ul>
     </div></details>
-    <details><summary>🧾 Orden de servicio, ID del viaje y clase de actividad</summary><div class="cont">
+    <details><summary>🧾 ID del viaje, orden de servicio y clase de actividad</summary><div class="cont">
       <ul>
-        <li>En ✏️ Editar viaje: <b>Orden de servicio</b> (para imputar horas; en Captio es el proyecto) e <b>ID del viaje</b> (para el informe de gastos en Captio).</li>
-        <li>Salen en la lista de viajes (la OS), en la tarjeta de Hoy cuando estás de viaje, en la ventana del día y arriba de la ficha, junto con la <b>Clase de actividad</b> (ZTTAI). <b>Toca cualquiera para copiarlo.</b></li>
+        <li>En ✏️ Editar viaje: <b>ID del viaje</b> (para el informe de gastos en Captio) y <b>Orden de servicio</b> (para imputar horas; en Captio es el proyecto). Al importar el correo de la gestora se rellenan solos.</li>
+        <li>Salen, primero el ID y luego la OS, en la lista de viajes, en la tarjeta de Hoy cuando estás de viaje, en la ventana del día y arriba de la ficha, junto con la <b>Clase de actividad</b> (ZTTAI). <b>Toca cualquiera para copiarlo.</b></li>
         <li>En los viajes futuros, si falta alguno sale en naranja «Falta OS» o «Falta ID».</li>
         <li>La clase de actividad se cambia en Ajustes → Imputar horas y gastos.</li>
+      </ul>
+    </div></details>
+    <details><summary>💶 Gastos en Captio</summary><div class="cont">
+      <ul>
+        <li><b>Nombre del informe</b> = el <b>ID del viaje</b> (p. ej. 6450).</li>
+        <li><b>Proyecto</b> = la <b>orden de servicio</b> (p. ej. 2000761).</li>
+        <li>Los dos salen arriba de la ficha del viaje y en la lista de viajes: <b>toca el chip para copiarlo</b> y pégalo en Captio.</li>
+        <li>Para <b>imputar horas</b>: la orden de servicio con la <b>clase de actividad</b> (ZTTAI).</li>
       </ul>
     </div></details>
     <details><summary>🔒 Mis documentos</summary><div class="cont">
@@ -774,8 +783,8 @@ input,select,textarea{font-size:16px !important}
     <div class="campo"><label>Tipo de viaje</label><select id="fTipo" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)"><option value="cliente">Cliente</option><option value="feria">Feria</option><option value="comercial">Comercial</option><option value="interno">Interno (MTorres)</option></select></div>
     <div class="campo"><label id="fClienteLbl">Cliente</label><div class="busca"><input id="fCliente" placeholder="Ej: Tetra Pak, Zidan…" autocomplete="off"><div class="sugs" id="sugCliente"></div></div></div>
     <div class="campo" id="campoPlanta"><label>Planta <span class="muted" style="font-weight:500">(opcional)</span></label><input id="fPlanta" placeholder="Ej: Limburg" autocomplete="off"><div class="muted" style="font-size:12px;margin-top:4px">Si el cliente tiene varias fábricas</div><div class="chips-planta" id="chipsPlanta"></div></div>
-    <div class="campo-doble"><div class="campo"><label>Orden de servicio</label><input id="fOS" inputmode="numeric" placeholder="Ej: 2000761" autocomplete="off" maxlength="12"></div>
-      <div class="campo"><label>ID del viaje</label><input id="fIdViaje" inputmode="numeric" placeholder="Ej: 6450" autocomplete="off" maxlength="10"></div></div>
+    <div class="campo-doble"><div class="campo"><label>ID del viaje</label><input id="fIdViaje" inputmode="numeric" placeholder="Ej: 6450" autocomplete="off" maxlength="10"></div>
+      <div class="campo"><label>Orden de servicio</label><input id="fOS" inputmode="numeric" placeholder="Ej: 2000761" autocomplete="off" maxlength="12"></div></div>
     <div class="fechas">
       <div class="campo"><label>Ida</label><input type="date" id="fIni"></div>
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
@@ -925,7 +934,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.3';
+const VERSION = 'v9.4';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1095,14 +1104,13 @@ agrupar(document.getElementById('tab-aju'));
 // Números para imputar horas y hacer los gastos (Captio): orden de servicio, ID del viaje y clase de actividad
 const claseAct = () => (S.aju && S.aju.claseAct) || 'ZTTAI';
 function chipsImputar(v, todo) {
+  // Primero el ID del viaje y luego la OS (en todas partes)
   const futuro = v.fechaFin >= HOY, out = [];
+  if (v.idViaje) out.push(`<span class="chip-cp" data-copiar="${esc(v.idViaje)}">ID <b>${esc(v.idViaje)}</b></span>`);
+  else if (futuro) out.push('<span class="chip-falta">Falta ID</span>');
   if (v.os) out.push(`<span class="chip-cp" data-copiar="${esc(v.os)}">OS <b>${esc(v.os)}</b></span>`);
   else if (futuro) out.push('<span class="chip-falta">Falta OS</span>');
-  if (todo) {
-    if (v.idViaje) out.push(`<span class="chip-cp" data-copiar="${esc(v.idViaje)}">ID <b>${esc(v.idViaje)}</b></span>`);
-    else if (futuro) out.push('<span class="chip-falta">Falta ID</span>');
-    if (v.os || v.idViaje || futuro) out.push(`<span class="chip-cp" data-copiar="${esc(claseAct())}">Clase de actividad <b>${esc(claseAct())}</b></span>`);
-  } else if (!v.idViaje && futuro && v.os) out.push('<span class="chip-falta">Falta ID</span>');
+  if (todo && (v.os || v.idViaje || futuro)) out.push(`<span class="chip-cp" data-copiar="${esc(claseAct())}">Clase de actividad <b>${esc(claseAct())}</b></span>`);
   return out.length ? `<div class="chips-imp">${out.join('')}</div>` : '';
 }
 // El cliente de un viaje es el grupo (v.cliente) más la planta (v.planta), si la hay
