@@ -372,6 +372,21 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hr-t{display:flex;justify-content:space-between;align-items:center;font-weight:700;font-size:14px;margin-bottom:4px}
 .hr-ed{font-size:13px}.hr-hor{font-size:12px;font-weight:600;color:var(--accent);cursor:pointer}
 .hr-f{display:flex;justify-content:space-between;gap:8px;font-size:14px;padding:4px 0}
+.pt-lista{padding:0 10px}
+.pt-dia{display:flex;align-items:center;gap:12px;padding:12px 4px;border-bottom:1px solid var(--line);cursor:pointer}
+.pt-dia.fijo{cursor:default}.pt-dia:last-child{border-bottom:none}
+.pt-dia.ab{background:color-mix(in srgb,var(--accent) 8%,transparent);border-radius:12px;border-bottom:none}
+.pt-fecha{width:44px;flex-shrink:0;text-align:center;line-height:1.05}
+.pt-fecha b{display:block;font-size:22px}.pt-fecha span{font-size:12px;color:var(--muted);text-transform:uppercase;font-weight:700}
+.pt-dia.fes .pt-fecha b,.pt-dia.fes .pt-fecha span{color:#b45309}
+.pt-mid{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:15px}
+.pt-viaje{color:var(--viaje);font-weight:600}
+.pt-nota{font-size:12px;color:var(--muted)}
+.pt-ex{text-align:right;font-weight:800;font-size:16px;line-height:1.1;white-space:nowrap}
+.pt-ex small{display:block;font-size:11px;font-weight:600;color:var(--muted)}
+.pt-ex.cero{color:var(--muted);font-weight:600}
+.pt-dia.fes .pt-ex:not(.cero){color:#b45309}
+.pt-tramo{cursor:pointer}
 .hr-dia{cursor:pointer;border-bottom:1px solid var(--line)}
 .hr-dia.ab{border-bottom:none;font-weight:700}.hr-hh{font-weight:700}
 .hr-ed-dia{background:var(--soft);border-radius:12px;padding:10px;margin:2px 0 8px}
@@ -747,7 +762,7 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>⏱️ Horas del viaje (horas extra)</summary><div class="cont">
       <ul>
-        <li>En la ficha de cada viaje (Resumen), <b>⏱️ Horas del viaje</b>: toca para desplegar. Arriba ves las <b>horas extra laborables y festivas</b>.</li>
+        <li>En la ficha de cada viaje, pestaña <b>Horas</b>: arriba, las <b>horas extra laborables y festivas</b>; debajo, el <b>parte de horas</b> día a día (viaje, trabajo y extra de cada día). Mientras estás de viaje, la tarjeta de Hoy tiene un acceso directo «⏱️ Hoy: 8 h · cambiar».</li>
         <li><b>Ida y vuelta:</b> la app las propone a partir de los vuelos y de tus márgenes (Ajustes → Imputar horas y gastos: cuánto antes sales de casa, cuánto tardas en llegar, etc.). Toca la ida o la vuelta para ajustarlas; cada hora lleva su zona horaria.</li>
         <li><b>Días en destino:</b> se miden en <b>horas trabajadas</b> (sin la comida). Cada día laborable cuenta las horas de un día normal (8 h; toca «normal» para cambiarlo). Toca un día solo si fue distinto: <b>− ½ h / + ½ h</b>, o los atajos <b>Libre · 6 · 8 · 9 · 10 · 11 · 12 h</b>, y una nota si quieres. Puedes dejar puestos también los días que aún no han llegado.</li>
         <li><b>Criterio:</b> el viaje es un bloque continuo (art. 21.2 del convenio): 8 h trabajo, 8 h no computan, desde la hora 17 al 50 %. Cada hora va al día en que ocurre, con el reloj del país de salida. Lo de la hora 17 en adelante es extra; las 8 primeras, extra si es sábado, domingo o festivo, o si ese día ya pasabas de la jornada de 8 h.</li>
@@ -975,7 +990,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.6';
+const VERSION = 'v9.7';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1406,6 +1421,8 @@ function renderHoy() {
   if (vjHoy.length) {
     const v = vjHoy[0], q = diasEntre(HOY, v.fechaFin);
     lineas.push(`<span data-viaje="${v.id}" style="cursor:pointer;display:block">📎 <b>Ficha y documentos</b> del viaje ›</span>`);
+    if (tieneHoras(v)) { const dh = aLocal(Date.now(), tzDestino(v)).slice(0, 10), oh = ((v.horas && v.horas.dias) || {})[dh], hh = oh ? horasDia(oh) : (esDiaFestivo(dh) ? 0 : horario(v).h);
+      lineas.push(`<span data-hoy-horas="${v.id}" data-dia="${dh}" style="cursor:pointer;display:block">⏱️ Hoy: <b>${oh && oh.libre ? 'libre' : nTxt(hh)}</b> de trabajo · <u>cambiar</u></span>`); }
     const ci = chipsImputar(v, true); if (ci) lineas.push(`<div style="font-size:12px;opacity:.85">Para imputar y gastos (toca para copiar)</div>${ci}`);
     lineas.push(q === 0 ? '🏠 Vuelves <b>hoy</b>' : `🏠 Vuelves <b>${enDias(q)}</b> (${fechaDia(v.fechaFin)})`);
   }
@@ -3055,14 +3072,14 @@ function tramos(v) {
 const esDiaFestivo = d => esFinde(d) || tipo(d) === 'festivo';
 function calcHoras(v) {
   const tz = tzDestino(v), t = tramos(v), dias = {}, hor = horario(v), ov = (v.horas && v.horas.dias) || {};
-  const dia = d => dias[d] = dias[d] || { normal: 0, extra: 0, viaje: false };
+  const dia = d => dias[d] = dias[d] || { normal: 0, extra: 0, viaje: false, viajeMin: 0, trabajo: 0, enDestino: false };
   const infoTramos = [];
   ['ida', 'vuelta'].forEach(k => {
     const x = t[k]; if (!x || !x.sal || !x.lle) return;
     const a = deLocal(x.sal, x.salTz), b = deLocal(x.lle, x.lleTz), dur = Math.round((b - a) / 60000);
     if (dur <= 0 || dur > 4 * 1440) return;
     for (let i = 0; i < dur; i++) {
-      const d = aLocal(a + i * 60000, x.salTz).slice(0, 10), o = dia(d); o.viaje = true;
+      const d = aLocal(a + i * 60000, x.salTz).slice(0, 10), o = dia(d); o.viaje = true; o.viajeMin++;
       if (i < 480) o.normal += 1; else if (i >= 960) o.extra += 0.5;
     }
     infoTramos.push({ k, dur, h16: dur > 960 ? aLocal(a + 960 * 60000, x.salTz) : '', tz: x.salTz });
@@ -3073,7 +3090,8 @@ function calcHoras(v) {
     for (let d = d1; d <= d2; d = sumar(d, 1)) {
       const o = ov[d], extremo = d === d1 || d === d2;
       const hh = o ? horasDia(o) : (extremo || esDiaFestivo(d) ? 0 : hor.h);
-      if (hh > 0) dia(d).normal += hh * 60;
+      const od = dia(d); od.enDestino = true; od.extremo = extremo; od.cambiado = !!o; od.libre = hh === 0; od.nota = o && o.nota;
+      if (hh > 0) { od.normal += hh * 60; od.trabajo += hh * 60; }
     }
   }
   let lab = 0, fes = 0;
@@ -3081,52 +3099,60 @@ function calcHoras(v) {
     const o = dias[d], f = esDiaFestivo(d);
     const ex = f ? o.normal + o.extra : Math.max(0, o.normal - JORNADA_MIN) + o.extra;
     if (f) fes += ex; else lab += ex;
-    return { d, f, ex, total: o.normal + o.extra };
+    return { d, f, ex, total: o.normal + o.extra, ...o };
   });
   return { tz, t, infoTramos, desglose, lab: lab / 60, fes: fes / 60 };
 }
 const hTxt = min => { const h = min / 60; return (Math.round(h * 100) / 100).toString().replace('.', ',') + ' h'; };
 const nTxt = h => (Math.round(h * 100) / 100).toString().replace('.', ',') + ' h';
 const diaHora = (txt, tz) => txt ? `${DIAS[parse(txt.slice(0, 10)).getDay()].slice(0, 3)} ${+txt.slice(8, 10)} · ${txt.slice(11, 16)} <span class="muted">${esc(tzNombre(tz))}</span>` : '<span class="muted">sin poner</span>';
+const tieneHoras = v => v.fechaFin >= '2026-01-01' || !!v.horas;
+function editorDia(v, d, o, hh) {
+  return `<div class="hr-ed-dia">
+    <div class="hr-paso"><button data-hr-paso="-0.5">− ½ h</button><b>${o && o.libre ? 'Libre' : nTxt(hh)}</b><button data-hr-paso="0.5">+ ½ h</button></div>
+    <div class="hr-atajos">${['libre', 6, 8, 9, 10, 11, 12].map(x => `<button data-hr-pon="${x}" class="${(x === 'libre' && o && o.libre) || (o && !o.libre && +x === hh) ? 'on' : ''}">${x === 'libre' ? 'Libre' : x + ' h'}</button>`).join('')}</div>
+    <input class="hr-nota" data-hr-nota="${d}" placeholder="Nota: por qué, quién lo pidió…" value="${esc((o && o.nota) || '')}">
+    <div class="hr-ed-pie">${o ? '<button data-hr-normal="1">Volver a lo normal</button>' : '<span></span>'}<button data-hr-listo="1">Listo</button></div>
+  </div>`;
+}
+// Pestaña Horas: un parte de horas, un día por fila
 function htmlHoras(v) {
-  if (v.fechaFin < '2026-01-01' && !v.horas) return '';
   const c = calcHoras(v), tz = c.tz, hor = horario(v), ov = (v.horas && v.horas.dias) || {};
   const tramo = (k, ic, n) => {
     const x = c.t[k], inf = c.infoTramos.find(i => i.k === k);
-    return `<div class="hr-tramo" data-hr-tramo="${k}"><div class="hr-t">${ic} ${n}${inf ? ' · ' + hTxt(inf.dur) : ''}<span class="hr-ed">✏️</span></div>
+    return `<div class="card pt-tramo" data-hr-tramo="${k}"><div class="hr-t">${ic} ${n}${inf ? ' · ' + hTxt(inf.dur) : ''}<span class="hr-ed">✏️</span></div>
       <div class="hr-f"><span>${k === 'ida' ? 'Salida de casa' : 'Salida del hotel'}</span><span>${x ? diaHora(x.sal, x.salTz) : '<span class="muted">sin poner</span>'}</span></div>
       <div class="hr-f"><span>${k === 'ida' ? 'Llegada al hotel' : 'Llegada a casa'}</span><span>${x ? diaHora(x.lle, x.lleTz) : '<span class="muted">sin poner</span>'}</span></div>
       ${x && x.propuesta ? '<div class="muted hr-n">Propuesta a partir de los vuelos y tus márgenes. Toca para ajustar.</div>' : ''}
       ${inf && inf.h16 ? `<div class="muted hr-n">La hora 17 empieza el ${diaHora(inf.h16, inf.tz)}</div>` : ''}</div>`;
   };
-  let dias = '';
-  if (c.t.ida && c.t.ida.lle && c.t.vuelta && c.t.vuelta.sal) {
-    const d1 = aLocal(deLocal(c.t.ida.lle, c.t.ida.lleTz), tz).slice(0, 10), d2 = aLocal(deLocal(c.t.vuelta.sal, c.t.vuelta.salTz), tz).slice(0, 10);
-    for (let d = d1; d <= d2; d = sumar(d, 1)) {
-      const o = ov[d], extremo = d === d1 || d === d2, f = esDiaFestivo(d);
-      const hh = o ? horasDia(o) : (extremo || f ? 0 : hor.h);
-      const txt = o ? (o.libre ? 'libre' : nTxt(hh)) : extremo ? (d === d1 ? 'llegada' : 'salida') : f ? 'libre' : nTxt(hh);
-      const ab = S.hrDia === d;
-      dias += `<div class="hr-f hr-dia${ab ? ' ab' : ''}" data-hr-dia="${d}"><span>${DIAS[parse(d).getDay()].slice(0, 3)} ${+d.slice(8)}${f ? ' <span class="hr-tag fes">festivo</span>' : ''}${o ? ' <span class="hr-tag">cambiado</span>' : ''}</span><span class="${o ? 'hr-hh' : 'muted'}">${txt}${o && o.nota ? ' 📝' : ''} ›</span></div>`;
-      if (ab) dias += `<div class="hr-ed-dia">
-        <div class="hr-paso"><button data-hr-paso="-0.5">− ½ h</button><b>${o && o.libre ? 'Libre' : nTxt(hh)}</b><button data-hr-paso="0.5">+ ½ h</button></div>
-        <div class="hr-atajos">${['libre', 6, 8, 9, 10, 11, 12].map(x => `<button data-hr-pon="${x}" class="${(x === 'libre' && o && o.libre) || (o && !o.libre && +x === hh) ? 'on' : ''}">${x === 'libre' ? 'Libre' : x + ' h'}</button>`).join('')}</div>
-        <input class="hr-nota" data-hr-nota="${d}" placeholder="Nota: por qué, quién lo pidió…" value="${esc((o && o.nota) || '')}">
-        <div class="hr-ed-pie">${o ? '<button data-hr-normal="1">Volver a lo normal</button>' : '<span></span>'}<button data-hr-listo="1">Listo</button></div>
+  const ds = c.desglose;
+  let filas = '';
+  if (ds.length) {
+    const map = Object.fromEntries(ds.map(x => [x.d, x]));
+    for (let d = ds[0].d; d <= ds[ds.length - 1].d; d = sumar(d, 1)) {
+      const x = map[d] || { d, f: esDiaFestivo(d), ex: 0 }, o = ov[d], ab = S.hrDia === d, edit = x.enDestino;
+      const hh = o ? horasDia(o) : (x.trabajo || 0) / 60;
+      const lin = [];
+      if (x.viajeMin) lin.push(`<span class="pt-viaje">✈️ Viaje ${hTxt(x.viajeMin)}</span>`);
+      if (x.trabajo) lin.push(`<span>🏭 Trabajo <b>${hTxt(x.trabajo)}</b>${x.cambiado ? '' : ' <span class="muted">(normal)</span>'}</span>`);
+      else if (edit && !x.viajeMin) lin.push('<span class="muted">Libre</span>');
+      else if (edit && x.extremo) lin.push(`<span class="muted">${x.cambiado ? 'Sin trabajo' : 'Sin trabajo · toca si trabajaste'}</span>`);
+      if (!lin.length) lin.push('<span class="muted">—</span>');
+      filas += `<div class="pt-dia${x.f ? ' fes' : ''}${ab ? ' ab' : ''}${edit ? '' : ' fijo'}"${edit ? ` data-hr-dia="${d}"` : ''}>
+        <div class="pt-fecha"><b>${+d.slice(8)}</b><span>${DIAS[parse(d).getDay()].slice(0, 3)}</span></div>
+        <div class="pt-mid">${lin.join('')}${(x.nota || (o && o.nota)) ? `<span class="pt-nota">📝 ${esc((o && o.nota) || x.nota)}</span>` : ''}</div>
+        <div class="pt-ex${x.ex ? '' : ' cero'}">${x.ex ? '+' + hTxt(x.ex) : '0 h'}<small>${x.ex ? (x.f ? 'festiva' : 'extra') : 'extra'}</small></div>
       </div>`;
+      if (ab && edit) filas += editorDia(v, d, o, hh);
     }
   }
-  const des = c.desglose.filter(x => x.ex > 0).map(x => `<div class="hr-f"><span>${DIAS[parse(x.d).getDay()].slice(0, 3)} ${+x.d.slice(8)} ${MESES[+x.d.slice(5, 7) - 1].slice(0, 3)}</span><span>${hTxt(x.ex)} ${x.f ? '<span class="hr-tag fes">festiva</span>' : 'laborable'}</span></div>`).join('');
-  return `<details class="card hr-card"${S.horasAbiertas ? ' open' : ''}><summary><span>⏱️ Horas del viaje</span><span class="hr-sum">${c.lab || c.fes ? `<b>${nTxt(c.lab)}</b> lab · <b class="fes">${nTxt(c.fes)}</b> fest.` : '<span class="muted">sin datos</span>'}</span></summary>
-    <div class="hr-res"><div><div class="muted">Extra laborables</div><b>${nTxt(c.lab)}</b></div><div class="fes"><div>Extra festivas</div><b>${nTxt(c.fes)}</b></div></div>
+  return `<div class="hr-res"><div><div class="muted">Extra laborables</div><b>${nTxt(c.lab)}</b></div><div class="fes"><div>Extra festivas</div><b>${nTxt(c.fes)}</b></div></div>
     ${tramo('ida', '🛫', 'Ida')}
-    <div class="hr-tramo"><div class="hr-t">🏭 Días en destino<span class="hr-hor" data-hr-horario="1">normal: ${nTxt(hor.h)} al día ✏️</span></div>
-      ${dias || '<div class="muted hr-n">Pon la ida y la vuelta para ver los días.</div>'}
-      ${dias ? '<div class="muted hr-n">Toca un día solo si fue distinto (horas trabajadas, sin la comida). Zona: ' + esc(tzNombre(tz)) + '</div>' : ''}</div>
+    <div class="det-sec"><span>Parte de horas</span><button class="pill-btn" data-hr-horario="1">Día normal: ${nTxt(hor.h)} ✏️</button></div>
+    ${filas ? `<div class="card pt-lista">${filas}</div><div class="muted hr-n" style="margin:6px 4px 0">Toca un día para cambiar sus horas (trabajadas, sin la comida). Hora de ${esc(tzNombre(tz))}.</div>` : '<div class="card muted" style="font-size:14px">Pon la ida y la vuelta (o importa el correo con los vuelos) para ver los días.</div>'}
     ${tramo('vuelta', '🛬', 'Vuelta')}
-    ${des ? `<div class="hr-tramo"><div class="hr-t">Horas extra por día</div>${des}</div>` : ''}
-    <div class="muted hr-n">Criterio: el viaje es un bloque continuo (8 h trabajo · 8 no computan · desde la 17 al 50 %); cada hora va al día en que ocurre con el reloj del país de salida. Jornada: 8 h.</div>
-  </details>`;
+    <div class="muted hr-n" style="margin:4px">Criterio: el viaje es un bloque continuo (8 h trabajo · 8 no computan · desde la 17 al 50 %); cada hora va al día en que ocurre con el reloj del país de salida. Jornada: 8 h. Solo horas, sin euros.</div>`;
 }
 // Formulario genérico en el diálogo
 function formDialogo(tit, campos, extraBtn) {
@@ -3562,7 +3588,7 @@ function renderDetalle() {
   }
   const nRes = (v.vuelos || []).length + (v.reservas || []).length;
   const generales = misDocs().filter(d => aplicaA(d, v));
-  h += `<div class="seg" id="detTabs" style="margin-top:4px"><button data-dtab="r" class="${tab === 'r' ? 'on' : ''}">Resumen</button><button data-dtab="v" class="${tab === 'v' ? 'on' : ''}">Reservas${nRes ? ' ' + nRes : ''}</button><button data-dtab="d" class="${tab === 'd' ? 'on' : ''}">Docs${docs.length + generales.length ? ' ' + (docs.length + generales.length) : ''}</button></div>`;
+  h += `<div class="seg" id="detTabs" style="margin-top:4px"><button data-dtab="r" class="${tab === 'r' ? 'on' : ''}">Resumen</button><button data-dtab="v" class="${tab === 'v' ? 'on' : ''}">Reservas${nRes ? ' ' + nRes : ''}</button>${tieneHoras(v) ? `<button data-dtab="h" class="${tab === 'h' ? 'on' : ''}">Horas</button>` : ''}<button data-dtab="d" class="${tab === 'd' ? 'on' : ''}">Docs${docs.length + generales.length ? ' ' + (docs.length + generales.length) : ''}</button></div>`;
 
   if (tab === 'r') {
     const ahora = ahoraIso();
@@ -3585,11 +3611,12 @@ function renderDetalle() {
     const av = avisosViaje(v);
     if (av.length) h += `<div class="card aviso-card">${av.map(a => `<div>⚠️ ${a}</div>`).join('')}</div>`;
     const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
-    h += htmlHoras(v);
     h += `<button class="btn secundario" id="fiImportar" style="margin:10px 0 0">📥 Importar correo de la gestora</button><div class="muted" style="font-size:12px;text-align:center;margin:4px 0 0">.eml, .msg o PDF · en el PC también puedes arrastrarlo aquí desde Outlook</div>`;
     h += `<div class="det-sec"><span>Datos del viaje</span><button class="pill-btn" id="fiEditar">${filas || info.correo ? '✏️ Editar · pegar correo' : '＋ Pegar correo'}</button></div>
       <div class="card">${filas || '<div class="muted" style="font-size:14px">Pega el correo de la gestora y se rellenan solos el cliente, la orden SAP, los teléfonos y el hotel. También puedes escribir tus notas.</div>'}</div>`;
     if (info.correo) h += `<div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)">✉️ Ver correo de la gestora</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
+  } else if (tab === 'h') {
+    h += htmlHoras(v);
   } else if (tab === 'v') {
     h += htmlReservas(v);
   } else {
@@ -3644,7 +3671,6 @@ function iniciarDetalle() {
       return toast(n ? `✨ ${n} ${n === 1 ? 'dato encontrado' : 'datos encontrados'}${r.hotel ? ' (hotel incluido)' : ''}: revisa y guarda` : 'No he encontrado datos conocidos; escríbelos a mano');
     }
     if (t.id === 'fiImportar') { N.subirA = 'correo'; return $('#fileDocs').click(); }
-    if (t.closest('.hr-card > summary')) { setTimeout(() => S.horasAbiertas = !!$('.hr-card')?.open, 0); return; }
     const hrT = t.closest('[data-hr-tramo]'); if (hrT) return editarTramo(v, hrT.dataset.hrTramo);
     const hrD = t.closest('[data-hr-dia]'); if (hrD) { S.hrDia = S.hrDia === hrD.dataset.hrDia ? null : hrD.dataset.hrDia; return render(); }
     if (S.hrDia && t.closest('.hr-ed-dia')) {
@@ -4044,6 +4070,7 @@ function eventos() {
     const ee = e.target.closest('[data-emp-edit]'); if (ee) return empezarEdicion(+ee.dataset.empEdit);
     if (e.target.id === 'btnAñadirAño') return añadirAño();
     const md = e.target.closest('#segVia [data-modo]'); if (md) { S.modoVia = md.dataset.modo; return renderViajes(); }
+    const hy = e.target.closest('[data-hoy-horas]'); if (hy) { abrirDetalle(hy.dataset.hoyHoras); S.detTab = 'h'; S.hrDia = hy.dataset.dia; renderDetalle(); setTimeout(() => document.querySelector('.pt-dia.ab')?.scrollIntoView({ block: 'center' }), 50); return; }
     const rk = e.target.closest('[data-rank]'); if (rk && !e.target.closest('#dialogo')) return abrirRanking(rk.dataset.rank);
     const rc = e.target.closest('[data-rec-cliente]'); if (rc) { const c = rc.dataset.recCliente, pl = rc.dataset.recPlanta; return pl ? listaCliente(c + ' ' + pl, S.viajes.filter(v => v.cliente === c && v.planta === pl)) : listaCliente(c); }
     const ia = e.target.closest('[data-ir-año]'); if (ia) { S.año = +ia.dataset.irAño; S.modoVia = 'año'; renderViajes(); return window.scrollTo(0, 0); }
