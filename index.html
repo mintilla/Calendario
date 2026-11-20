@@ -661,6 +661,7 @@ input,select,textarea{font-size:16px !important}
     <details><summary>✈️ Viajes y 🌍 Mapa</summary><div class="cont">
       <ul>
         <li><b>Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ver el ranking completo, del primero al último), en qué meses viajas más (tócalo para el ranking de meses) y cuántos vuelos llevas.</li>
+        <li><b>Viajes y visitas:</b> cada cliente es una visita; las visitas pegadas (una empieza el día siguiente de acabar la otra, o se solapan) cuentan como <b>un solo viaje</b>, aunque cambie el cliente o el país. Así salen el viaje más largo, el número de viajes y la estimación de vuelos.</li>
         <li><b>Países y continentes:</b> países visitados cuenta todos (España, trabajo y ocio). Continentes: 7, con Norte y Sudamérica por separado; toca el número para ver cuáles y sus países.</li>
         <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
         <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> es sin España; <b>países visitados</b> cuenta todos: España, los de trabajo y los marcados como ocio.</li>
@@ -883,7 +884,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.8';
+const VERSION = 'v8.9';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1578,7 +1579,7 @@ function minutosDur(s) {
 function htmlRecords(porAño) {
   if (!S.viajes.length) return '';
   const dur = v => diasEntre(v.fechaInicio, v.fechaFin) + 1;
-  const largo = S.viajes.reduce((a, v) => dur(v) > dur(a) ? v : a);
+  const reales = viajesReales(), largo = reales.reduce((a, r) => r.dias > a.dias ? r : a);
   const nPais = {}, dCli = {}, meses = Array(12).fill(0);
   S.viajes.forEach(v => {
     if (v.pais !== PAIS_CASA) nPais[v.pais] = (nPais[v.pais] || 0) + 1;
@@ -1592,14 +1593,14 @@ function htmlRecords(porAño) {
   const años = Object.entries(porAño).map(([y, s]) => [y, s.size]).sort((a, b) => b[1] - a[1]);
   const mx = Math.max(...meses, 1), iMax = meses.indexOf(mx);
   const orden = meses.map((n, i) => [i, n]).sort((a, b) => b[1] - a[1]);
-  const est = S.viajes.reduce((t, v) => t + (v.pais === PAIS_CASA ? 0 : EUROPA.has(v.pais) ? 2 : 4), 0);
+  const est = reales.reduce((t, r) => { const fuera = r.paises.filter(p => p !== PAIS_CASA); return t + (!fuera.length ? 0 : fuera.every(p => EUROPA.has(p)) ? 2 : 4); }, 0);
   const vuelos = S.viajes.flatMap(v => v.vuelos || []);
   const min = vuelos.reduce((t, f) => t + minutosDur(f.dur), 0);
   const aeros = new Set(vuelos.flatMap(f => [f.de, f.a]).filter(Boolean));
   const mesTxt = i => MESES[i];
   const fila = (ic, t, s, big, attr) => `<div class="rec-f"${attr ? ' ' + attr : ''}><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="t">${t}</div><div class="s">${s}</div></div><div class="big">${big}</div>${attr ? '<div class="chev">›</div>' : ''}</div>`;
   let h = `<div class="h-title">🏆 Récords desde ${años.length ? Math.min(...años.map(a => +a[0])) : ''}</div><div class="card" style="padding:2px 14px">`;
-  h += fila('⏱️', 'Viaje más largo', `${bandera(largo.pais)} ${esc(largo.pais)} · ${esc(nombreCliente(largo))} · ${MESES[+largo.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${largo.fechaInicio.slice(0, 4)}`, plural(dur(largo), 'día'), `data-rank="largo"`);
+  h += fila('⏱️', 'Viaje más largo', `${largo.paises.map(bandera).join('')} ${lugarReal(largo)} · ${clientesTxt(largo)} · ${MESES[+largo.a.slice(5, 7) - 1].slice(0, 3)} ${largo.a.slice(0, 4)}`, plural(largo.dias, 'día'), `data-rank="largo"`);
   if (paises.length) h += fila('🔁', 'País al que más has vuelto', `${bandera(paises[0][0])} ${esc(paises[0][0])}${paises[1] ? ` · luego ${esc(paises[1][0])} (${paises[1][1]})` : ''}${paises[2] ? ` y ${esc(paises[2][0])} (${paises[2][1]})` : ''}`, plural(paises[0][1], 'viaje'), `data-rank="pais"`);
   if (clis.length) h += fila('🏭', 'Cliente con más días', `${esc(clis[0][0])}${clis[1] ? ` · luego ${esc(clis[1][0])} (${clis[1][1]})` : ''}`, plural(clis[0][1], 'día'), `data-rank="cliente"`);
   if (años.length) h += fila('📆', 'Año con más días fuera', `${años[1] ? `Luego ${años[1][0]} (${años[1][1]})` : ''}${años[2] ? ` y ${años[2][0]} (${años[2][1]})` : ''}`, `${años[0][0]} · ${años[0][1]}`, `data-rank="año"`);
@@ -1608,11 +1609,24 @@ function htmlRecords(porAño) {
     <div class="rec-ml">${MESES_INI.map(m => `<span>${m}</span>`).join('')}</div>
     <div class="muted" style="font-size:13px;margin-top:8px">${cap(mesTxt(orden[0][0]))} es tu mes con más días fuera (${orden[0][1]}), seguido de ${mesTxt(orden[1][0])} (${orden[1][1]}). <span style="color:var(--accent);font-weight:600">Ver ranking ›</span></div></div>`;
   h += `<div class="h-title">Vuelos</div><div class="card" style="padding:2px 14px">
-    ${fila('✈️', 'Desde el principio, aproximado', '2 por viaje en Europa y 4 fuera de Europa (con escala)', '≈ ' + est.toLocaleString('es-ES'))}
+    ${fila('✈️', 'Desde el principio, aproximado', '2 por viaje en Europa y 4 fuera (con escala); clientes seguidos = un viaje', '≈ ' + est.toLocaleString('es-ES'))}
     ${fila('🛫', 'Registrados en la app', vuelos.length ? `${min ? Math.round(min / 60) + ' h en el aire · ' : ''}${plural(aeros.size, 'aeropuerto')}` : 'Se cuentan desde que subes los correos de la agencia', vuelos.length)}
     </div>`;
   return h;
 }
+// Viajes reales: registros pegados (se solapan o uno empieza al día siguiente de acabar el otro) son un mismo viaje
+function viajesReales(lista = S.viajes) {
+  const out = [];
+  [...lista].sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio) || a.fechaFin.localeCompare(b.fechaFin)).forEach(v => {
+    const u = out[out.length - 1];
+    if (u && v.fechaInicio <= sumar(u.b, 1)) { u.regs.push(v); if (v.fechaFin > u.b) u.b = v.fechaFin; }
+    else out.push({ a: v.fechaInicio, b: v.fechaFin, regs: [v] });
+  });
+  out.forEach(r => { r.dias = diasEntre(r.a, r.b) + 1; r.paises = [...new Set(r.regs.map(v => v.pais))]; r.clientes = [...new Set(r.regs.map(nombreCliente).filter(Boolean))]; });
+  return out;
+}
+const lugarReal = r => r.paises.length > 1 ? r.paises.map(esc).join(' + ') : esc(r.regs.length === 1 ? (r.regs[0].ciudadDestino || r.paises[0]) : r.paises[0]);
+const clientesTxt = r => r.clientes.length > 2 ? `${esc(r.clientes[0])}, ${esc(r.clientes[1])} y ${r.clientes.length - 2} más` : r.clientes.map(esc).join(' + ');
 // ---- Rankings (al tocar un récord) ----
 function filaRank(n, ic, t, sub, val, attr, subfila) {
   return `<div class="rec-f rank-f${subfila ? ' sub' : ''}" ${attr}><div class="rk">${n}</div>${ic ? `<div class="ic">${ic}</div>` : ''}<div style="flex:1;min-width:0"><div class="t">${t}</div>${sub ? `<div class="s">${sub}</div>` : ''}</div><div class="big">${val}</div></div>`;
@@ -1621,9 +1635,9 @@ function abrirRanking(tipo) {
   const dur = v => diasEntre(v.fechaInicio, v.fechaFin) + 1;
   let tit = '', sub = '', filas = '';
   if (tipo === 'largo') {
-    const vs = [...S.viajes].sort((a, b) => dur(b) - dur(a) || b.fechaInicio.localeCompare(a.fechaInicio));
-    tit = 'Viajes por duración'; sub = plural(vs.length, 'viaje');
-    filas = vs.map((v, i) => filaRank(i + 1, bandera(v.pais), esc(v.ciudadDestino || v.pais), `${esc(nombreCliente(v))} · ${MESES[+v.fechaInicio.slice(5, 7) - 1].slice(0, 3)} ${v.fechaInicio.slice(0, 4)}`, plural(dur(v), 'día'), `data-rk-viaje="${v.id}"`)).join('');
+    const rs = viajesReales().sort((a, b) => b.dias - a.dias || b.a.localeCompare(a.a));
+    tit = 'Viajes por duración'; sub = `${plural(rs.length, 'viaje')} · los clientes seguidos cuentan como un viaje`;
+    filas = rs.map((r, i) => filaRank(i + 1, r.paises.map(bandera).join(''), lugarReal(r), `${clientesTxt(r)} · ${MESES[+r.a.slice(5, 7) - 1].slice(0, 3)} ${r.a.slice(0, 4)}`, plural(r.dias, 'día'), r.regs.length === 1 ? `data-rk-viaje="${r.regs[0].id}"` : `data-rk-real="${r.a}"`)).join('');
   } else if (tipo === 'pais') {
     const st = statsPaises(), ps = Object.entries(st).filter(([p]) => p !== PAIS_CASA).sort((a, b) => b[1].viajes.length - a[1].viajes.length || b[1].dias.size - a[1].dias.size);
     tit = 'Países por número de viajes'; sub = plural(ps.length, 'país', 'países') + ' de trabajo (sin España)';
@@ -1663,6 +1677,7 @@ function abrirRanking(tipo) {
     e.stopPropagation();
     const t = e.target;
     const v = t.closest('[data-rk-viaje]'); if (v) { cerrar(); return abrirDetalle(v.dataset.rkViaje); }
+    const rr = t.closest('[data-rk-real]'); if (rr) { const r = viajesReales().find(x => x.a === rr.dataset.rkReal); return listaCliente(`${lugarReal(r)} · ${plural(r.dias, 'día')}`, r.regs); }
     const p = t.closest('[data-rk-pais]'); if (p) { cerrar(); S.paisSel = p.dataset.rkPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); centrarEnPais(S.paisSel); return; }
     const c = t.closest('[data-rk-cli]'); if (c) { const pl = c.dataset.rkPlanta, g = c.dataset.rkCli; return pl ? listaCliente(g + ' ' + pl, S.viajes.filter(x => x.cliente === g && x.planta === pl)) : listaCliente(g); }
     const y = t.closest('[data-rk-año]'); if (y) { cerrar(); S.año = +y.dataset.rkAño; S.modoVia = 'año'; if (S.tab !== 'via') irTab('via'); renderViajes(); return window.scrollTo(0, 0); }
@@ -1707,7 +1722,7 @@ function renderHistorico() {
     <div class="stats">
       <div class="stat"><b>${todos.size.toLocaleString('es-ES')}</b><span>días de viaje desde ${primerAño}</span></div>
       <div class="stat"><b>${fuera.size.toLocaleString('es-ES')}</b><span>días en el extranjero</span></div>
-      <div class="stat"><b>${S.viajes.length}</b><span>viajes</span></div>
+      <div class="stat"><b>${viajesReales().length}</b><span>viajes · ${S.viajes.length} visitas</span></div>
       <div class="stat"><b>${paisesVisitados(st).size}</b><span>países visitados</span></div>
       <div class="stat" data-rank="cont" style="cursor:pointer"><b>${Object.keys(continentesVisitados(st)).length} <span style="font-size:15px;color:var(--muted);display:inline">de 7</span></b><span>continentes ›</span></div>
       <div class="stat" data-rank="cliente" style="cursor:pointer"><b>${new Set(S.viajes.filter(esCliente).map(nombreCliente)).size}</b><span>clientes · en ${plural(new Set(S.viajes.filter(esCliente).map(v => v.cliente)).size, 'grupo')} ›</span></div>
@@ -1990,7 +2005,7 @@ function renderViajes() {
   $('#viaStats').innerHTML = `
     <div class="stat"><b>${todos.size}</b><span>días de viaje</span></div>
     <div class="stat"><b>${fuera.size}</b><span>días en el extranjero</span></div>
-    <div class="stat"><b>${lista.length}</b><span>viajes</span></div>
+    <div class="stat"><b>${viajesReales(lista).length}</b><span>viajes${viajesReales(lista).length !== lista.length ? ` · ${lista.length} visitas` : ''}</span></div>
     <div class="stat"><b>${paises.size}</b><span>países</span></div>`;
   $('#viaDesglose').innerHTML = barras('Por país', porPais) + barras('Por cliente', porCliente);
 
