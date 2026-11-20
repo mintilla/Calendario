@@ -599,7 +599,7 @@ input,select,textarea{font-size:16px !important}
       <p>Se abre en la <b>vista año</b>. Toca un mes para verlo en grande; el botón <b>Mes/Año</b> cambia de vista.</p>
       <ul>
         <li><b>Marcar:</b> en la vista mes toca un día y luego otro para elegir un rango. Abajo sale una hoja con <b>🏖️ Vacaciones</b> y <b>✈️ Viaje</b>.</li>
-        <li><b>Vacaciones:</b> se amplían solas a los findes y festivos pegados. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
+        <li><b>Vacaciones:</b> se marcan exactamente los días que eliges, ni uno más. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
         <li><b>Días parciales:</b> toca un solo día de vacaciones y cambia sus horas (por defecto 8 h). El día se rellena como un vaso según las horas. <b>↺</b> vuelve a 8 h.</li>
         <li><b>Vistas:</b> se abre en la vista año; la tarjeta de hoy está debajo, al bajar. En la vista mes ves la lista de ese mes debajo del calendario.</li>
         <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar viaje</b> para cambiarlo o borrarlo.</li>
@@ -861,7 +861,7 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v8.2';
+const VERSION = 'v8.3';
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1462,7 +1462,6 @@ function renderSheet() {
       <button class="sheet-x" id="sheetX">✕</button>
     </div>
     ${!S.sel.b ? '<div class="sheet-hint">👆 Toca otro día para elegir un rango</div>' : ''}
-    ${!todasVac ? (() => { const [x, y] = ampliarConLibres(a, b); return (x !== a || y !== b) ? `<div class="sheet-hint" style="color:var(--muted)">🏖️ Las vacaciones incluirán ${rangoTxt(x, y)} (findes y festivos pegados)</div>` : ''; })() : ''}
     ${info ? `<div class="sheet-info">${info}</div>` : ''}
     <div class="sheet-acciones" style="grid-template-columns:1fr">
       <button class="accion vac ${todasVac ? 'quitar' : ''}" id="accVac">${todasVac ? '✕ Quitar vacaciones' : '🏖️ Vacaciones'}</button>
@@ -3323,10 +3322,9 @@ function eventos() {
     if (e.target.closest('[data-reservar]')) return empezarReserva();
     if (e.target.id === 'accVac') {
       const [a0, b0] = selRango(), todas = [...rango(a0, b0)].every(s => S.vac.has(s));
-      const [a, b] = ampliarConLibres(a0, b0);
-      for (const s of rango(a, b)) {
-        const extra = s < a0 || s > b0;
-        if (todas) { if (!extra || S.vac.has(s)) { S.vac.delete(s); delete S.horas[s]; } }
+      // Solo los días que has elegido, ni uno más
+      for (const s of rango(a0, b0)) {
+        if (todas) { S.vac.delete(s); delete S.horas[s]; }
         else S.vac.add(s);
       }
       guardar(); S.sel = null; toast(todas ? 'Vacaciones quitadas' : '🏖️ Vacaciones marcadas'); return renderCal();
