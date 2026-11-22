@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v9.8, v9.9…).
+- **Versión:** sube `const VERSION` en `index.html` (v9.9, v10.0…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -41,11 +41,13 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Solo se suben a la nube los cambios, en cola si no hay conexión: así no se pisan datos entre el móvil y el PC.
 - En el iPhone solo sincroniza con la app abierta. Por eso existe el aviso de «cambios pendientes de subir».
 
-**Actualizaciones (v9.8)**
+**Actualizaciones (v9.8–v9.9)**
 - La app se actualiza sola, sin aviso ni botón. Comprueba `version.json` al abrir, al volver a la app y cada 15 min si lleva 2 min sin tocarse.
 - No recarga con un modal, hoja o visor abiertos, con el cursor en un campo, en modo reservar, editando horas o con cambios sin subir.
 - Antes de recargar comprueba que el `index.html` nuevo ya está publicado y lo mete en la caché del service worker. Si no lo hiciera, cargaría la versión vieja.
-- No reintenta la recarga hacia el mismo BUILD hasta pasados 10 min: evita bucles.
+- El BUILD lo genera `publicar.sh` UNA vez y escribe ese mismo valor en los tres archivos. Nunca generarlo por separado ni con `Date.now()` en la app: en la app de la Sociedad salían distintos y recargaba sin parar.
+- Seguro antibucle: `localStorage['ultima-recarga-auto']`; nunca dos recargas automáticas en menos de 5 min.
+- Tras actualizarse sale arriba «✨ App actualizada · vX (dd/mm hh:mm)» si cambió el BUILD (aunque no cambie el número): sin él, la recarga parece un parpadeo sin motivo.
 - El service worker nunca sirve `version.json` desde la caché.
 
 **iPhone**
@@ -94,7 +96,6 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - No se ficha en la app: ya ficha en SAP.
 
 ## 4. Pendiente
-- Que tras actualizarse salga siempre «✨ App actualizada · v9.8 (fecha hora)», arriba y 2–3 s, aunque no cambie el número de versión. Está hablado y falta el «adelante».
 - PIN propio de la app, a nivel de cuenta, para Mis documentos en cualquier dispositivo. En el PC del trabajo seguramente no hay Windows Hello.
 - Exportar viajes, horas y estadísticas a Excel.
 - En la pestaña Horas, comparar con otros criterios, como el de la empresa.

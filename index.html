@@ -986,8 +986,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.8';
-const BUILD = '2026-11-22T16:29:48'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v9.9';
+const BUILD = '2026-11-22T16:47:33'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -4171,9 +4171,10 @@ function eventos() {
   $('#fPaisElegido').onclick = () => { elegirPais(''); $('#fPaisBuscar').focus(); };
   $('#formGuardar').onclick = guardarFormulario;
   // Aviso cuando llega una versión nueva
-  const vVista = leer('version-vista');
-  if (vVista && vVista !== VERSION) setTimeout(() => toast(`✨ App actualizada a ${VERSION}`), 1800);
-  escribir('version-vista', VERSION);
+  // Tras actualizarse (cambia el BUILD, aunque no cambie el número), avisarlo arriba
+  let bVisto = null; try { bVisto = localStorage.getItem('build-visto'); } catch (e) {}
+  if (bVisto && bVisto !== BUILD) setTimeout(() => toast(`✨ App actualizada · ${VERSION} (${BUILD.slice(8, 10)}/${BUILD.slice(5, 7)} ${BUILD.slice(11, 16)})`), 1200);
+  try { localStorage.setItem('build-visto', BUILD); } catch (e) {}
   iniciarDetalle();
   iniciarMisDocs();
   iniciarClientes(); iniciarBuscaCliente(); iniciarAyuda(); iniciarImputar();
@@ -4226,9 +4227,9 @@ async function comprobarVersion(manual) {
   let s;
   try { s = await versionServidor(); } catch (e) { if (manual) toast('No se pudo comprobar'); return; }
   if (!s || !s.build || s.build === BUILD) { if (manual) toast(`✓ Tienes la última versión (${VERSION})`); return; }
-  // Evitar recargas seguidas: si ya recargamos hacia este BUILD hace poco y no llegó, esperar 10 min
-  let ult = null; try { ult = JSON.parse(sessionStorage.getItem('recarga-hacia') || 'null'); } catch (e) {}
-  if (!manual && ult && ult.build === s.build && Date.now() - ult.t < 10 * 60000) return;
+  // Seguro antibucle: nunca dos recargas automáticas en menos de 5 minutos
+  let ult = 0; try { ult = +localStorage.getItem('ultima-recarga-auto') || 0; } catch (e) {}
+  if (!manual && Date.now() - ult < 5 * 60000) return;
   if (!manual && appOcupada()) return;
   actualizando = true;
   if (manual) toast('⬇️ Actualizando…');
@@ -4247,7 +4248,7 @@ async function comprobarVersion(manual) {
     }
   } catch (e) {}
   if (!manual && appOcupada()) { actualizando = false; return; }
-  try { sessionStorage.setItem('recarga-hacia', JSON.stringify({ build: s.build, t: Date.now() })); } catch (e) {}
+  if (!manual) try { localStorage.setItem('ultima-recarga-auto', String(Date.now())); } catch (e) {}
   location.reload();
 }
 setTimeout(() => comprobarVersion(false), 2500);

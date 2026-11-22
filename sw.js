@@ -1,6 +1,6 @@
 // Guarda la app en el dispositivo para que abra sin conexión.
 // Estrategia: responde desde la copia guardada y la actualiza en segundo plano.
-const BUILD = '2026-11-22T16:29:48'; // lo rellena publicar.sh
+const BUILD = '2026-11-22T16:47:33'; // lo rellena publicar.sh
 const CACHE = 'calendario-' + BUILD;
 const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './pdfjs/pdf.min.mjs', './pdfjs/pdf.worker.min.mjs'];
 
