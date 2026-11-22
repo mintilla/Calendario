@@ -987,7 +987,7 @@ const FIREBASE_CONFIG = {
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
 const VERSION = 'v9.9';
-const BUILD = '2026-11-22T16:47:33'; // lo rellena publicar.sh en cada publicación
+const BUILD = '2026-11-22T16:57:27'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -4008,7 +4008,7 @@ function iniciarAyuda() {
   $('#ayudaBuscar').addEventListener('input', e => filtrarAyuda(e.target.value));
   $('#ayudaCerrar').onclick = () => $('#modalAyuda').classList.remove('on');
 }
-function toast(t) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), 2000); }
+function toast(t, ms = 2000) { const el = $('#toast'); el.textContent = t; el.classList.add('on'); clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove('on'), ms); }
 
 function irTab(t) {
   if (t !== 'cal') { S.editEmp = null; S.reservar = false; }
@@ -4173,7 +4173,7 @@ function eventos() {
   // Aviso cuando llega una versión nueva
   // Tras actualizarse (cambia el BUILD, aunque no cambie el número), avisarlo arriba
   let bVisto = null; try { bVisto = localStorage.getItem('build-visto'); } catch (e) {}
-  if (bVisto && bVisto !== BUILD) setTimeout(() => toast(`✨ App actualizada · ${VERSION} (${BUILD.slice(8, 10)}/${BUILD.slice(5, 7)} ${BUILD.slice(11, 16)})`), 1200);
+  if (bVisto && bVisto !== BUILD) setTimeout(() => toast(`✨ App actualizada · ${VERSION} (${BUILD.slice(8, 10)}/${BUILD.slice(5, 7)} ${BUILD.slice(11, 16)})`, 4000), 1200);
   try { localStorage.setItem('build-visto', BUILD); } catch (e) {}
   iniciarDetalle();
   iniciarMisDocs();
