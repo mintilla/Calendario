@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v9.9, v10.0…).
+- **Versión:** sube `const VERSION` en `index.html` (v10.0, v10.1…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -94,6 +94,13 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - El trabajo en destino va en hora local. Los días en destino se apuntan **en horas trabajadas** (−½, +½, atajos), no con inicio y fin.
 - La ida y la vuelta se proponen desde los vuelos con márgenes editables en Ajustes. Él sale de casa mucho antes, normalmente vuela desde Bilbao.
 - No se ficha en la app: ya ficha en SAP.
+- Solo cuentan los vuelos vigentes que **cuadran con las fechas del viaje**: el primer vuelo de ida a ±1 día del inicio y la llegada del último de vuelta a ±1 día del final. Si cambia la fecha del viaje y el vuelo viejo ya no cuadra, no se usa: los días en destino llegan hasta la nueva fecha y la Vuelta sale «pendiente del vuelo nuevo». El vuelo viejo tampoco sale como «próximo vuelo».
+- Un vuelo cambiado no se borra: se marca `cambiado` (fecha) y sale **tachado** en Reservas. Al importar el correo con el vuelo nuevo, la lista para confirmar propone «Sustituye al vuelo de vuelta del …» (marcado). También hay «✂️ Marcar como cambiado» a mano en cada vuelo. Mikel quiere ver el viejo tachado, no que desaparezca.
+
+**Antes de irme (v10.0)**
+- Lista de cosas que recoger el último día en fábrica (router del PLC, ordenador, cable, herramientas…). Lista fija en Ajustes (`S.aju.antes`) y cosas sueltas por viaje (`v.antes.extra`); lo marcado va en `v.antes.hechos`.
+- El último día en fábrica es el último día con trabajo del parte de horas, o el que él ponga (`v.antes.ultimo`): cambia mucho (cambios de vuelo), por eso es editable.
+- Ese día la lista sale arriba en la tarjeta de Hoy. Una web en el iPhone no puede mandar notificaciones a una hora sin servidor de pago, por eso el aviso es un evento .ics con alarma (botón «Avisarme el último día», hora en Ajustes, por defecto 14:00 hora del país).
 
 ## 4. Pendiente
 - PIN propio de la app, a nivel de cuenta, para Mis documentos en cualquier dispositivo. En el PC del trabajo seguramente no hay Windows Hello.

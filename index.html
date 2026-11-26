@@ -474,6 +474,14 @@ input,select,textarea{font-size:16px !important}
 .ptr{position:fixed;left:50%;top:calc(6px + env(safe-area-inset-top));z-index:190;transform:translate(-50%,-60px);opacity:0;pointer-events:none;
   background:var(--card);color:var(--accent);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;box-shadow:var(--shadow);transition:opacity .15s}
 .ptr.listo{background:var(--accent);color:#fff}
+.antes-f{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--line);font-size:15px}
+.antes-f input[type=checkbox]{width:20px;height:20px;flex-shrink:0;accent-color:var(--accent)}
+.antes-f span{flex:1}.antes-f.ok span{text-decoration:line-through;color:var(--muted)}
+.antes-add{display:flex;gap:8px;margin-top:10px}.antes-add input{flex:1;min-width:0}
+.antes-hoy{font-size:14px}.antes-hoy input[type=checkbox]{accent-color:#fff}
+.antes-hoy .antes-f{border-color:rgba(255,255,255,.2)}.antes-hoy .muted,.antes-hoy .antes-f.ok span{color:inherit;opacity:.75}
+.res-camb{color:var(--warn,#b45309);font-weight:600}
+.hr-pend{color:var(--warn,#b45309);font-size:13px;margin-top:6px}
 .toast{position:fixed;left:50%;top:calc(14px + env(safe-area-inset-top));transform:translate(-50%,-150%);z-index:200;background:var(--text);color:var(--bg);
   padding:10px 16px;border-radius:20px;font-size:14px;font-weight:600;transition:transform .25s;white-space:nowrap;max-width:92vw;overflow:hidden;text-overflow:ellipsis}
 .toast:not(.on){opacity:0;visibility:hidden;transition:transform .25s,opacity .25s,visibility 0s .25s}
@@ -649,6 +657,8 @@ input,select,textarea{font-size:16px !important}
     <div class="campo-doble"><div class="campo"><label>Aeropuerto → hotel (min)</label><input id="mgDestLle" type="number" inputmode="numeric"></div><div class="campo"><label>Hotel → vuelo (min antes)</label><input id="mgDestSal" type="number" inputmode="numeric"></div></div>
     <div class="muted" style="font-size:12px">Con esto la app propone la salida y la llegada de cada viaje a partir de los vuelos. Luego puedes ajustar cada viaje.</div>
   </div>
+  <div class="h-title">🎒 Antes de irme (último día en fábrica)</div>
+  <div class="card" id="antesCard"></div>
   <div class="h-title">Clientes</div>
   <div class="card" id="cliCard"></div>
 
@@ -986,8 +996,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v9.9';
-const BUILD = '2026-11-22T16:57:27'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v10.0';
+const BUILD = '2026-11-26T13:46:05'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1420,11 +1430,13 @@ function renderHoy() {
     lineas.push(`<span data-viaje="${v.id}" style="cursor:pointer;display:block">📎 <b>Ficha y documentos</b> del viaje ›</span>`);
     if (tieneHoras(v)) { const dh = aLocal(Date.now(), tzDestino(v)).slice(0, 10), oh = ((v.horas && v.horas.dias) || {})[dh], hh = oh ? horasDia(oh) : (esDiaFestivo(dh) ? 0 : horario(v).h);
       lineas.push(`<span data-hoy-horas="${v.id}" data-dia="${dh}" style="cursor:pointer;display:block">⏱️ Hoy: <b>${oh && oh.libre ? 'libre' : nTxt(hh)}</b> de trabajo · <u>cambiar</u></span>`); }
+    const ud = ultimoDiaFabrica(v), dLoc = aLocal(Date.now(), tzDestino(v)).slice(0, 10);
+    if (ud && ud === dLoc) lineas.unshift(`<div class="antes-hoy"><div style="font-weight:700;margin-bottom:4px">🎒 Último día en fábrica · antes de irte</div>${htmlAntesLista(v, false)}</div>`);
     const ci = chipsImputar(v, true); if (ci) lineas.push(`<div style="font-size:12px;opacity:.85">Para imputar y gastos (toca para copiar)</div>${ci}`);
     lineas.push(q === 0 ? '🏠 Vuelves <b>hoy</b>' : `🏠 Vuelves <b>${enDias(q)}</b> (${fechaDia(v.fechaFin)})`);
   }
   const ahora = `${HOY}T${dos(new Date().getHours())}:${dos(new Date().getMinutes())}`;
-  const vueloProx = S.viajes.flatMap(v => (v.vuelos || []).map(f => ({ ...f, vid: v.id }))).filter(f => f.sal && f.sal >= ahora && f.sal.slice(0, 10) <= sumar(HOY, 3)).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  const vueloProx = S.viajes.flatMap(v => vuelosUtiles(v).map(f => ({ ...f, vid: v.id }))).filter(f => f.sal && f.sal >= ahora && f.sal.slice(0, 10) <= sumar(HOY, 3)).sort((a, b) => a.sal.localeCompare(b.sal))[0];
   if (vueloProx) {
     const q = diasEntre(HOY, vueloProx.sal.slice(0, 10));
     lineas.unshift(`<span data-viaje="${vueloProx.vid}" style="cursor:pointer;display:block">✈️ Vuelo <b>${esc(vueloProx.num || '')}</b> ${q === 0 ? '<b>hoy</b>' : q === 1 ? '<b>mañana</b>' : enDias(q)} a las <b>${vueloProx.sal.slice(11, 16)}</b> · ${esc(vueloProx.de || '')} → ${esc(vueloProx.a || '')}${vueloProx.asiento ? ' · 💺 ' + esc(vueloProx.asiento.split(' ')[0]) : ''}</span>`);
@@ -1712,7 +1724,7 @@ function htmlRecords(porAño) {
   const mx = Math.max(...meses, 1), iMax = meses.indexOf(mx);
   const orden = meses.map((n, i) => [i, n]).sort((a, b) => b[1] - a[1]);
   const est = reales.reduce((t, r) => { const fuera = r.paises.filter(p => p !== PAIS_CASA); return t + (!fuera.length ? 0 : fuera.every(p => EUROPA.has(p)) ? 2 : 4); }, 0);
-  const vuelos = S.viajes.flatMap(v => v.vuelos || []);
+  const vuelos = S.viajes.flatMap(v => vuelosVig(v));
   const min = vuelos.reduce((t, f) => t + minutosDur(f.dur), 0);
   const aeros = new Set(vuelos.flatMap(f => [f.de, f.a]).filter(Boolean));
   const mesTxt = i => MESES[i];
@@ -2921,6 +2933,19 @@ function hallazgosCorreo(v, ds) {
       x.vuelos = [...(x.vuelos || []), Object.fromEntries(Object.entries(f).filter(([, y]) => y !== '' && y != null))].sort((a, b) => (a.sal || '').localeCompare(b.sal || ''));
     });
   });
+  // Vuelo nuevo que sustituye a otro (cambio de fecha): el viejo queda tachado como «cambiado»
+  {
+    const nuevos = [...vistos].map(k => ds.flatMap(d => d.vuelos).find(f => clave(f) === k)).filter(f => f && f.sal);
+    const mitad = sumar(v.fechaInicio, Math.floor(diasEntre(v.fechaInicio, v.fechaFin) / 2)), lado = f => f.sal.slice(0, 10) <= mitad ? 'ida' : 'vuelta';
+    ['ida', 'vuelta'].forEach(l => {
+      const nl = nuevos.filter(f => lado(f) === l), claves = new Set(nl.map(clave));
+      const viejos = vuelosVig(v).filter(f => f.sal && lado(f) === l && !claves.has(clave(f)));
+      if (!nl.length || !viejos.length) return;
+      const kv = new Set(viejos.map(clave));
+      add('Vuelos', `✂️ Sustituye ${viejos.length > 1 ? 'a los vuelos' : 'al vuelo'} de ${l} del ${diaVuelo(viejos[0].sal)}`, `${viejos.map(f => esc(f.num || '')).join(' · ')} · quedará tachado como «cambiado»`,
+        x => { x.vuelos = (x.vuelos || []).map(f => kv.has(clave(f)) && !f.cambiado ? { ...f, cambiado: HOY } : f); });
+    });
+  }
   const refs = new Set((v.reservas || []).filter(r => r.tipo === 'coche').map(r => r.ref || r.fecha)), cv = new Set();
   ds.flatMap(d => d.coches).forEach(c => {
     const k = c.ref || c.fecha; if (refs.has(k) || cv.has(k)) return; cv.add(k);
@@ -2962,7 +2987,7 @@ function hallazgosCorreo(v, ds) {
 }
 // Noches de hotel: del vuelo que llega al que sale (el hueco más largo entre vuelos); si no, el coche; si no, el viaje
 function fechasHotel(v, ds) {
-  const fs = [...(v.vuelos || []), ...ds.flatMap(d => d.vuelos)].filter(f => f.sal).sort((a, b) => a.sal.localeCompare(b.sal));
+  const fs = [...vuelosVig(v), ...ds.flatMap(d => d.vuelos)].filter(f => f.sal).sort((a, b) => a.sal.localeCompare(b.sal));
   let best = null;
   for (let i = 0; i + 1 < fs.length; i++) {
     const ini = (fs[i].lle || fs[i].sal).slice(0, 10), fin = fs[i + 1].sal.slice(0, 10), n = diasEntre(ini, fin);
@@ -3054,19 +3079,34 @@ function horasDia(o) {
   return Math.max(0, min - (+o.comida || 0)) / 60;
 }
 const horario = v => { const h = v.horas && v.horas.horario; return { h: h ? (h.h != null ? +h.h : horasDia(h)) : 8 }; };
-// Ida y vuelta: lo guardado, o lo propuesto a partir de los vuelos
+// Ida y vuelta: lo guardado, o lo propuesto a partir de los vuelos.
+// Solo cuentan los vuelos vigentes (no los «cambiados») y que cuadren con las fechas del viaje:
+// si cambias la fecha de vuelta, el vuelo viejo deja de usarse y los días en destino llegan hasta el nuevo final.
 function tramos(v) {
   const h = v.horas || {}, m = margenes(), tz = tzDestino(v);
-  const fs = (v.vuelos || []).filter(f => f.sal).sort((a, b) => a.sal.localeCompare(b.sal));
+  const fs = vuelosVig(v).filter(f => f.sal).sort((a, b) => a.sal.localeCompare(b.sal));
   const mitad = sumar(v.fechaInicio, Math.floor(diasEntre(v.fechaInicio, v.fechaFin) / 2));
   const ida = fs.filter(f => f.sal.slice(0, 10) <= mitad), vue = fs.filter(f => f.sal.slice(0, 10) > mitad);
+  const cerca = (d, ref) => d && Math.abs(diasEntre(ref, d)) <= 1;
+  const idaOk = ida.length && cerca(ida[0].sal.slice(0, 10), v.fechaInicio);
+  const vueOk = vue.length && cerca((vue[vue.length - 1].lle || vue[vue.length - 1].sal).slice(0, 10), v.fechaFin);
   const prop = (lista, tzA, tzB, mA, mB) => lista.length && lista[lista.length - 1].lle ? { sal: sumarMin(lista[0].sal, -mA, tzA), salTz: tzA, lle: sumarMin(lista[lista.length - 1].lle, mB, tzB), lleTz: tzB, propuesta: true } : null;
+  const hIda = h.ida && cerca(h.ida.sal.slice(0, 10), v.fechaInicio) ? h.ida : null;
+  const hVue = h.vuelta && cerca(h.vuelta.lle.slice(0, 10), v.fechaFin) ? h.vuelta : null;
   return {
-    ida: h.ida || prop(ida, TZ_CASA, tz, m.casaSal, m.destLle),
-    vuelta: h.vuelta || prop(vue, tz, TZ_CASA, m.destSal, m.casaLle)
+    ida: hIda || (idaOk ? prop(ida, TZ_CASA, tz, m.casaSal, m.destLle) : null),
+    vuelta: hVue || (vueOk ? prop(vue, tz, TZ_CASA, m.destSal, m.casaLle) : null),
+    // Vuelos que ya no cuadran con las fechas (esperando el vuelo nuevo)
+    viejaIda: !hIda && ida.length && !idaOk ? ida : null,
+    viejaVuelta: !hVue && vue.length && !vueOk ? vue : null
   };
 }
 const esDiaFestivo = d => esFinde(d) || tipo(d) === 'festivo';
+// Vuelos que siguen en pie (los «cambiados» se ven tachados pero no cuentan)
+function vuelosVig(v) { return (v.vuelos || []).filter(f => !f.cambiado); }
+// Los que ya no cuadran con las fechas del viaje (cambiaste la fecha y aún no has importado el vuelo nuevo)
+function vuelosSinCuadrar(v) { const t = tramos(v); return new Set([...(t.viejaIda || []), ...(t.viejaVuelta || [])]); }
+function vuelosUtiles(v) { const x = vuelosSinCuadrar(v); return vuelosVig(v).filter(f => !x.has(f)); }
 function calcHoras(v) {
   const tz = tzDestino(v), t = tramos(v), dias = {}, hor = horario(v), ov = (v.horas && v.horas.dias) || {};
   const dia = d => dias[d] = dias[d] || { normal: 0, extra: 0, viaje: false, viajeMin: 0, trabajo: 0, enDestino: false };
@@ -3081,9 +3121,10 @@ function calcHoras(v) {
     }
     infoTramos.push({ k, dur, h16: dur > 960 ? aLocal(a + 960 * 60000, x.salTz) : '', tz: x.salTz });
   });
-  // Días en destino: de la llegada a la salida (hora local)
-  if (t.ida && t.ida.lle && t.vuelta && t.vuelta.sal) {
-    const d1 = aLocal(deLocal(t.ida.lle, t.ida.lleTz), tz).slice(0, 10), d2 = aLocal(deLocal(t.vuelta.sal, t.vuelta.salTz), tz).slice(0, 10);
+  // Días en destino: de la llegada a la salida (hora local); si falta un lado porque el vuelo ya no cuadra, hasta la fecha del viaje
+  const conIda = t.ida && t.ida.lle, conVue = t.vuelta && t.vuelta.sal;
+  if ((conIda && conVue) || ((conIda || conVue) && (t.viejaIda || t.viejaVuelta))) {
+    const d1 = conIda ? aLocal(deLocal(t.ida.lle, t.ida.lleTz), tz).slice(0, 10) : v.fechaInicio, d2 = conVue ? aLocal(deLocal(t.vuelta.sal, t.vuelta.salTz), tz).slice(0, 10) : v.fechaFin;
     for (let d = d1; d <= d2; d = sumar(d, 1)) {
       const o = ov[d], extremo = d === d1 || d === d2;
       const hh = o ? horasDia(o) : (extremo || esDiaFestivo(d) ? 0 : hor.h);
@@ -3121,6 +3162,7 @@ function htmlHoras(v) {
       <div class="hr-f"><span>${k === 'ida' ? 'Salida de casa' : 'Salida del hotel'}</span><span>${x ? diaHora(x.sal, x.salTz) : '<span class="muted">sin poner</span>'}</span></div>
       <div class="hr-f"><span>${k === 'ida' ? 'Llegada al hotel' : 'Llegada a casa'}</span><span>${x ? diaHora(x.lle, x.lleTz) : '<span class="muted">sin poner</span>'}</span></div>
       ${x && x.propuesta ? '<div class="muted hr-n">Propuesta a partir de los vuelos y tus márgenes. Toca para ajustar.</div>' : ''}
+      ${!x && c.t[k === 'ida' ? 'viejaIda' : 'viejaVuelta'] ? `<div class="hr-n hr-pend">⏳ Pendiente del vuelo nuevo: el ${esc(c.t[k === 'ida' ? 'viejaIda' : 'viejaVuelta'][0].num || '')} del ${diaVuelo(c.t[k === 'ida' ? 'viejaIda' : 'viejaVuelta'][0].sal)} ya no cuadra con las fechas del viaje. Mientras, los días llegan hasta el ${diaCorto(k === 'ida' ? v.fechaInicio : v.fechaFin)}. Cuando importes el correo con el vuelo nuevo, el viejo queda tachado.</div>` : ''}
       ${inf && inf.h16 ? `<div class="muted hr-n">La hora 17 empieza el ${diaHora(inf.h16, inf.tz)}</div>` : ''}</div>`;
   };
   const ds = c.desglose;
@@ -3407,9 +3449,9 @@ function iniciarMisDocs() {
 // Pantalla de detalle
 function proxVueloTxt(v) {
   if (v.fechaFin < HOY) return '';
-  const ahora = ahoraIso(), f = (v.vuelos || []).filter(x => x.sal && x.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  const ahora = ahoraIso(), f = vuelosUtiles(v).filter(x => x.sal && x.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
   if (!f) return '';
-  const ida = v.fechaInicio >= HOY && f === (v.vuelos || []).filter(x => x.sal).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  const ida = v.fechaInicio >= HOY && f === vuelosVig(v).filter(x => x.sal).sort((a, b) => a.sal.localeCompare(b.sal))[0];
   return `<div class="viaje-s" style="color:var(--accent);font-weight:600">✈️ ${ida ? 'Ida' : v.fechaInicio <= HOY ? 'Vuelta' : 'Vuelo'} ${diaVuelo(f.sal)} · ${f.sal.slice(11, 16)} · ${esc(f.de || '')} → ${esc(f.a || '')}</div>`;
 }
 function abrirDetalle(id) { S.detalle = id; S.fichaEdit = false; S.detTab = 'r'; S.resAbierta = null; const vv = S.viajes.find(x => x.id === id); if (migrarHotel(vv)) guardar(); renderDetalle(); $('#modalDetalle').classList.add('on'); programarPrecarga(); }
@@ -3486,10 +3528,10 @@ function detalleRes(x) {
   }
   const notas = (x.f || x.r || {}).notas;
   if (notas) out.push(`📝 <span style="white-space:pre-line">${esc(notas)}</span>`);
-  return out.filter(Boolean).map(l => `<div class="vd">${l}</div>`).join('') + `<div style="margin-top:8px"><button class="pill-btn" data-res-editar="${x.k}">✏️ Editar</button></div>`;
+  return out.filter(Boolean).map(l => `<div class="vd">${l}</div>`).join('') + `<div style="margin-top:8px;display:flex;gap:8px;flex-wrap:wrap"><button class="pill-btn" data-res-editar="${x.k}">✏️ Editar</button>${x.tipo === 'vuelo' ? `<button class="pill-btn" data-vuelo-camb="${x.i}">${f.cambiado ? '↺ Ya no está cambiado' : '✂️ Marcar como cambiado'}</button>` : ''}</div>`;
 }
 function htmlReservas(v) {
-  const it = itemsReservas(v);
+  const it = itemsReservas(v), sinCuadrar = vuelosSinCuadrar(v);
   let h = '', dia = null;
   it.forEach(x => {
     const d = x.clave === '9999' ? 'sin' : x.clave.slice(0, 10);
@@ -3498,7 +3540,9 @@ function htmlReservas(v) {
       h += `<div class="res-dia">${d === 'sin' ? 'Sin fecha' : cap(fechaLarga(d))}</div><div class="card" style="padding:2px 14px">`;
       dia = d;
     }
-    const [t1, t2] = lineasRes(x), abierto = S.resAbierta === x.k;
+    let [t1, t2] = lineasRes(x); const abierto = S.resAbierta === x.k;
+    if (x.f && sinCuadrar.has(x.f)) t2 = `<span class="res-camb">⏳ Ya no cuadra con las fechas del viaje</span>${t2 ? ' · ' + t2 : ''}`;
+    if (x.f && x.f.cambiado) { t1 = `<s>${t1}</s>`; t2 = `<span class="res-camb">Cambiado el ${+x.f.cambiado.slice(8)}/${+x.f.cambiado.slice(5, 7)}</span>${t2 ? ' · <s>' + t2 + '</s>' : ''}`; }
     h += `<div class="res-f" data-res="${x.k}"><div class="ic">${TIPOS_RES[x.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="t">${t1}</div>${t2 ? `<div class="s">${t2}</div>` : ''}${abierto ? `<div class="res-det">${detalleRes(x)}</div>` : ''}</div><div class="muted" style="font-size:16px">${abierto ? '⌃' : '›'}</div></div>`;
   });
   if (dia !== null) h += '</div>';
@@ -3556,6 +3600,78 @@ function añadirReserva(v) {
   });
 }
 
+// ===== Antes de irme: lo que hay que recoger el último día en fábrica =====
+const ANTES_DEF = ['Recoger router (PLC)', 'Recoger ordenador', 'Cable de alimentación del ordenador', 'Recoger herramientas'];
+const listaAntes = () => (S.aju && S.aju.antes) || ANTES_DEF;
+const horaAntes = () => (S.aju && S.aju.antesHora) || '14:00';
+function itemsAntes(v) { return [...listaAntes().map(t => ({ t })), ...((v.antes && v.antes.extra) || []).map((t, i) => ({ t, i, solo: true }))]; }
+// Último día en fábrica: el que pongas, o el último día con trabajo en el parte de horas
+function ultimoDiaFabrica(v) {
+  if (v.antes && v.antes.ultimo) return v.antes.ultimo;
+  if (!tieneHoras(v)) return null;
+  const ds = calcHoras(v).desglose.filter(x => x.enDestino && x.trabajo > 0);
+  return ds.length ? ds[ds.length - 1].d : null;
+}
+function htmlAntesLista(v, conQuitar) {
+  const hechos = (v.antes && v.antes.hechos) || {}, it = itemsAntes(v);
+  const n = it.filter(x => hechos[x.t]).length;
+  return it.map(x => `<label class="antes-f${hechos[x.t] ? ' ok' : ''}"><input type="checkbox" data-antes-ok="${esc(x.t)}" data-viaje-antes="${v.id}"${hechos[x.t] ? ' checked' : ''}><span>${esc(x.t)}${x.solo ? ' <small class="muted">· solo este viaje</small>' : ''}</span>${conQuitar && x.solo ? `<button class="sheet-x" data-antes-quitar="${x.i}">✕</button>` : ''}</label>`).join('')
+    + `<div class="muted" style="font-size:13px;margin-top:6px">${n === it.length ? '✅ Todo recogido' : `${it.length - n} por recoger`}</div>`;
+}
+function htmlAntesFicha(v) {
+  if (v.fechaFin < HOY) return '';
+  const d = ultimoDiaFabrica(v), manual = !!(v.antes && v.antes.ultimo);
+  return `<div class="det-sec"><span>🎒 Antes de irme</span></div><div class="card">
+    <div data-antes-dia="1" style="cursor:pointer;font-size:14px;margin-bottom:8px">Último día en fábrica: <b>${d ? cap(fechaDia(d)) : 'sin poner'}</b>${d && !manual ? ' <span class="muted">(del parte de horas)</span>' : ''} · <u>cambiar</u></div>
+    ${htmlAntesLista(v, true)}
+    <div class="antes-add"><input id="antesNuevo" placeholder="Añadir solo para este viaje"><button class="pill-btn" id="antesAñadir">＋</button></div>
+    <button class="btn secundario" id="antesAviso" style="margin-top:10px">📅 Avisarme el último día (a las ${horaAntes()})</button>
+    <div class="muted" style="font-size:12px;margin-top:4px">Crea un evento con alarma en el calendario del móvil o del PC. La lista fija se cambia en Ajustes.</div></div>`;
+}
+async function editarUltimoDia(v) {
+  const r = await formDialogo('🎒 Último día en fábrica', [{ k: 'd', t: 'Día', tipo: 'date', v: ultimoDiaFabrica(v) || v.fechaFin }], v.antes && v.antes.ultimo ? 'Volver a la propuesta' : '');
+  if (!r) return;
+  v.antes = { ...(v.antes || {}) };
+  if (r === 'extra' || !r.d) delete v.antes.ultimo; else v.antes.ultimo = r.d;
+  guardar(); render();
+}
+// Evento .ics con alarma: lo abre el Calendario del iPhone o Outlook en el PC
+function avisoAntesIcs(v) {
+  const d = ultimoDiaFabrica(v); if (!d) return toast('Pon primero el último día en fábrica');
+  const ini = deLocal(`${d}T${horaAntes()}`, tzDestino(v)), u = t => new Date(t).toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
+  const e = x => x.replace(/\\/g, '\\\\').replace(/[;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
+  const desc = itemsAntes(v).map(x => '☐ ' + x.t).join('\n');
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Calendario Torres//ES', 'BEGIN:VEVENT', `UID:antes-${v.id}-${d}@calendario-torres`, `DTSTAMP:${u(Date.now())}`,
+    `DTSTART:${u(ini)}`, `DTEND:${u(ini + 30 * 60000)}`, `SUMMARY:${e('🎒 Último día en fábrica: recoger todo')}`, `DESCRIPTION:${e(desc)}`,
+    'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${e('Recoger todo antes de irte')}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  if (ios) { location.href = 'data:text/calendar;charset=utf-8,' + encodeURIComponent(ics); return; }
+  const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([ics], { type: 'text/calendar' })); a.download = `antes-de-irme-${d}.ics`;
+  document.body.appendChild(a); a.click(); a.remove(); toast('📅 Abre el archivo para añadirlo al calendario');
+}
+function marcarAntes(id, txt, ok) {
+  const v = S.viajes.find(x => x.id === id); if (!v) return;
+  v.antes = { ...(v.antes || {}) }; v.antes.hechos = { ...(v.antes.hechos || {}) };
+  if (ok) v.antes.hechos[txt] = true; else delete v.antes.hechos[txt];
+  guardar(); render();
+}
+// Ajustes: la lista fija
+function pintarAntesAju() {
+  const el = $('#antesCard'); if (!el) return;
+  el.innerHTML = listaAntes().map((t, i) => `<div class="antes-f"><span style="flex:1">${esc(t)}</span><button class="sheet-x" data-antes-fija-quitar="${i}">✕</button></div>`).join('')
+    + `<div class="antes-add"><input id="antesFijaNueva" placeholder="Añadir a la lista fija"><button class="pill-btn" id="antesFijaAñadir">＋</button></div>
+    <div class="campo" style="margin:10px 0 0"><label>Hora del aviso (hora del país del viaje)</label><input id="antesHora" type="time" value="${horaAntes()}"></div>
+    <div class="muted" style="font-size:12px;margin-top:6px">Sale en todos los viajes. El último día en fábrica aparece en la tarjeta de Hoy para ir marcando, y en cada viaje puedes añadir cosas sueltas.</div>`;
+}
+function iniciarAntes() {
+  $('#antesCard').addEventListener('click', e => {
+    const q = e.target.closest('[data-antes-fija-quitar]');
+    if (q) { S.aju = { ...S.aju, antes: listaAntes().filter((_, i) => i !== +q.dataset.antesFijaQuitar) }; guardar(); return pintarAntesAju(); }
+    if (e.target.id === 'antesFijaAñadir') { const i = $('#antesFijaNueva'), x = i.value.trim(); if (!x) return i.focus(); S.aju = { ...S.aju, antes: [...listaAntes(), x] }; guardar(); pintarAntesAju(); return toast('✅ Añadido a la lista fija'); }
+  });
+  $('#antesCard').addEventListener('change', e => { if (e.target.id === 'antesHora' && e.target.value) { S.aju = { ...S.aju, antesHora: e.target.value }; guardar(); toast('✅ Hora del aviso: ' + e.target.value); } });
+  document.addEventListener('change', e => { const c = e.target.closest('[data-antes-ok]'); if (c) marcarAntes(c.dataset.viajeAntes, c.dataset.antesOk, c.checked); });
+}
 function avisosViaje(v) {
   const docs = misDocs().filter(d => aplicaA(d, v)), p = (S.aju && S.aju.personal) || {}, avisos = [];
   if (p.pasCad && v.pais !== 'España' && p.pasCad < mas6meses(v.fechaFin)) avisos.push(`Tu pasaporte caduca el <b>${fechaES(p.pasCad)}</b>: menos de 6 meses después de la vuelta.`);
@@ -3589,7 +3705,7 @@ function renderDetalle() {
 
   if (tab === 'r') {
     const ahora = ahoraIso();
-    const prox = (v.vuelos || []).filter(f => f.sal && f.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+    const prox = vuelosUtiles(v).filter(f => f.sal && f.sal >= ahora).sort((a, b) => a.sal.localeCompare(b.sal))[0];
     if (prox) {
       const d = prox.lle ? diasEntre(prox.sal.slice(0, 10), prox.lle.slice(0, 10)) : 0;
       h += `<div class="card prox-vuelo" data-dtab="v"><div class="k">Próximo vuelo · ${diaVuelo(prox.sal)} · ver reservas ›</div>
@@ -3607,6 +3723,7 @@ function renderDetalle() {
     }
     const av = avisosViaje(v);
     if (av.length) h += `<div class="card aviso-card">${av.map(a => `<div>⚠️ ${a}</div>`).join('')}</div>`;
+    h += htmlAntesFicha(v);
     const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
     h += `<button class="btn secundario" id="fiImportar" style="margin:10px 0 0">📥 Importar correo de la gestora</button><div class="muted" style="font-size:12px;text-align:center;margin:4px 0 0">.eml, .msg o PDF · en el PC también puedes arrastrarlo aquí desde Outlook</div>`;
     h += `<div class="det-sec"><span>Datos del viaje</span><button class="pill-btn" id="fiEditar">${filas || info.correo ? '✏️ Editar · pegar correo' : '＋ Pegar correo'}</button></div>
@@ -3682,6 +3799,11 @@ function iniciarDetalle() {
     if (t.closest('[data-hr-horario]')) return editarHorario(v);
     if (t.id === 'resAñadir') return añadirReserva(v);
     const re = t.closest('[data-res-editar]'); if (re) { e.stopPropagation(); return editarReserva(v, re.dataset.resEditar); }
+    const vc = t.closest('[data-vuelo-camb]'); if (vc) { e.stopPropagation(); const f = v.vuelos[+vc.dataset.vueloCamb]; if (f.cambiado) delete f.cambiado; else f.cambiado = HOY; guardar(); toast(f.cambiado ? '✂️ Vuelo marcado como cambiado: ya no cuenta para las horas' : '↺ Vuelo vigente otra vez'); return render(); }
+    const ao = t.closest('[data-antes-dia]'); if (ao) return editarUltimoDia(v);
+    if (t.id === 'antesAñadir') { const i = $('#antesNuevo'), x = i.value.trim(); if (!x) return i.focus(); v.antes = { ...(v.antes || {}) }; v.antes.extra = [...(v.antes.extra || []), x]; guardar(); return render(); }
+    const aq = t.closest('[data-antes-quitar]'); if (aq) { v.antes = { ...(v.antes || {}) }; v.antes.extra = (v.antes.extra || []).filter((_, i) => i !== +aq.dataset.antesQuitar); guardar(); return render(); }
+    if (t.id === 'antesAviso') return avisoAntesIcs(v);
     if (t.closest('a, .cp')) { const cp = t.closest('[data-copiar]'); if (cp) navigator.clipboard?.writeText(cp.dataset.copiar).then(() => toast('📋 Copiado: ' + cp.dataset.copiar), () => {}); return; }
     const rs = t.closest('[data-res]'); if (rs) { S.resAbierta = S.resAbierta === rs.dataset.res ? null : rs.dataset.res; return renderDetalle(); }
     if (t.id === 'docAñadir') { N.subirA = null; return $('#fileDocs').click(); }
@@ -3804,6 +3926,7 @@ function añadirAño() {
   });
 }
 function renderAjustes() {
+  if (!$('#antesCard').contains(document.activeElement)) pintarAntesAju();
   if (document.activeElement !== $('#ajClase')) $('#ajClase').value = claseAct();
   { const m = margenes(); [['mgCasaSal', 'casaSal'], ['mgCasaLle', 'casaLle'], ['mgDestLle', 'destLle'], ['mgDestSal', 'destSal']].forEach(([id, k]) => { if (document.activeElement !== $('#' + id)) $('#' + id).value = m[k]; }); }
   $('#cuentaEmail').textContent = '👤 ' + N.email;
@@ -4177,7 +4300,7 @@ function eventos() {
   try { localStorage.setItem('build-visto', BUILD); } catch (e) {}
   iniciarDetalle();
   iniciarMisDocs();
-  iniciarClientes(); iniciarBuscaCliente(); iniciarAyuda(); iniciarImputar();
+  iniciarClientes(); iniciarBuscaCliente(); iniciarAyuda(); iniciarImputar(); iniciarAntes();
   // Tocar la opción activa invierte el orden (Días ↓/↑, Nombre A–Z/Z–A)
   $('#mapOrden').onclick = e => { const b = e.target.closest('[data-orden]'); if (!b) return; if ((S.mapOrden || 'dias') === b.dataset.orden) S.mapAsc = !S.mapAsc; else { S.mapOrden = b.dataset.orden; S.mapAsc = false; } pintarListaPaises(); };
   $('#mapBuscar').addEventListener('input', pintarListaPaises);
