@@ -1,6 +1,6 @@
 // Guarda la app en el dispositivo para que abra sin conexión.
 // Estrategia: responde desde la copia guardada y la actualiza en segundo plano.
-const BUILD = '2026-11-26T13:46:05'; // lo rellena publicar.sh
+const BUILD = '2026-11-28T01:40:32'; // lo rellena publicar.sh
 const CACHE = 'calendario-' + BUILD;
 const ARCHIVOS = ['./', './index.html', './firebase.js', './manifest.webmanifest', './icon-192.png', './icon-512.png', './apple-touch-icon.png', './pdfjs/pdf.min.mjs', './pdfjs/pdf.worker.min.mjs'];
 
@@ -15,7 +15,7 @@ self.addEventListener('activate', e => {
 self.addEventListener('fetch', e => {
   const req = e.request;
   const url = new URL(req.url);
-  if (req.method !== 'GET' || url.origin !== location.origin || url.pathname.endsWith('/sw.js') || url.pathname.endsWith('/version.json')) return; // version.json siempre de la red
+  if (req.method !== 'GET' || url.origin !== location.origin || url.pathname.endsWith('/sw.js') || url.pathname.endsWith('/version.json') || url.searchParams.has('t')) return; // version.json y las comprobaciones (?t=) siempre de la red
   const clave = req.mode === 'navigate' ? './index.html' : req;
   e.respondWith(caches.open(CACHE).then(async c => {
     const guardada = await c.match(clave, { ignoreSearch: true });

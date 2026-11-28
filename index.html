@@ -6,6 +6,7 @@
 <title>Calendario Torres de Elorz</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Calendario">
@@ -972,7 +973,7 @@ const CLAVES = { vac:'vacaciones-torres', via:'viajes-torres', vacOld:'vacacione
 const leer = k => { try { const s = localStorage.getItem(k); return s ? JSON.parse(s) : null; } catch (e) { return null; } };
 const escribir = (k, v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) {} };
 
-const HOY = iso(new Date());
+let HOY = iso(new Date());   // se recalcula al volver a la app y cada minuto (refrescarHoy)
 const S = {
   año: +HOY.slice(0,4), mes: +HOY.slice(5,7) - 1, vista: 'año', tab: 'cal',
   sel: null, editando: null,
@@ -996,8 +997,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v10.0';
-const BUILD = '2026-11-26T13:46:05'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v10.1';
+const BUILD = '2026-11-28T01:40:32'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2310,7 +2311,8 @@ function guardarFormulario2(cliente, planta) {
 }
 function eliminarViaje() {
   if (!S.editando) return;
-  preguntar('¿Eliminar este viaje?', [{ t: 'Eliminar', cls: 'peligro' }, { t: 'Cancelar' }]).then(i => {
+  const nd = docsDe(S.editando.id).length;
+  preguntar(`¿Eliminar este viaje?${nd ? `\nSe borrarán también ${plural(nd, 'documento suyo', 'documentos suyos')}, en todos tus dispositivos.` : ''}`, [{ t: 'Eliminar', cls: 'peligro' }, { t: 'Cancelar' }]).then(i => {
     if (i !== 0) return;
     docsDe(S.editando.id).forEach(borrarDocYa);
     S.viajes = S.viajes.filter(v => v.id !== S.editando.id);
@@ -3052,7 +3054,17 @@ async function importarCorreos(viajeId, fuentes) {
 const TZ_CASA = 'Europe/Madrid', JORNADA_MIN = 480;
 const TZ_PAIS = { 'España': 'Europe/Madrid', 'Portugal': 'Europe/Lisbon', 'Reino Unido': 'Europe/London', 'Irlanda': 'Europe/Dublin', 'Francia': 'Europe/Paris', 'Alemania': 'Europe/Berlin', 'Italia': 'Europe/Rome', 'Países Bajos': 'Europe/Amsterdam', 'Bélgica': 'Europe/Brussels', 'Suiza': 'Europe/Zurich', 'Austria': 'Europe/Vienna', 'Polonia': 'Europe/Warsaw', 'Suecia': 'Europe/Stockholm', 'Finlandia': 'Europe/Helsinki', 'Noruega': 'Europe/Oslo', 'Dinamarca': 'Europe/Copenhagen', 'Chequia': 'Europe/Prague', 'República Checa': 'Europe/Prague', 'Hungría': 'Europe/Budapest', 'Grecia': 'Europe/Athens', 'Turquía': 'Europe/Istanbul', 'Rusia': 'Europe/Moscow', 'Estados Unidos': 'America/New_York', 'Canadá': 'America/Toronto', 'México': 'America/Mexico_City', 'Brasil': 'America/Sao_Paulo', 'Argentina': 'America/Argentina/Buenos_Aires', 'Chile': 'America/Santiago', 'Colombia': 'America/Bogota', 'Perú': 'America/Lima', 'China': 'Asia/Shanghai', 'Japón': 'Asia/Tokyo', 'Corea del Sur': 'Asia/Seoul', 'India': 'Asia/Kolkata', 'Indonesia': 'Asia/Jakarta', 'Tailandia': 'Asia/Bangkok', 'Vietnam': 'Asia/Ho_Chi_Minh', 'Singapur': 'Asia/Singapore', 'Malasia': 'Asia/Kuala_Lumpur', 'Filipinas': 'Asia/Manila', 'Emiratos Árabes Unidos': 'Asia/Dubai', 'Arabia Saudí': 'Asia/Riyadh', 'Israel': 'Asia/Jerusalem', 'Egipto': 'Africa/Cairo', 'Marruecos': 'Africa/Casablanca', 'Sudáfrica': 'Africa/Johannesburg', 'Australia': 'Australia/Sydney', 'Nueva Zelanda': 'Pacific/Auckland' };
 const TZ_LISTA = ['Europe/Madrid', 'Europe/London', 'Europe/Lisbon', 'Europe/Berlin', 'Europe/Helsinki', 'Europe/Istanbul', 'Europe/Moscow', 'America/New_York', 'America/Chicago', 'America/Denver', 'America/Los_Angeles', 'America/Toronto', 'America/Mexico_City', 'America/Sao_Paulo', 'Asia/Dubai', 'Asia/Kolkata', 'Asia/Bangkok', 'Asia/Jakarta', 'Asia/Shanghai', 'Asia/Tokyo', 'Australia/Sydney'];
-const tzDestino = v => (v.horas && v.horas.tz) || TZ_PAIS[v.pais] || TZ_CASA;
+Object.assign(TZ_PAIS, {"Albania": "Europe/Tirane", "Andorra": "Europe/Andorra", "Bielorrusia": "Europe/Minsk", "Bosnia y Herzegovina": "Europe/Sarajevo", "Bulgaria": "Europe/Sofia", "Chipre": "Asia/Nicosia", "Croacia": "Europe/Zagreb", "Eslovaquia": "Europe/Bratislava", "Eslovenia": "Europe/Ljubljana", "Estonia": "Europe/Tallinn", "Islandia": "Atlantic/Reykjavik", "Letonia": "Europe/Riga", "Liechtenstein": "Europe/Vaduz", "Lituania": "Europe/Vilnius", "Luxemburgo": "Europe/Luxembourg", "Macedonia del Norte": "Europe/Skopje", "Malta": "Europe/Malta", "Moldavia": "Europe/Chisinau", "Mónaco": "Europe/Monaco", "Montenegro": "Europe/Podgorica", "Rumanía": "Europe/Bucharest", "San Marino": "Europe/San_Marino", "Serbia": "Europe/Belgrade", "Ucrania": "Europe/Kiev", "Afganistán": "Asia/Kabul", "Arabia Saudita": "Asia/Riyadh", "Armenia": "Asia/Yerevan", "Azerbaiyán": "Asia/Baku", "Bangladés": "Asia/Dhaka", "Baréin": "Asia/Bahrain", "Birmania (Myanmar)": "Asia/Yangon", "Brunei": "Asia/Brunei", "Bután": "Asia/Thimphu", "Camboya": "Asia/Phnom_Penh", "Catar": "Asia/Qatar", "Corea del Norte": "Asia/Pyongyang", "Georgia": "Asia/Tbilisi", "Irak": "Asia/Baghdad", "Irán": "Asia/Tehran", "Jordania": "Asia/Amman", "Kazajistán": "Asia/Almaty", "Kirguistán": "Asia/Bishkek", "Kuwait": "Asia/Kuwait", "Laos": "Asia/Vientiane", "Líbano": "Asia/Beirut", "Maldivas": "Indian/Maldives", "Mongolia": "Asia/Ulaanbaatar", "Nepal": "Asia/Kathmandu", "Omán": "Asia/Muscat", "Pakistán": "Asia/Karachi", "Palestina": "Asia/Gaza", "Siria": "Asia/Damascus", "Sri Lanka": "Asia/Colombo", "Taiwán": "Asia/Taipei", "Tayikistán": "Asia/Dushanbe", "Timor Oriental": "Asia/Dili", "Turkmenistán": "Asia/Ashgabat", "Uzbekistán": "Asia/Tashkent", "Yemen": "Asia/Aden", "Bahamas": "America/Nassau", "Barbados": "America/Barbados", "Belice": "America/Belize", "Bolivia": "America/La_Paz", "Costa Rica": "America/Costa_Rica", "Cuba": "America/Havana", "Dominica": "America/Dominica", "Ecuador": "America/Guayaquil", "El Salvador": "America/El_Salvador", "Granada": "America/Grenada", "Guatemala": "America/Guatemala", "Guyana": "America/Guyana", "Haití": "America/Port-au-Prince", "Honduras": "America/Tegucigalpa", "Jamaica": "America/Jamaica", "Nicaragua": "America/Managua", "Panamá": "America/Panama", "Paraguay": "America/Asuncion", "República Dominicana": "America/Santo_Domingo", "San Cristóbal y Nieves": "America/St_Kitts", "San Vicente y las Granadinas": "America/St_Vincent", "Santa Lucía": "America/St_Lucia", "Surinam": "America/Paramaribo", "Trinidad y Tobago": "America/Port_of_Spain", "Uruguay": "America/Montevideo", "Venezuela": "America/Caracas", "Angola": "Africa/Luanda", "Argelia": "Africa/Algiers", "Benín": "Africa/Porto-Novo", "Botsuana": "Africa/Gaborone", "Burkina Faso": "Africa/Ouagadougou", "Burundi": "Africa/Bujumbura", "Cabo Verde": "Atlantic/Cape_Verde", "Camerún": "Africa/Douala", "Chad": "Africa/Ndjamena", "Comoras": "Indian/Comoro", "Congo": "Africa/Brazzaville", "Costa de Marfil": "Africa/Abidjan", "Eritrea": "Africa/Asmara", "Esuatini (Suazilandia)": "Africa/Mbabane", "Etiopía": "Africa/Addis_Ababa", "Gabón": "Africa/Libreville", "Gambia": "Africa/Banjul", "Ghana": "Africa/Accra", "Guinea": "Africa/Conakry", "Guinea-Bisáu": "Africa/Bissau", "Guinea Ecuatorial": "Africa/Malabo", "Kenia": "Africa/Nairobi", "Lesoto": "Africa/Maseru", "Liberia": "Africa/Monrovia", "Libia": "Africa/Tripoli", "Madagascar": "Indian/Antananarivo", "Malaui": "Africa/Blantyre", "Mali": "Africa/Bamako", "Mauricio": "Indian/Mauritius", "Mauritania": "Africa/Nouakchott", "Mozambique": "Africa/Maputo", "Namibia": "Africa/Windhoek", "Níger": "Africa/Niamey", "Nigeria": "Africa/Lagos", "República Centroafricana": "Africa/Bangui", "República Democrática del Congo": "Africa/Kinshasa", "Ruanda": "Africa/Kigali", "Santo Tomé y Príncipe": "Africa/Sao_Tome", "Senegal": "Africa/Dakar", "Seychelles": "Indian/Mahe", "Sierra Leona": "Africa/Freetown", "Somalia": "Africa/Mogadishu", "Sudán": "Africa/Khartoum", "Sudán del Sur": "Africa/Juba", "Tanzania": "Africa/Dar_es_Salaam", "Togo": "Africa/Lome", "Túnez": "Africa/Tunis", "Uganda": "Africa/Kampala", "Yibuti": "Africa/Djibouti", "Zambia": "Africa/Lusaka", "Zimbabue": "Africa/Harare", "Fiyi": "Pacific/Fiji", "Islas Marshall": "Pacific/Majuro", "Islas Salomón": "Pacific/Guadalcanal", "Kiribati": "Pacific/Tarawa", "Micronesia": "Pacific/Pohnpei", "Nauru": "Pacific/Nauru", "Palaos": "Pacific/Palau", "Papúa Nueva Guinea": "Pacific/Port_Moresby", "Samoa": "Pacific/Apia", "Tonga": "Pacific/Tongatapu", "Tuvalu": "Pacific/Funafuti", "Vanuatu": "Pacific/Efate"});
+// Aeropuertos de países con varias zonas horarias (y algunos más): la zona sale del aeropuerto de llegada de la ida
+const TZ_AERO = {"JFK": "America/New_York", "EWR": "America/New_York", "LGA": "America/New_York", "BOS": "America/New_York", "PHL": "America/New_York", "IAD": "America/New_York", "DCA": "America/New_York", "BWI": "America/New_York", "ATL": "America/New_York", "CLT": "America/New_York", "GSP": "America/New_York", "GSO": "America/New_York", "RDU": "America/New_York", "CAE": "America/New_York", "CHS": "America/New_York", "SAV": "America/New_York", "JAX": "America/New_York", "MCO": "America/New_York", "TPA": "America/New_York", "MIA": "America/New_York", "FLL": "America/New_York", "RIC": "America/New_York", "ORF": "America/New_York", "PIT": "America/New_York", "CLE": "America/New_York", "CMH": "America/New_York", "CVG": "America/New_York", "DAY": "America/New_York", "DTW": "America/New_York", "GRR": "America/New_York", "IND": "America/Indiana/Indianapolis", "SDF": "America/New_York", "TYS": "America/New_York", "BUF": "America/New_York", "ROC": "America/New_York", "SYR": "America/New_York", "ALB": "America/New_York", "BDL": "America/New_York", "PVD": "America/New_York", "PWM": "America/New_York", "BTV": "America/New_York", "AVL": "America/New_York", "ROA": "America/New_York", "CHA": "America/New_York", "ORD": "America/Chicago", "MDW": "America/Chicago", "BHM": "America/Chicago", "HSV": "America/Chicago", "MGM": "America/Chicago", "MOB": "America/Chicago", "TCL": "America/Chicago", "GPT": "America/Chicago", "JAN": "America/Chicago", "BNA": "America/Chicago", "MEM": "America/Chicago", "MSY": "America/Chicago", "BTR": "America/Chicago", "SHV": "America/Chicago", "LIT": "America/Chicago", "XNA": "America/Chicago", "DFW": "America/Chicago", "DAL": "America/Chicago", "IAH": "America/Chicago", "HOU": "America/Chicago", "AUS": "America/Chicago", "SAT": "America/Chicago", "CRP": "America/Chicago", "OKC": "America/Chicago", "TUL": "America/Chicago", "MCI": "America/Chicago", "STL": "America/Chicago", "MSP": "America/Chicago", "MKE": "America/Chicago", "GRB": "America/Chicago", "MSN": "America/Chicago", "DSM": "America/Chicago", "CID": "America/Chicago", "OMA": "America/Chicago", "ICT": "America/Chicago", "FSD": "America/Chicago", "PNS": "America/Chicago", "ELP": "America/Denver", "DEN": "America/Denver", "SLC": "America/Denver", "ABQ": "America/Denver", "BOI": "America/Boise", "BIL": "America/Denver", "COS": "America/Denver", "PHX": "America/Phoenix", "TUS": "America/Phoenix", "LAX": "America/Los_Angeles", "SFO": "America/Los_Angeles", "SJC": "America/Los_Angeles", "OAK": "America/Los_Angeles", "SMF": "America/Los_Angeles", "SAN": "America/Los_Angeles", "SNA": "America/Los_Angeles", "ONT": "America/Los_Angeles", "BUR": "America/Los_Angeles", "LAS": "America/Los_Angeles", "RNO": "America/Los_Angeles", "SEA": "America/Los_Angeles", "PDX": "America/Los_Angeles", "GEG": "America/Los_Angeles", "FAT": "America/Los_Angeles", "ANC": "America/Anchorage", "HNL": "Pacific/Honolulu", "YYZ": "America/Toronto", "YTZ": "America/Toronto", "YUL": "America/Toronto", "YOW": "America/Toronto", "YQB": "America/Toronto", "YHM": "America/Toronto", "YXU": "America/Toronto", "YKF": "America/Toronto", "YQG": "America/Toronto", "YHZ": "America/Halifax", "YQM": "America/Moncton", "YSJ": "America/Moncton", "YYT": "America/St_Johns", "YWG": "America/Winnipeg", "YXE": "America/Regina", "YQR": "America/Regina", "YYC": "America/Edmonton", "YEG": "America/Edmonton", "YVR": "America/Vancouver", "YYJ": "America/Vancouver", "YLW": "America/Vancouver", "MEX": "America/Mexico_City", "GDL": "America/Mexico_City", "MTY": "America/Monterrey", "QRO": "America/Mexico_City", "BJX": "America/Mexico_City", "SLP": "America/Mexico_City", "AGU": "America/Mexico_City", "PBC": "America/Mexico_City", "TLC": "America/Mexico_City", "VER": "America/Mexico_City", "MID": "America/Merida", "CUN": "America/Cancun", "CUU": "America/Chihuahua", "HMO": "America/Hermosillo", "TIJ": "America/Tijuana", "SJD": "America/Mazatlan", "MZT": "America/Mazatlan", "CJS": "America/Denver", "TRC": "America/Monterrey", "SLW": "America/Monterrey", "GRU": "America/Sao_Paulo", "CGH": "America/Sao_Paulo", "VCP": "America/Sao_Paulo", "GIG": "America/Sao_Paulo", "SDU": "America/Sao_Paulo", "CNF": "America/Sao_Paulo", "BSB": "America/Sao_Paulo", "CWB": "America/Sao_Paulo", "POA": "America/Sao_Paulo", "FLN": "America/Sao_Paulo", "SSA": "America/Bahia", "REC": "America/Recife", "FOR": "America/Fortaleza", "BEL": "America/Belem", "MAO": "America/Manaus", "CGB": "America/Cuiaba", "SYD": "Australia/Sydney", "MEL": "Australia/Melbourne", "BNE": "Australia/Brisbane", "OOL": "Australia/Brisbane", "CNS": "Australia/Brisbane", "ADL": "Australia/Adelaide", "PER": "Australia/Perth", "DRW": "Australia/Darwin", "HBA": "Australia/Hobart", "CBR": "Australia/Sydney", "SVO": "Europe/Moscow", "DME": "Europe/Moscow", "VKO": "Europe/Moscow", "LED": "Europe/Moscow", "SVX": "Asia/Yekaterinburg", "OVB": "Asia/Novosibirsk", "VVO": "Asia/Vladivostok", "KZN": "Europe/Moscow", "DPS": "Asia/Makassar", "UPG": "Asia/Makassar", "BPN": "Asia/Makassar", "KNO": "Asia/Jakarta", "SUB": "Asia/Jakarta", "CGK": "Asia/Jakarta", "HLP": "Asia/Jakarta", "JOG": "Asia/Jakarta", "YIA": "Asia/Jakarta", "SRG": "Asia/Jakarta", "BDO": "Asia/Jakarta", "KJT": "Asia/Jakarta", "PLM": "Asia/Jakarta", "PKU": "Asia/Jakarta", "BTH": "Asia/Jakarta", "DJJ": "Asia/Jayapura", "ALA": "Asia/Almaty", "NQZ": "Asia/Almaty", "TSE": "Asia/Almaty"};
+function tzAeropuerto(v) {
+  const fs = (v.vuelos || []).filter(f => !f.cambiado && f.sal && f.a).sort((a, b) => a.sal.localeCompare(b.sal));
+  if (!fs.length) return null;
+  const mitad = sumar(v.fechaInicio, Math.floor(diasEntre(v.fechaInicio, v.fechaFin) / 2));
+  const ida = fs.filter(f => f.sal.slice(0, 10) <= mitad), f = ida[ida.length - 1];
+  return (f && TZ_AERO[String(f.a).trim().toUpperCase()]) || null;
+}
+const tzDestino = v => (v.horas && v.horas.tz) || tzAeropuerto(v) || TZ_PAIS[v.pais] || TZ_CASA;
 const TZ_ES = { 'Europe/Madrid': 'España', 'Asia/Jakarta': 'Yakarta', 'America/New_York': 'Nueva York', 'America/Chicago': 'Chicago', 'America/Denver': 'Denver', 'America/Los_Angeles': 'Los Ángeles', 'America/Toronto': 'Toronto', 'America/Mexico_City': 'México', 'America/Sao_Paulo': 'São Paulo', 'Europe/London': 'Londres', 'Europe/Lisbon': 'Lisboa', 'Europe/Berlin': 'Berlín', 'Europe/Helsinki': 'Helsinki', 'Europe/Istanbul': 'Estambul', 'Europe/Moscow': 'Moscú', 'Asia/Dubai': 'Dubái', 'Asia/Kolkata': 'India', 'Asia/Bangkok': 'Bangkok', 'Asia/Shanghai': 'China', 'Asia/Tokyo': 'Tokio', 'Australia/Sydney': 'Sídney' };
 const tzNombre = tz => TZ_ES[tz] || (tz.split('/').pop() || tz).replace(/_/g, ' ');
 // Hora local (YYYY-MM-DDTHH:MM) en una zona  <->  milisegundos absolutos
@@ -3236,7 +3248,8 @@ async function editarHorario(v) {
   if (!r) return;
   const hh = Math.max(0, Math.min(24, Math.round((+String(r.h).replace(',', '.') || 0) * 2) / 2));
   v.horas = { ...(v.horas || {}), horario: { h: hh } };
-  if (r.tz && r.tz !== TZ_PAIS[v.pais]) v.horas.tz = r.tz; else delete v.horas.tz;
+  const auto = tzAeropuerto(v) || TZ_PAIS[v.pais] || TZ_CASA;
+  if (r.tz && r.tz !== auto) v.horas.tz = r.tz; else delete v.horas.tz;
   guardar(); render();
 }
 // Editar un día en línea: −½ / +½, atajos y nota; se guarda al momento
@@ -4375,8 +4388,17 @@ async function comprobarVersion(manual) {
   location.reload();
 }
 setTimeout(() => comprobarVersion(false), 2500);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) comprobarVersion(false); });
-addEventListener('pageshow', e => { if (e.persisted) comprobarVersion(false); });
+// La fecha de hoy cambia aunque la app siga abierta (PC con la pestaña abierta, iPhone que la recupera de segundo plano)
+function refrescarHoy() {
+  const h = iso(new Date());
+  if (h === HOY) return;
+  HOY = h;
+  if (N.mostrado && !appOcupada()) render();
+}
+setInterval(refrescarHoy, 60000);
+addEventListener('focus', refrescarHoy);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { refrescarHoy(); comprobarVersion(false); } });
+addEventListener('pageshow', e => { refrescarHoy(); if (e.persisted) comprobarVersion(false); });
 setInterval(() => { if (!document.hidden && Date.now() - ultimoToque >= 2 * 60000) comprobarVersion(false); }, 15 * 60000);
 
 // Deslizar hacia abajo desde arriba del todo para actualizar

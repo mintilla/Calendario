@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v10.0, v10.1…).
+- **Versión:** sube `const VERSION` en `index.html` (v10.1, v10.2…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -48,7 +48,8 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - El BUILD lo genera `publicar.sh` UNA vez y escribe ese mismo valor en los tres archivos. Nunca generarlo por separado ni con `Date.now()` en la app: en la app de la Sociedad salían distintos y recargaba sin parar.
 - Seguro antibucle: `localStorage['ultima-recarga-auto']`; nunca dos recargas automáticas en menos de 5 min.
 - Tras actualizarse sale arriba «✨ App actualizada · vX (dd/mm hh:mm)» si cambió el BUILD (aunque no cambie el número): sin él, la recarga parece un parpadeo sin motivo.
-- El service worker nunca sirve `version.json` desde la caché.
+- El service worker nunca sirve `version.json` ni las peticiones con `?t=` desde la caché: si no, la comprobación del `index.html` nuevo recibía la copia vieja y al volver a la app no se actualizaba hasta cerrarla y abrirla.
+- `HOY` es `let` y se recalcula al volver a la app, con el foco y cada minuto (`refrescarHoy`): la app puede quedarse abierta varios días (PC) o volver de segundo plano (iPhone).
 
 **iPhone**
 - Los PDF se dibujan con PDF.js porque el visor del iPhone solo enseña la primera página.
@@ -91,6 +92,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - desde la 17.ª cuentan al 50 %.
 - Cada hora va al día en que ocurre, con el reloj del país de salida.
 - Desde la hora 17 siempre es extra. Las 8 primeras son extra si el día es fin de semana o festivo, o si con el trabajo de ese día se pasa de 8 h.
+- Zona horaria del destino: la que él elija (`v.horas.tz`), si no la del **aeropuerto de llegada de la ida** (`TZ_AERO`, sobre todo EE. UU., Canadá, México, Brasil, Australia: viaja mucho a EE. UU. y no todo es hora de Nueva York), y si no la del país (`TZ_PAIS`, todos los países de la lista tienen zona).
 - El trabajo en destino va en hora local. Los días en destino se apuntan **en horas trabajadas** (−½, +½, atajos), no con inicio y fin.
 - La ida y la vuelta se proponen desde los vuelos con márgenes editables en Ajustes. Él sale de casa mucho antes, normalmente vuela desde Bilbao.
 - No se ficha en la app: ya ficha en SAP.
@@ -103,6 +105,9 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Ese día la lista sale arriba en la tarjeta de Hoy. Una web en el iPhone no puede mandar notificaciones a una hora sin servidor de pago, por eso el aviso es un evento .ics con alarma (botón «Avisarme el último día», hora en Ajustes, por defecto 14:00 hora del país).
 
 ## 4. Pendiente
+- Icono de la app: el actual («17» morado y rosa) no le dice nada. Vio propuestas (calendario con avión en la esquina, varios fondos) y ninguna le convenció del todo; retomarlo cuando quiera.
+- Del repaso de nov 2026, sin hacer: si la nube rechaza un cambio, reintentarlo en vez de darlo por subido; guardar Ajustes por campos (ahora se guardan enteros y en dos dispositivos sin conexión gana el último); «próximo vuelo» compara la hora del aeropuerto con la del dispositivo; quitar el importador viejo sin usar (`importarEml`, `importarIcs`). Exportar no incluye documentos (informado).
+- Probar en su iPhone el botón «📅 Avisarme el último día» (.ics por data: URL).
 - PIN propio de la app, a nivel de cuenta, para Mis documentos en cualquier dispositivo. En el PC del trabajo seguramente no hay Windows Hello.
 - Exportar viajes, horas y estadísticas a Excel.
 - En la pestaña Horas, comparar con otros criterios, como el de la empresa.
