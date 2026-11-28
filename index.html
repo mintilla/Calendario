@@ -1046,7 +1046,7 @@ const FIREBASE_CONFIG = {
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
 const VERSION = 'v11.7';
-const BUILD = '2026-11-28T05:54:07'; // lo rellena publicar.sh en cada publicación
+const BUILD = '2026-11-28T06:09:05'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2672,8 +2672,16 @@ function parsearCorreo(t) {
   const bloque = re => {
     const i = lin.findIndex(l => re.test(l)); if (i < 0) return '';
     const out = [];
-    for (let j = i + 1; j < lin.length && out.length < 8; j++) { if (!lin[j]) { if (out.length) break; continue; } out.push(lin[j].replace(/^​/, '')); }
-    return out.join('\n');
+    let blancos = 0;
+    for (let j = i + 1; j < lin.length && out.length < 8; j++) {
+      const l = lin[j].replace(/^​/, '').trim();
+      if (!l) { if (out.length && ++blancos > 1) break; continue; }
+      // Fin del bloque: otra frase o un título («La dirección del cliente es:», «Para reportar…»)
+      if (out.length && (/:$/.test(l) || l.length > 70 || (/[.!?]$/.test(l) && l.split(/\s+/).length > 6))) break;
+      if (out.length && blancos && /^(para|por favor|te |en este|el cliente|gracias|saludos)/i.test(l)) break;
+      blancos = 0; out.push(l.replace(/,\s*$/, ','));
+    }
+    return out.join('\n').replace(/,\n/g, '\n');
   };
   const r = { correo: t, hotel: bloque(/el hotel es|hotel:$/i) || buscarHotel(lin), cliente: limpiarDir(bloque(/direcci[oó]n del cliente/i)), sap: '', contactos: '' };
   const sap = t.match(/orden de viaje en SAP[^\d]{0,20}(\d{3,})/i); if (sap) r.sap = sap[1];
@@ -2845,6 +2853,7 @@ async function importarEml(viajeId, f) {
       const info = { ...(v.info || {}) };
       ['cliente', 'sap', 'contactos'].forEach(k => { if (r[k] && !info[k]) { info[k] = r[k]; nF++; } });
       if (r.hotel && !(v.reservas || []).some(x => x.tipo === 'hotel')) { hotelDeTexto(v, r.hotel); nF++; }
+      else if (r.hotel && completarHotel(v, r.hotel)) nF++;
       if (!info.correo) info.correo = r.correo;
       v.info = info; guardar(); render();
     }
@@ -3060,6 +3069,9 @@ function hallazgosCorreo(v, ds) {
       const fh = fechasHotel(v, ds);
       const sub = [fh.fecha && fh.fechaFin ? `${diaCorto(fh.fecha)} → ${diaCorto(fh.fechaFin)} · ${plural(noches(fh.fecha, fh.fechaFin), 'noche')}` : '', esc(hotel.split('\n').slice(1).join(' · '))].filter(Boolean).join(' · ');
       add('Reservas', `🏨 ${esc(l1)}`, sub, x => hotelDeTexto(x, hotel, fh));
+    } else {
+      const ya = v.reservas.find(x => x.tipo === 'hotel' && normCli(x.nombre) === normCli(l1)), dir = hotel.split('\n').slice(1).join('\n');
+      if (ya && !ya.dir && dir) add('Reservas', `🏨 ${esc(l1)}: completar la dirección`, esc(dir.replace(/\n/g, ' · ')), x => completarHotel(x, hotel));
     }
   }
   const eta = texto.match(/\beTA\b[^\n]{0,90}?n[ºo°]\s*:?\s*([A-Z]\d{6,12})\b/i);
@@ -3591,6 +3603,21 @@ function migrarHotel(v) {
   delete v.info.hotel;
   return true;
 }
+// Hotel que ya existe con el mismo nombre: rellena la dirección si le falta, sin pisar nada
+// Copiar texto largo: portapapeles y, si falla, el método antiguo (iPhone)
+async function copiarTexto(t) {
+  try { await navigator.clipboard.writeText(t); return true; } catch (e) {}
+  const ta = document.createElement('textarea'); ta.value = t; ta.setAttribute('readonly', ''); ta.style.cssText = 'position:fixed;top:0;left:0;opacity:0';
+  document.body.appendChild(ta); ta.select(); ta.setSelectionRange(0, t.length);
+  let ok = false; try { ok = document.execCommand('copy'); } catch (e) {}
+  ta.remove(); return ok;
+}
+function completarHotel(v, txt) {
+  const l = (txt || '').split('\n').map(x => x.trim()).filter(Boolean), dir = l.slice(1).join('\n');
+  const h = (v.reservas || []).find(r => r.tipo === 'hotel' && normCli(r.nombre) === normCli(l[0] || ''));
+  if (!h || h.dir || !dir) return false;
+  h.dir = dir; return true;
+}
 function hotelDeTexto(v, txt, fechas) {
   const l = (txt || '').split('\n').map(x => x.trim()).filter(Boolean);
   if (!l.length) return false;
@@ -3830,7 +3857,7 @@ function renderDetalle() {
     const hoyRes = (v.reservas || []).filter(r => r.tipo !== 'hotel' && r.fecha === HOY);
     if (hotel || hoyRes.length) {
       h += '<div class="card">';
-      if (hotel) h += `<div class="ficha-f"><div class="ic">🏨</div><div style="flex:1;min-width:0"><div class="k">Hotel${hotel.fecha <= HOY && (!hotel.fechaFin || hotel.fechaFin >= HOY) ? ' ahora' : ''}${hotel.fecha && hotel.fechaFin ? ' · ' + diaCorto(hotel.fecha) + ' → ' + diaCorto(hotel.fechaFin) : ''}</div><div class="v">${esc(hotel.nombre || 'Hotel')}</div>${hotel.dir ? `<div class="v" style="font-size:13px;color:var(--muted)">${esc(hotel.dir)}</div><div style="margin-top:3px">${mapaLink((hotel.nombre || '') + '\n' + hotel.dir)}</div>` : ''}${!hotel.dir && hotel.nombre ? `<div style="margin-top:3px">${mapaLink(hotel.nombre + ', ' + (v.pais || ''))}</div>` : ''}${hotel.tel ? `<div style="margin-top:3px">☎️ ${telLinks(hotel.tel)}</div>` : ''}</div></div>`;
+      if (hotel) h += `<div class="ficha-f"><div class="ic">🏨</div><div style="flex:1;min-width:0"><div class="k">Hotel${hotel.fecha <= HOY && (!hotel.fechaFin || hotel.fechaFin >= HOY) ? ' ahora' : ''}${hotel.fecha && hotel.fechaFin ? ' · ' + diaCorto(hotel.fecha) + ' → ' + diaCorto(hotel.fechaFin) : ''}</div><div class="v">${esc(hotel.nombre || 'Hotel')} <button data-res-editar="${hotel.id}" style="font-size:13px;color:var(--accent);font-weight:600;background:none;border:0;padding:0 0 0 6px;cursor:pointer">✏️ Editar</button></div>${hotel.dir ? `<div class="v" style="font-size:13px;color:var(--muted)">${esc(hotel.dir)}</div><div style="margin-top:3px">${mapaLink((hotel.nombre || '') + '\n' + hotel.dir)}</div>` : ''}${!hotel.dir && hotel.nombre ? `<div style="margin-top:3px">${mapaLink(hotel.nombre + ', ' + (v.pais || ''))}</div>` : ''}${hotel.tel ? `<div style="margin-top:3px">☎️ ${telLinks(hotel.tel)}</div>` : ''}</div></div>`;
       hoyRes.forEach(r => { const [t1, t2] = lineasRes({ tipo: r.tipo, r }); h += `<div class="ficha-f" data-dtab="v" style="cursor:pointer"><div class="ic">${TIPOS_RES[r.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="k">Hoy</div><div class="v">${t1}</div>${t2 ? `<div class="v" style="font-size:13px;color:var(--muted)">${t2}</div>` : ''}</div></div>`; });
       h += '</div>';
     }
@@ -3841,7 +3868,7 @@ function renderDetalle() {
     h += `<button class="btn secundario" id="fiImportar" style="margin:10px 0 0">📥 Importar correo de la gestora</button><div class="muted" style="font-size:12px;text-align:center;margin:4px 0 0">.eml, .msg o PDF, o pega el texto · en el PC también puedes arrastrarlo aquí desde Outlook</div>`;
     h += `<div class="det-sec"><span>Datos del viaje</span></div>
       <div class="card">${filas || '<div class="muted" style="font-size:14px">Importa el correo de la gestora y se rellenan solos la dirección del cliente, la orden SAP, los teléfonos y el hotel. Para escribirlos tú o añadir notas: ✏️ Editar.</div>'}</div>`;
-    if (info.correo) h += `<div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)">✉️ Ver correo de la gestora</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
+    if (info.correo) h += `<div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)">✉️ Ver correo de la gestora</summary><button class="pill-btn" data-copiar-correo style="margin:8px 0">📋 Copiar el correo</button><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
   } else if (tab === 'h') {
     h += htmlHoras(v);
   } else if (tab === 'v') {
@@ -3922,6 +3949,7 @@ function iniciarDetalle() {
     if (t.id === 'antesAñadir') { const i = $('#antesNuevo'), x = i.value.trim(); if (!x) return i.focus(); v.antes = { ...(v.antes || {}) }; v.antes.extra = [...(v.antes.extra || []), x]; guardar(); return render(); }
     const aq = t.closest('[data-antes-quitar]'); if (aq) { v.antes = { ...(v.antes || {}) }; v.antes.extra = (v.antes.extra || []).filter((_, i) => i !== +aq.dataset.antesQuitar); guardar(); return render(); }
     if (t.id === 'antesAviso') return avisoAntesIcs(v);
+    if (t.closest('[data-copiar-correo]')) { const c = (v.info || {}).correo || ''; copiarTexto(c).then(ok => toast(ok ? '📋 Correo copiado' : 'No se ha podido copiar')); return; }
     if (t.closest('a, .cp')) { const cp = t.closest('[data-copiar]'); if (cp) navigator.clipboard?.writeText(cp.dataset.copiar).then(() => toast('📋 Copiado: ' + cp.dataset.copiar), () => {}); return; }
     const rs = t.closest('[data-res]'); if (rs) { S.resAbierta = S.resAbierta === rs.dataset.res ? null : rs.dataset.res; return renderDetalle(); }
     if (t.id === 'docAñadir') { N.subirA = null; return $('#fileDocs').click(); }
