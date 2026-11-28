@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.1, v11.2…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.2, v11.3…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -58,7 +58,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 
 **Estructura (v11.0)**
 - Pestañas, en este orden: **Calendario · Viajes · Vacaciones · Estadísticas · Más**. Viajes va antes que Vacaciones porque entra más a los viajes.
-- El **Calendario es la pantalla principal** y en el móvil el año tiene que verse **entero sin hacer scroll** (le pone muy nervioso). Nada encima del calendario: ni la tarjeta de Hoy ni una franja (se probó en v11.0 y lo descartó). Hoy es un botón «Hoy ›» junto al título, que abre una hoja; en el PC la tarjeta va a la derecha. No hay pestaña «Hoy».
+- El **Calendario es la pantalla principal** y en el móvil el año tiene que verse **entero sin hacer scroll** (le pone muy nervioso). Nada encima del calendario: ni la tarjeta de Hoy ni una franja (se probó en v11.0 y lo descartó). Hoy es un botón junto al título, con el degradado morado de la tarjeta y dos líneas (bandera, «Hoy», 🎒 pendientes; debajo próximo vuelo, horas de hoy o próximo viaje), que abre una hoja; en el PC la tarjeta va a la derecha. En el móvil la vista de año no se estira ni desplaza la página (`body.en-cal`): con scroll, iOS difumina el título bajo la barra de arriba. No hay pestaña «Hoy».
 - La tarjeta de Hoy lleva **solo lo útil**: próximo vuelo, «Antes de irte», horas de hoy, ID/OS para copiar y la ficha (sin viaje: el próximo viaje). Fuera, porque no le aportan nada: «Vuelves en X días», «Próximo descanso largo», «Vacaciones: te quedan…».
 - **Viajes**: solo la lista del año, un único ＋ y un buscador que busca en todos los años.
 - **Estadísticas**: «Por año», «Histórico» y «Mapa» juntos (antes estaban repartidos entre Viajes y Mapa).
@@ -82,6 +82,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - El «vacacional» de empresa es solo un periodo recomendado: cuenta como laborable, y si coge vacaciones ahí se descuentan.
 - Las vacaciones se cuentan **por horas**: jornada continua de 8 h y días parciales posibles (p. ej. 2,5 h). No hay ajuste de «días de vacaciones al año».
 - La bolsa es por año: conceptos que fija la empresa más el pendiente del año anterior. Ese pendiente es automático, pero se puede corregir a mano.
+- Los días del calendario de empresa se ven **tal cual están marcados**, también en fin de semana (antes el año los ocultaba y parecía que se desmarcaban).
 - Al marcar vacaciones se marcan **exactamente** los días que él elige, sin añadir fines de semana, festivos ni puentes pegados.
 - Tocar un día en el calendario solo muestra información. Las vacaciones se marcan con «Reservar vacaciones» o desde la pestaña Vacaciones.
 - No hay pestaña de sugerencias de puentes: él los localiza mirando el año entero con colores.
