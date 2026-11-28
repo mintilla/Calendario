@@ -1,6 +1,6 @@
 {
-  "name": "Calendario Torres de Elorz",
-  "short_name": "Mi calendario",
+  "name": "Mis viajes",
+  "short_name": "Mis viajes",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",

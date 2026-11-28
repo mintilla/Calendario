@@ -3,14 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>Calendario Torres de Elorz</title>
+<title>Mis viajes</title>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="apple-touch-icon.png">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Mi calendario">
+<meta name="apple-mobile-web-app-title" content="Mis viajes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#6c5ce7">
 <style>
@@ -138,6 +138,19 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hoy-estado{font-size:22px;font-weight:700;margin:4px 0 12px;line-height:1.2}
 .hoy-lineas{display:flex;flex-direction:column;gap:8px}
 .hoy-linea{background:rgba(255,255,255,.16);border-radius:12px;padding:9px 11px;font-size:13px;line-height:1.35}
+/* Franja de Hoy: en el móvil se recoge en una línea y se abre al tocarla; en el PC va siempre abierta */
+.hoy-cab{display:flex;align-items:flex-start;gap:8px;cursor:pointer}
+.hoy-chev{font-size:22px;line-height:1;transition:transform .2s;opacity:.85}
+.hoy-card.abierta .hoy-chev{transform:rotate(180deg)}
+.hoy-res{font-size:13px;opacity:.92;margin-top:-6px}
+.hoy-card.abierta .hoy-res{display:none}
+.hoy-card:not(.abierta) .hoy-lineas{display:none}
+.hoy-card:not(.abierta) .hoy-estado{font-size:18px;margin:2px 0 8px}
+.hoy-card:not(.abierta){padding:12px 14px}
+.buscar{width:100%;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);margin:0 0 10px}
+.atras{font-size:28px;line-height:1;color:var(--accent);padding:0 6px 0 0;font-weight:400}
+.mas-menu{padding:2px 14px}.mas-menu .rec-f{cursor:pointer}
+#tab-mas .tab-titulo{font-size:26px}
 .hoy-linea b{font-weight:700}
 .barra{height:6px;background:rgba(255,255,255,.25);border-radius:3px;margin-top:6px;overflow:hidden}
 .barra>i{display:block;height:100%;background:#fff;border-radius:3px}
@@ -497,7 +510,7 @@ input,select,textarea{font-size:16px !important}
   .modal-box{max-height:min(88vh,820px)}
   .tabbar{top:0;right:auto;width:220px;flex-direction:column;justify-content:flex-start;gap:4px;
     border-top:none;border-right:1px solid var(--line);padding:22px 12px}
-  .tabbar::before{content:'Calendario Torres';font-size:15px;font-weight:800;color:var(--text);padding:0 12px 14px}
+  .tabbar::before{content:'Mis viajes';font-size:15px;font-weight:800;color:var(--text);padding:0 12px 14px}
   .tabbar button{flex:none;flex-direction:row;gap:12px;font-size:15px;padding:10px 12px;border-radius:12px;text-align:left}
   .tabbar button .ic{font-size:20px}
   .tabbar button:hover{background:var(--soft)}
@@ -519,6 +532,8 @@ input,select,textarea{font-size:16px !important}
   .c.jr .n{overflow:visible}
   .dot{top:10px;right:10px}
   .hoy-card{padding:12px 14px;border-radius:16px}
+  .hoy-card .hoy-lineas{display:flex!important}.hoy-chev,.hoy-res{display:none!important}.hoy-cab{cursor:default}
+  #tab-mas.on,#tab-est.on{max-width:820px}
   .hoy-estado{font-size:17px;margin:2px 0 8px}
   .hoy-linea{font-size:12px;padding:7px 9px}
   .ymes-t{font-size:13px}.ymini i{font-size:12px}
@@ -546,6 +561,7 @@ input,select,textarea{font-size:16px !important}
 <section class="tab on" id="tab-cal">
   <div class="tab-titulo">Calendario</div>
   <div class="res-bar" id="resBar"></div>
+  <div class="hoy-card" id="hoyCard"></div>
   <div class="card" id="calCard">
     <div class="mes-nav">
       <div class="mes-titulo tocable" id="mesTitulo"></div>
@@ -555,7 +571,7 @@ input,select,textarea{font-size:16px !important}
         <button class="icon-btn" id="btnNext">›</button>
       </div>
     </div>
-    <div class="aviso" id="avisoCal" style="display:none">⚠️ Sin calendario de empresa este año · añádelo en Ajustes</div>
+    <div class="aviso" id="avisoCal" style="display:none"></div>
     <div id="calCuerpo"></div>
     <div class="leyenda">
       <span><i style="background:var(--festivo)"></i>Festivo</span>
@@ -567,8 +583,6 @@ input,select,textarea{font-size:16px !important}
     </div>
   </div>
 
-  <div class="hoy-card" id="hoyCard"></div>
-
   <div id="agendaWrap">
     <div class="h-title" id="agendaTitulo">Este mes</div>
     <div class="card" id="agenda"></div>
@@ -577,24 +591,16 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VIAJES ===================== -->
 <section class="tab" id="tab-via">
-  <div class="tab-titulo">Viajes</div>
-  <div class="seg" id="segVia"><button data-modo="año" class="on">Por año</button><button data-modo="hist">Histórico</button><button data-modo="docs">🔒 Mis docs</button></div>
-  <div id="viaHist" style="display:none"></div>
-  <div id="viaDocs" style="display:none"></div>
-  <div id="viaAño">
+  <div class="tab-titulo">Viajes<button class="icon-btn nuevo-viaje" title="Nuevo viaje" aria-label="Nuevo viaje" style="background:var(--accent);color:#fff;font-size:24px">＋</button></div>
   <div class="mes-nav" style="margin-top:4px">
     <div class="mes-titulo tocable" id="viaTitulo"></div>
     <div class="nav-btns">
-      <button class="icon-btn nuevo-viaje" title="Nuevo viaje" style="background:var(--accent);color:#fff;font-size:24px">＋</button>
       <button class="icon-btn" data-año="-1">‹</button>
       <button class="icon-btn" data-año="1">›</button>
     </div>
   </div>
-  <div class="stats" id="viaStats"></div>
-  <div id="viaDesglose"></div>
-  <div class="h-title" style="display:flex;justify-content:space-between;align-items:center">Viajes<button class="pill-btn nuevo-viaje" style="text-transform:none;letter-spacing:0">＋ Nuevo viaje</button></div>
+  <input id="viaBuscar" class="buscar" type="search" placeholder="Buscar ciudad, país, cliente, OS o ID…" autocomplete="off">
   <div id="viaLista"></div>
-  </div>
 </section>
 
 <!-- ===================== VACACIONES ===================== -->
@@ -611,8 +617,19 @@ input,select,textarea{font-size:16px !important}
 </section>
 
 <!-- ===================== MAPA ===================== -->
-<section class="tab" id="tab-map">
-  <div class="tab-titulo">Mapa</div>
+<section class="tab" id="tab-est">
+  <div class="tab-titulo">Estadísticas</div>
+  <div class="seg" id="segEst"><button data-est="año" class="on">Por año</button><button data-est="hist">Histórico</button><button data-est="map">Mapa</button></div>
+  <div id="estAño">
+    <div class="mes-nav" style="margin-top:4px">
+      <div class="mes-titulo tocable" id="estTitulo"></div>
+      <div class="nav-btns"><button class="icon-btn" data-año="-1">‹</button><button class="icon-btn" data-año="1">›</button></div>
+    </div>
+    <div class="stats" id="viaStats"></div>
+    <div id="viaDesglose"></div>
+  </div>
+  <div id="viaHist" style="display:none"></div>
+  <div id="estMapa" style="display:none">
   <div class="stats" id="mapStats" style="grid-template-columns:repeat(3,minmax(0,1fr))"></div>
   <div class="card" style="padding:10px">
     <div class="mapa-caja">
@@ -633,11 +650,36 @@ input,select,textarea{font-size:16px !important}
   <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px"><span class="muted" style="font-size:13px;white-space:nowrap">Ordenar por</span><div class="seg" id="mapOrden" style="margin:0;flex:1"><button data-orden="dias" class="on">Días ↓</button><button data-orden="nombre">Nombre A–Z</button></div></div>
   <input id="mapBuscar" type="search" placeholder="Buscar país…" autocomplete="off" style="width:100%;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);margin-bottom:8px">
   <div class="card" id="mapLista"></div>
+  </div>
 </section>
 
 <!-- ===================== AJUSTES ===================== -->
-<section class="tab" id="tab-aju">
-  <div class="tab-titulo">Ajustes<button class="icon-btn" id="irAyuda" aria-label="Ayuda" style="font-size:17px">?</button></div>
+<section class="tab" id="tab-mas">
+  <div class="tab-titulo" id="masTitulo">Más</div>
+  <div id="masMenu">
+    <div class="h-title">Mis cosas</div>
+    <div class="card mas-menu">
+      <div class="rec-f" data-mas="docs"><div class="ic">🔒</div><div style="flex:1"><div class="t">Mis documentos</div><div class="s">Pasaporte, DNI, datos personales, tarjetas</div></div><div class="muted">›</div></div>
+    </div>
+    <div class="h-title">Gestión</div>
+    <div class="card mas-menu">
+      <div class="rec-f" data-mas="empresa"><div class="ic">📅</div><div style="flex:1"><div class="t">Calendario de empresa</div><div class="s">Festivos, puentes y vacacionales de cada año</div></div><div class="muted">›</div></div>
+      <div class="rec-f" data-mas="clientes"><div class="ic">🏢</div><div style="flex:1"><div class="t">Clientes</div><div class="s">Grupos, plantas, renombrar, viajes sin cliente</div></div><div class="muted">›</div></div>
+      <div class="rec-f" data-mas="antes"><div class="ic">🎒</div><div style="flex:1"><div class="t">Antes de irme</div><div class="s">La lista fija y la hora del aviso</div></div><div class="muted">›</div></div>
+    </div>
+    <div class="h-title">App</div>
+    <div class="card mas-menu">
+      <div class="rec-f" data-mas="ajustes"><div class="ic">⚙️</div><div style="flex:1"><div class="t">Ajustes</div><div class="s">Cuenta, imputar, márgenes de las horas de viaje</div></div><div class="muted">›</div></div>
+      <div class="rec-f" data-mas="copia"><div class="ic">💾</div><div style="flex:1"><div class="t">Copia de seguridad</div><div class="s">Exportar e importar tus datos</div></div><div class="muted">›</div></div>
+      <div class="rec-f" data-abrir-ayuda="1"><div class="ic">❓</div><div style="flex:1"><div class="t">Ayuda</div><div class="s">Cómo funciona cada parte, con buscador</div></div><div class="muted">›</div></div>
+    </div>
+    <div class="muted" style="font-size:12px;text-align:center;margin:6px 0 10px" id="verMenu"></div>
+  </div>
+  <div class="mas-sub" data-sub="docs"><div id="viaDocs"></div></div>
+  <div class="mas-sub" data-sub="empresa"><div class="card" id="empCard"></div></div>
+  <div class="mas-sub" data-sub="clientes"><div class="card" id="cliCard"></div></div>
+  <div class="mas-sub" data-sub="antes"><div class="card" id="antesCard"></div></div>
+  <div class="mas-sub" data-sub="ajustes">
   <div class="muted" style="font-size:13px;margin:-6px 4px 12px" id="verTxt"></div>
   <div class="h-title">Cuenta</div>
   <div class="card">
@@ -646,26 +688,18 @@ input,select,textarea{font-size:16px !important}
     <div id="almacen" style="margin-top:12px"></div>
     <button class="btn secundario" id="btnSalir">Cerrar sesión</button>
   </div>
-
-  <div class="h-title">Calendario de empresa</div>
-  <div class="card" id="empCard"></div>
-
   <div class="h-title">Imputar horas y gastos</div>
   <div class="card">
     <div class="campo" style="margin:0"><label>Clase de actividad</label><input id="ajClase" placeholder="ZTTAI" autocomplete="off" autocapitalize="characters" style="text-transform:uppercase"></div>
     <div class="muted" style="font-size:12px;margin-top:6px">Sale en cada viaje junto a la orden de servicio y el ID, para copiarla al imputar.</div>
-    <div style="font-weight:600;font-size:14px;margin-top:14px">Horas de viaje: márgenes alrededor de los vuelos</div>
+  </div>
+  <div class="h-title">Horas de viaje: márgenes alrededor de los vuelos</div>
+  <div class="card">
     <div class="campo-doble"><div class="campo"><label>Salgo de casa (min antes)</label><input id="mgCasaSal" type="number" inputmode="numeric"></div><div class="campo"><label>Llego a casa (min después)</label><input id="mgCasaLle" type="number" inputmode="numeric"></div></div>
     <div class="campo-doble"><div class="campo"><label>Aeropuerto → hotel (min)</label><input id="mgDestLle" type="number" inputmode="numeric"></div><div class="campo"><label>Hotel → vuelo (min antes)</label><input id="mgDestSal" type="number" inputmode="numeric"></div></div>
     <div class="muted" style="font-size:12px">Con esto la app propone la salida y la llegada de cada viaje a partir de los vuelos. Luego puedes ajustar cada viaje.</div>
-  </div>
-  <div class="h-title">🎒 Antes de irme (último día en fábrica)</div>
-  <div class="card" id="antesCard"></div>
-  <div class="h-title">Clientes</div>
-  <div class="card" id="cliCard"></div>
-
-
-  <div class="h-title">Copia de seguridad</div>
+  </div>  </div>
+  <div class="mas-sub" data-sub="copia">
   <div class="card">
     <div class="muted" style="font-size:13px" id="backupInfo"></div>
     <button class="btn primario" id="btnExportar">💾 Exportar backup</button>
@@ -679,8 +713,7 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <input type="file" id="fileImport" accept=".json,application/json,text/plain" style="display:none">
   </div>
-
-  <div class="card" style="padding:2px 14px"><div class="rec-f" data-abrir-ayuda="1" style="cursor:pointer"><div class="ic">❓</div><div style="flex:1"><div class="t">Ayuda y guía</div><div class="s">Cómo funciona cada parte, con buscador</div></div><div class="chev">›</div></div></div>
+  </div>
 </section>
 
 <!-- ===================== HOJA SELECCIÓN ===================== -->
@@ -704,7 +737,7 @@ input,select,textarea{font-size:16px !important}
         <li><b>Vacaciones:</b> se marcan exactamente los días que eliges, ni uno más. Si todo el rango ya es vacaciones, el botón pasa a <b>✕ Quitar vacaciones</b>.</li>
         <li><b>Días parciales:</b> toca un solo día de vacaciones y cambia sus horas (por defecto 8 h). El día se rellena como un vaso según las horas. <b>↺</b> vuelve a 8 h.</li>
         <li><b>Vistas:</b> se abre en la vista año; la tarjeta de hoy está debajo, al bajar. En la vista mes ves la lista de ese mes debajo del calendario.</li>
-        <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar viaje</b> para cambiarlo o borrarlo.</li>
+        <li><b>Viajes:</b> toca un viaje (en la hoja, en la lista del mes o en la tarjeta de hoy) para abrir su ficha. Desde ahí, <b>✏️ Editar</b> para cambiarlo (fechas, cliente, OS, ID y datos del viaje) o borrarlo.</li>
         <li>Los festivos, puentes y vacacionales de empresa no cuentan horas. El vacacional y el previo sí son laborables: si coges vacaciones ahí, cuentan.</li>
       </ul>
     </div></details>
@@ -722,34 +755,34 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>🏭 Clientes</summary><div class="cont">
       <ul>
-        <li>En <b>Ajustes → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
+        <li>En <b>Más → Clientes</b> ves todos los clientes de tus viajes. Toca uno para ver sus viajes (y abrir su ficha). Con <b>✏️</b> le cambias el nombre en todos sus viajes; si pones el de otro que ya existe, se juntan.</li>
         <li><b>Grupo y planta:</b> al crear un viaje, en <b>Cliente</b> escribe unas letras y elige de la lista (Tetra Pak); debajo eliges o escribes la <b>Planta</b> (Limburg). Si escribes uno nuevo que se parece a otro, te avisa antes de crearlo, para no duplicar. En las estadísticas cada grupo suma todas sus plantas.</li>
-        <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar viaje</b> puedes marcar uno como Feria, Comercial o Interno. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
+        <li><b>Tipo de viaje:</b> por defecto todos son de <b>Cliente</b>. En <b>✏️ Editar</b> puedes marcar uno como Feria, Comercial o Interno. Esos, y los que no tienen cliente, salen aparte en <b>Otros viajes</b> y no cuentan en las estadísticas de clientes (sí en días y países).</li>
       </ul>
     </div></details>
     <details><summary>🏢 Calendario de empresa</summary><div class="cont">
       <ul>
-        <li>En <b>Ajustes → Calendario de empresa</b>, <b>＋ Añadir calendario</b> crea un año vacío con sus días cuadrados.</li>
+        <li>En <b>Más → Calendario de empresa</b>, <b>＋ Añadir calendario</b> crea un año vacío con sus días cuadrados.</li>
         <li>Pulsa <b>✏️ Editar</b>, elige el tipo (Festivo, Puente, Vacacional, Previo 6h o Borrar) y toca los días. <b>Listo</b> para terminar.</li>
         <li>Solo se pueden borrar los años futuros, para no perder los pasados.</li>
       </ul>
     </div></details>
-    <details><summary>✈️ Viajes y 🌍 Mapa</summary><div class="cont">
+    <details><summary>✈️ Viajes y 📊 Estadísticas</summary><div class="cont">
       <ul>
-        <li><b>Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ver el ranking completo, del primero al último), en qué meses viajas más (tócalo para el ranking de meses) y cuántos vuelos llevas.</li>
+        <li><b>Estadísticas → Histórico:</b> totales desde 2000, 🏆 récords (toca uno para ver el ranking completo, del primero al último), en qué meses viajas más (tócalo para el ranking de meses) y cuántos vuelos llevas.</li>
         <li><b>Viajes y visitas:</b> cada cliente es una visita; las visitas pegadas (una empieza el día siguiente de acabar la otra, o se solapan) cuentan como <b>un solo viaje</b>, aunque cambie el cliente o el país. Así salen el viaje más largo, el número de viajes y la estimación de vuelos.</li>
         <li><b>Años fuera de casa:</b> todos tus días de viaje entre 365, y qué parte suponen desde tu primer viaje.</li>
         <li><b>Países y continentes:</b> países visitados cuenta todos (España, trabajo y ocio). Continentes: 7, con Norte y Sudamérica por separado; toca el número para ver cuáles y sus países.</li>
-        <li><b>Viajes → Por año</b>: días, países y clientes de un año. Toca el título para elegir otro año. <b>Histórico</b>: todo desde 2000.</li>
+        <li><b>Viajes</b>: la lista de viajes de un año (toca el año para elegir otro) y un buscador que busca en todos los años por ciudad, país, cliente, OS o ID. <b>Estadísticas → Por año</b>: días, países y clientes de ese año. <b>Histórico</b>: todo desde 2000.</li>
         <li>Los días cuentan de salida a vuelta, ambos incluidos. Los <b>días de viaje</b> incluyen los de España; <b>días en el extranjero</b> es sin España; <b>países visitados</b> cuenta todos: España, los de trabajo y los marcados como ocio.</li>
-        <li><b>Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
+        <li><b>Estadísticas → Mapa:</b> el color depende de los días en cada país. Verde = visitado por ocio; naranja = casa.</li>
         <li>En <b>Todos los países</b> puedes ordenar por <b>Días</b> o por <b>Nombre</b> (tócalo otra vez para invertir el orden) y buscar escribiendo. Para países pequeños, tócalos en la lista: el mapa se amplía y los centra. Con <b>＋/−</b> llegas hasta ×16.</li>
         <li>Desde la ficha de un país puedes marcarlo como <b>visitado por ocio</b>.</li>
       </ul>
     </div></details>
     <details><summary>📎 Ficha del viaje: resumen, reservas y docs</summary><div class="cont">
       <ul>
-        <li><b>Crear un viaje:</b> el <b>＋</b> junto al año en Viajes, o <b>＋ Nuevo viaje</b> encima de la lista. Al guardarlo se abre su ficha. <b>✏️ Editar viaje</b> (arriba) cambia país, fechas o cliente.</li>
+        <li><b>Crear un viaje:</b> el <b>＋</b> de arriba en Viajes. Al guardarlo se abre su ficha. <b>✏️ Editar</b> (arriba en la ficha) cambia todo: país, fechas, cliente, OS, ID y los datos del viaje.</li>
         <li><b>Resumen:</b> el próximo vuelo (tócalo para ver todas las reservas), el hotel donde estás (con Google Maps y Waze), lo que tengas hoy, los avisos y los <b>datos del viaje</b>: cliente, orden SAP, contactos y notas. <b>✏️ Editar · pegar correo</b>: pega el correo de la gestora y pulsa <b>✨ Rellenar</b>; el hotel que encuentre se guarda en Reservas.</li>
         <li><b>Reservas:</b> vuelos, hoteles, coches, trenes, traslados… ordenados por día. Toca una para ver el detalle (localizador o billete para copiar, estado del vuelo, direcciones) y <b>✏️ Editar</b> para cambiarla o borrarla. <b>＋ Añadir reserva</b> para meter una a mano.</li>
         <li><b>Docs:</b> los documentos del viaje y tus documentos generales que le aplican. <b>＋ Añadir documento o correo</b>: PDFs, imágenes (máx. 7 MB) o el correo de la agencia (.eml, el «mime-attachment» de CWT guardado en Archivos), que añade solo los vuelos y sus PDFs. En el PC también puedes arrastrarlos. <b>✏️</b> cambia el nombre.</li>
@@ -771,7 +804,7 @@ input,select,textarea{font-size:16px !important}
     <details><summary>⏱️ Horas del viaje (horas extra)</summary><div class="cont">
       <ul>
         <li>En la ficha de cada viaje, pestaña <b>Horas</b>: arriba, las <b>horas extra laborables y festivas</b>; debajo, el <b>parte de horas</b> día a día (viaje, trabajo y extra de cada día). Mientras estás de viaje, la tarjeta de Hoy tiene un acceso directo «⏱️ Hoy: 8 h · cambiar».</li>
-        <li><b>Ida y vuelta:</b> la app las propone a partir de los vuelos y de tus márgenes (Ajustes → Imputar horas y gastos: cuánto antes sales de casa, cuánto tardas en llegar, etc.). Toca la ida o la vuelta para ajustarlas; cada hora lleva su zona horaria.</li>
+        <li><b>Ida y vuelta:</b> la app las propone a partir de los vuelos y de tus márgenes (Más → Ajustes → Horas de viaje: cuánto antes sales de casa, cuánto tardas en llegar, etc.). Toca la ida o la vuelta para ajustarlas; cada hora lleva su zona horaria.</li>
         <li><b>Días en destino:</b> se miden en <b>horas trabajadas</b> (sin la comida). Cada día laborable cuenta las horas de un día normal (8 h; toca «normal» para cambiarlo). Toca un día solo si fue distinto: <b>− ½ h / + ½ h</b>, o los atajos <b>Libre · 6 · 8 · 9 · 10 · 11 · 12 h</b>, y una nota si quieres. Puedes dejar puestos también los días que aún no han llegado.</li>
         <li><b>Criterio:</b> el viaje es un bloque continuo (art. 21.2 del convenio): 8 h trabajo, 8 h no computan, desde la hora 17 al 50 %. Cada hora va al día en que ocurre, con el reloj del país de salida. Lo de la hora 17 en adelante es extra; las 8 primeras, extra si es sábado, domingo o festivo, o si ese día ya pasabas de la jornada de 8 h.</li>
         <li>No se guardan precios ni euros: solo horas.</li>
@@ -779,10 +812,10 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>🧾 ID del viaje, orden de servicio y clase de actividad</summary><div class="cont">
       <ul>
-        <li>En ✏️ Editar viaje: <b>ID del viaje</b> (para el informe de gastos en Captio) y <b>Orden de servicio</b> (para imputar horas; en Captio es el proyecto). Al importar el correo de la gestora se rellenan solos.</li>
+        <li>En ✏️ Editar: <b>ID del viaje</b> (para el informe de gastos en Captio) y <b>Orden de servicio</b> (para imputar horas; en Captio es el proyecto). Al importar el correo de la gestora se rellenan solos.</li>
         <li>Salen, primero el ID y luego la OS, en la lista de viajes, en la tarjeta de Hoy cuando estás de viaje, en la ventana del día y arriba de la ficha, junto con la <b>Clase de actividad</b> (ZTTAI). <b>Toca cualquiera para copiarlo.</b></li>
         <li>En los viajes futuros, si falta alguno sale en naranja «Falta OS» o «Falta ID».</li>
-        <li>La clase de actividad se cambia en Ajustes → Imputar horas y gastos.</li>
+        <li>La clase de actividad se cambia en Más → Ajustes → Imputar horas y gastos.</li>
       </ul>
     </div></details>
     <details><summary>💶 Gastos en Captio</summary><div class="cont">
@@ -795,7 +828,7 @@ input,select,textarea{font-size:16px !important}
     </div></details>
     <details><summary>🔒 Mis documentos</summary><div class="cont">
       <ul>
-        <li>En <b>Viajes → 🔒 Mis docs</b> hay una tarjeta para cada cosa: <b>🛂 Pasaporte</b> y <b>🪪 DNI</b> (número, fechas y su foto o PDF dentro), <b>datos personales</b>, <b>tarjetas de fidelización</b> y <b>notas</b>. Cada una se edita con su ✏️; toca un número para copiarlo.</li>
+        <li>En <b>Más → 🔒 Mis documentos</b> hay una tarjeta para cada cosa: <b>🛂 Pasaporte</b> y <b>🪪 DNI</b> (número, fechas y su foto o PDF dentro), <b>datos personales</b>, <b>tarjetas de fidelización</b> y <b>notas</b>. Cada una se edita con su ✏️; toca un número para copiarlo.</li>
         <li>Con <b>＋ Añadir foto o PDF</b> dentro de la tarjeta, el archivo queda como el pasaporte o el DNI (y privado). En ✏️ de un documento, «Es…» cambia a qué tarjeta va. El resto va en <b>Otros documentos</b>.</li>
         <li>Cada documento puede salir en <b>todos los viajes</b>, en los de <b>un país</b> o en ninguno, y tener <b>validez</b>. Ej.: el seguro de Indonesia 2026, para Indonesia del 01/01 al 31/12/2026. Los que aplican aparecen solos en la ficha de cada viaje.</li>
         <li><b>Avisos:</b> si el pasaporte caduca menos de 6 meses después de la vuelta, o si un documento vence antes de acabar el viaje.</li>
@@ -807,7 +840,7 @@ input,select,textarea{font-size:16px !important}
         <li>Funciona sin cobertura: los cambios se guardan en el dispositivo y se envían al volver la conexión.</li>
         <li>En el iPhone solo sincroniza con la app <b>abierta</b>. Si arriba sale el aviso de cambios pendientes, déjala abierta con conexión hasta que desaparezca.</li>
         <li>Si cambias lo mismo en dos sitios sin conexión: las vacaciones y horas se juntan; en viajes, bolsa y ajustes gana el último que se envía.</li>
-        <li><b>Actualizaciones:</b> la app se actualiza sola: al abrirla, al volver a ella y, si se queda abierta sin tocarla, cada 15 minutos. Nunca lo hace con una ventana abierta, escribiendo o con cambios sin subir; espera a la siguiente vez. También puedes <b>deslizar hacia abajo</b> desde arriba del todo, o en Ajustes → <b>buscar actualización</b>. La versión instalada se ve en Ajustes.</li>
+        <li><b>Actualizaciones:</b> la app se actualiza sola: al abrirla, al volver a ella y, si se queda abierta sin tocarla, cada 15 minutos. Nunca lo hace con una ventana abierta, escribiendo o con cambios sin subir; espera a la siguiente vez. También puedes <b>deslizar hacia abajo</b> desde arriba del todo, o en Más → Ajustes → <b>buscar actualización</b>. La versión instalada se ve abajo del todo en Más.</li>
       </ul>
     </div></details>
     <details><summary>🔧 Cómo está montado</summary><div class="cont">
@@ -854,7 +887,8 @@ input,select,textarea{font-size:16px !important}
       <div class="campo"><label>Vuelta</label><input type="date" id="fFin"></div>
     </div>
     <div class="duracion" id="fDuracion"></div>
-    <div class="campo"><label>Notas (opcional)</label><input id="fNota" placeholder="Ej: puesta en marcha línea 3" autocomplete="off"></div>
+    <div class="campo"><label>Nota corta <span class="muted" style="font-weight:500">(sale bajo el título)</span></label><input id="fNota" placeholder="Ej: puesta en marcha línea 3" autocomplete="off"></div>
+    <div id="fFicha"></div>
     <button class="btn peligro" id="formEliminar" style="display:none">Eliminar viaje</button>
   </div>
 </div>
@@ -869,12 +903,12 @@ input,select,textarea{font-size:16px !important}
 <div class="toast" id="toast"></div>
 <div class="aviso-sync" id="avisoSync"></div>
 
-<div class="login" id="cargando" style="display:flex"><div class="login-box"><div style="font-size:48px">📅</div><div class="muted">Cargando…</div><button class="btn secundario" id="btnReintentar" style="display:none;margin-top:14px" onclick="location.reload()">↻ Reintentar</button></div></div>
+<div class="login" id="cargando" style="display:flex"><div class="login-box"><img src="icon-192.png" alt="" width="64" height="64" style="display:block;margin:0 auto 8px"><div class="muted">Cargando…</div><button class="btn secundario" id="btnReintentar" style="display:none;margin-top:14px" onclick="location.reload()">↻ Reintentar</button></div></div>
 <script>setTimeout(() => { const c = document.getElementById('cargando'), b = document.getElementById('btnReintentar'); if (c && b && getComputedStyle(c).display !== 'none') b.style.display = 'block'; }, 8000);</script>
 <div class="login" id="login" style="display:none">
   <div class="login-box">
-    <div style="font-size:52px">📅</div>
-    <h1>Calendario Torres</h1>
+    <img src="icon-192.png" alt="" width="72" height="72" style="display:block;margin:0 auto 6px">
+    <h1>Mis viajes</h1>
     <div class="muted" style="font-size:13px;margin-bottom:16px">Entra con tu cuenta para sincronizar</div>
     <input id="lEmail" type="email" placeholder="Email" autocomplete="username" autocapitalize="off">
     <input id="lPass" type="password" placeholder="Contraseña" autocomplete="current-password">
@@ -887,10 +921,10 @@ input,select,textarea{font-size:16px !important}
 <!-- ===================== BARRA ===================== -->
 <nav class="tabbar">
   <button class="on" data-tab="cal"><span class="ic">📅</span>Calendario</button>
-  <button data-tab="vac"><span class="ic">🏖️</span>Vacaciones</button>
   <button data-tab="via"><span class="ic">✈️</span>Viajes</button>
-  <button data-tab="map"><span class="ic">🌍</span>Mapa</button>
-  <button data-tab="aju"><span class="ic">⚙️</span>Ajustes</button>
+  <button data-tab="vac"><span class="ic">🏖️</span>Vacaciones</button>
+  <button data-tab="est"><span class="ic">📊</span>Estadísticas</button>
+  <button data-tab="mas"><span class="ic">☰</span>Más</button>
 </nav>
 
 <script>
@@ -978,7 +1012,7 @@ let HOY = iso(new Date());   // se recalcula al volver a la app y cada minuto (r
 const S = {
   año: +HOY.slice(0,4), mes: +HOY.slice(5,7) - 1, vista: 'año', tab: 'cal',
   sel: null, editando: null,
-  vac: new Set(), horas: {}, viajes: [], aju: { diasVac: 0 }, emp: {}, editEmp: null, añoVac: +HOY.slice(0,4), modoVia: 'año', zoom: 1, paisSel: null
+  vac: new Set(), horas: {}, viajes: [], aju: { diasVac: 0 }, emp: {}, editEmp: null, añoVac: +HOY.slice(0,4), modoEst: 'año', sub: null, buscaVia: '', zoom: 1, paisSel: null
 };
 
 const fechaOk = f => typeof f === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(f);
@@ -998,8 +1032,9 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v10.2';
-const BUILD = '2026-11-28T01:49:40'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.0';
+const BUILD = '2026-11-28T03:12:40'; // lo rellena publicar.sh en cada publicación
+S.hoyAbierta = !!leer('hoy-abierta');
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1056,6 +1091,9 @@ function mostrarLogin() {
   if (N.mostrado) return;
   $('#cargando').style.display = 'none';
   $('#login').style.display = 'flex';
+  // El último email con el que entraste en este dispositivo (la cuenta va con un email concreto, no con usuario)
+  const ue = leer('ultimo-email') || ((leer('copia-' + leer('ultimo-uid')) || {}).email);
+  if (ue && !$('#lEmail').value) { $('#lEmail').value = ue; setTimeout(() => $('#lPass').focus(), 50); }
 }
 async function hacerLogin() {
   const email = $('#lEmail').value.trim(), pass = $('#lPass').value;
@@ -1084,6 +1122,7 @@ function cerrarSesion() {
 
 function entrar(u) {
   N.uid = u.uid; N.email = u.email || '';
+  if (N.email) escribir('ultimo-email', N.email);
   $('#login').style.display = 'none';
   const FB = N.FB, base = ['usuarios', N.uid];
   const opts = { includeMetadataChanges: true };
@@ -1165,7 +1204,6 @@ function agrupar(el) {
     if (g && n !== g) g.appendChild(n);
   });
 }
-agrupar(document.getElementById('tab-aju'));
 // Números para imputar horas y hacer los gastos (Captio): orden de servicio, ID del viaje y clase de actividad
 const claseAct = () => (S.aju && S.aju.claseAct) || 'ZTTAI';
 function chipsImputar(v, todo) {
@@ -1301,7 +1339,7 @@ function actualizarAvisoSync() {
   const pend = hayPendiente();
   el.textContent = navigator.onLine ? '⏳ Subiendo cambios…' : '📴 Sin conexión · cambios pendientes de subir';
   el.classList.toggle('on', pend);
-  if (S.tab === 'aju' && $('#cuentaEstado')) $('#cuentaEstado').textContent = estadoNube();
+  if (S.tab === 'mas' && $('#cuentaEstado')) $('#cuentaEstado').textContent = estadoNube();
 }
 function estadoNube() {
   const pend = hayPendiente();
@@ -1420,7 +1458,7 @@ function renderHoy() {
   let estado;
   if (vjHoy.length) {
     const v = vjHoy[0];
-    estado = `<span data-viaje="${v.id}" style="cursor:pointer">${bandera(v.pais)} En ${esc(v.ciudadDestino || v.pais)} · ${esc(nombreCliente(v))}</span>`;
+    estado = `${bandera(v.pais)} En ${esc(v.ciudadDestino || v.pais)} · ${esc(nombreCliente(v))}`;
   } else if (S.vac.has(HOY)) estado = '🏖️ De vacaciones';
   else if (esFinde(HOY)) estado = '🌴 Fin de semana';
   else if (tipo(HOY)) estado = { festivo:'🎉 Festivo', puente:'🌉 Puente', previo:'⏰ Previo 6h', vacacional:'🏢 Vacacional de empresa' }[tipo(HOY)];
@@ -1456,9 +1494,24 @@ function renderHoy() {
   if (rv.hayBolsa) lineas.push(`🏖️ Vacaciones ${año}: <b>te quedan ${fmtH(rv.porReservar)}</b> por reservar (${fmtD(rv.porReservar)}) <u data-ir="vac">ver</u>`);
   else lineas.push(`🏖️ Vacaciones ${año}: <b>${plural(usados, 'día laborable', 'días laborables')}</b> marcados · <u data-ir="vac">configurar horas</u>`);
 
-  $('#hoyCard').innerHTML = `
-    <div class="hoy-fecha">Hoy · ${fechaLarga(HOY)}</div>
-    <div class="hoy-estado">${estado}</div>
+  // Resumen de una línea para la franja recogida (móvil)
+  const res = [];
+  if (vjHoy.length) {
+    const v = vjHoy[0], ud = ultimoDiaFabrica(v), dLoc = aLocal(Date.now(), tzDestino(v)).slice(0, 10);
+    if (ud && ud === dLoc) { const it = itemsAntes(v), hechos = (v.antes && v.antes.hechos) || {}, n = it.filter(x => !hechos[x.t]).length; res.push(n ? `🎒 ${n} por recoger` : '🎒 todo recogido'); }
+    if (tieneHoras(v)) { const oh = ((v.horas && v.horas.dias) || {})[dLoc]; res.push(`⏱️ ${oh && oh.libre ? 'libre' : nTxt(oh ? horasDia(oh) : (esDiaFestivo(dLoc) ? 0 : horario(v).h))}`); }
+  }
+  if (vueloProx) { const q = diasEntre(HOY, vueloProx.sal.slice(0, 10)); res.push(`✈️ ${q === 0 ? 'hoy' : q === 1 ? 'mañana' : diaCorto(vueloProx.sal.slice(0, 10))} ${vueloProx.sal.slice(11, 16)}`); }
+  if (!vjHoy.length && prox) res.push(`✈️ ${esc(prox.ciudadDestino || prox.pais)} ${enDias(diasEntre(HOY, prox.fechaInicio))}`);
+  if (!vjHoy.length && rv.hayBolsa) res.push(`🏖️ ${fmtH(rv.porReservar)}`);
+  const el = $('#hoyCard');
+  el.classList.toggle('abierta', !!S.hoyAbierta);
+  el.innerHTML = `
+    <div class="hoy-cab" data-hoy-toggle="1"><div style="flex:1;min-width:0">
+      <div class="hoy-fecha">Hoy · ${fechaLarga(HOY)}</div>
+      <div class="hoy-estado">${estado}</div>
+      <div class="hoy-res">${res.join(' · ')}</div></div>
+      <div class="hoy-chev" aria-hidden="true">⌄</div></div>
     <div class="hoy-lineas">${lineas.map(l => `<div class="hoy-linea">${l}</div>`).join('')}</div>`;
 }
 
@@ -1580,7 +1633,8 @@ function renderAño() {
 function renderCal() {
   renderHoy();
   $('#hoyCard').style.display = S.editEmp || S.reservar || S.vista === 'mes' ? 'none' : '';
-  $('#avisoCal').style.display = empresa(S.año).ok ? 'none' : 'block';
+  $('#avisoCal').style.display = empresa(S.año).ok || S.editEmp ? 'none' : 'block';
+  $('#avisoCal').innerHTML = `⚠️ ${S.año} no tiene calendario de empresa · <u data-cal-editar="${S.año}" style="cursor:pointer">Marcar festivos y puentes</u>`;
   $('#btnVista').textContent = S.vista === 'mes' ? 'Año' : 'Mes';
   if (S.vista === 'mes') { renderMes(); renderAgenda(); $('#agendaWrap').style.display = ''; }
   else { renderAño(); $('#agendaWrap').style.display = 'none'; }
@@ -1810,9 +1864,9 @@ function abrirRanking(tipo) {
     const t = e.target;
     const v = t.closest('[data-rk-viaje]'); if (v) { cerrar(); return abrirDetalle(v.dataset.rkViaje); }
     const rr = t.closest('[data-rk-real]'); if (rr) { const r = viajesReales().find(x => x.a === rr.dataset.rkReal); return listaCliente(`${lugarReal(r)} · ${plural(r.dias, 'día')}`, r.regs); }
-    const p = t.closest('[data-rk-pais]'); if (p) { cerrar(); S.paisSel = p.dataset.rkPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); centrarEnPais(S.paisSel); return; }
+    const p = t.closest('[data-rk-pais]'); if (p) { cerrar(); S.paisSel = p.dataset.rkPais; irEst('map'); centrarEnPais(S.paisSel); return; }
     const c = t.closest('[data-rk-cli]'); if (c) { const pl = c.dataset.rkPlanta, g = c.dataset.rkCli; return pl ? listaCliente(g + ' ' + pl, S.viajes.filter(x => x.cliente === g && x.planta === pl)) : listaCliente(g); }
-    const y = t.closest('[data-rk-año]'); if (y) { cerrar(); S.año = +y.dataset.rkAño; S.modoVia = 'año'; if (S.tab !== 'via') irTab('via'); renderViajes(); return window.scrollTo(0, 0); }
+    const y = t.closest('[data-rk-año]'); if (y) { cerrar(); S.año = +y.dataset.rkAño; irEst('año'); return window.scrollTo(0, 0); }
     const m = t.closest('[data-rk-mes]'); if (m) { const i = +m.dataset.rkMes; return listaCliente(cap(MESES[i]), S.viajes.filter(x => [...rango(x.fechaInicio, x.fechaFin)].some(s => +s.slice(5, 7) - 1 === i))); }
     const ct = t.closest('[data-rk-cont]'); if (ct) { const k = ct.dataset.rkCont, ps = continentesVisitados()[k] || [], st2 = statsPaises();
       $('#dlgTxt').innerHTML = `<b>${esc(k)}</b><div class="muted" style="font-size:13px">${plural(ps.length, 'país', 'países')}</div>`;
@@ -2112,14 +2166,30 @@ function barras(titulo, mapa) {
   return `<div class="h-title">${titulo}</div><div class="card">${filas.map(([k, n]) => `
     <div class="fila-barra"><div class="lbl">${k}</div><div class="bar"><i style="width:${Math.max(4, n / max * 100)}%"></i></div><div class="num">${plural(n, 'día')}</div></div>`).join('')}</div>`;
 }
-function renderViajes() {
-  document.querySelectorAll('#segVia button').forEach(b => b.classList.toggle('on', b.dataset.modo === S.modoVia));
-  $('#viaHist').style.display = S.modoVia === 'hist' ? 'block' : 'none';
-  $('#viaDocs').style.display = S.modoVia === 'docs' ? 'block' : 'none';
-  $('#viaAño').style.display = S.modoVia === 'hist' || S.modoVia === 'docs' ? 'none' : 'block';
-  if (S.modoVia === 'hist') return renderHistorico();
-  if (S.modoVia === 'docs') { if (!S.persEdit) renderMisDocs(); return; }
-  $('#viaTitulo').textContent = `${S.año}`;
+// ===== Estadísticas: por año, histórico y mapa =====
+function irEst(modo) { S.modoEst = modo; if (S.tab !== 'est') irTab('est'); else renderEst(); }
+function renderEst() {
+  document.querySelectorAll('#segEst button').forEach(b => b.classList.toggle('on', b.dataset.est === S.modoEst));
+  $('#estAño').style.display = S.modoEst === 'año' ? 'block' : 'none';
+  $('#viaHist').style.display = S.modoEst === 'hist' ? 'block' : 'none';
+  $('#estMapa').style.display = S.modoEst === 'map' ? 'block' : 'none';
+  if (S.modoEst === 'hist') return renderHistorico();
+  if (S.modoEst === 'map') return renderMapa();
+  renderStatsAño();
+}
+// ===== Más: menú y sus pantallas =====
+const MAS_TIT = { docs: '🔒 Mis documentos', empresa: '📅 Calendario de empresa', clientes: '🏢 Clientes', antes: '🎒 Antes de irme', ajustes: '⚙️ Ajustes', copia: '💾 Copia de seguridad' };
+function irMas(sub) { S.sub = sub || null; if (S.tab !== 'mas') irTab('mas'); else { renderMas(); window.scrollTo(0, 0); } }
+function renderMas() {
+  $('#masMenu').style.display = S.sub ? 'none' : '';
+  document.querySelectorAll('.mas-sub').forEach(x => x.style.display = x.dataset.sub === S.sub ? '' : 'none');
+  $('#masTitulo').innerHTML = S.sub ? `<span style="display:flex;align-items:center;gap:6px"><button class="atras" data-mas-volver="1" aria-label="Volver a Más">‹</button>${MAS_TIT[S.sub]}</span>` : 'Más';
+  $('#verMenu').textContent = `Mis viajes · ${VERSION} · ${BUILD.slice(8, 10)}/${BUILD.slice(5, 7)} ${BUILD.slice(11, 16)}`;
+  if (S.sub === 'docs') { if (!S.persEdit) renderMisDocs(); return; }
+  if (S.sub) renderAjustes();
+}
+function renderStatsAño() {
+  $('#estTitulo').textContent = `${S.año}`;
   const lista = viajesDelAño();
   const ini = `${S.año}-01-01`, fin = `${S.año}-12-31`;
   const fuera = new Set(), todos = new Set(), porPais = {}, porCliente = {};
@@ -2140,8 +2210,14 @@ function renderViajes() {
     <div class="stat"><b>${viajesReales(lista).length}</b><span>viajes${viajesReales(lista).length !== lista.length ? ` · ${lista.length} visitas` : ''}</span></div>
     <div class="stat"><b>${paises.size}</b><span>países</span></div>`;
   $('#viaDesglose').innerHTML = barras('Por país', porPais) + barras('Por cliente', porCliente);
-
-  $('#viaLista').innerHTML = lista.length ? lista.slice().reverse().map(v => {
+}
+// Viajes: la lista del año, o lo que encuentre el buscador en todos los años
+function renderViajes() {
+  $('#viaTitulo').textContent = `${S.año}`;
+  const q = normCli(S.buscaVia || '');
+  const lista = q ? S.viajes.filter(v => normCli([v.ciudadDestino, v.pais, v.cliente, v.planta, v.os, v.idViaje, v.nota].filter(Boolean).join(' ')).includes(q)).sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio)) : viajesDelAño();
+  document.querySelector('#tab-via .mes-nav').style.display = q ? 'none' : '';
+  $('#viaLista').innerHTML = lista.length ? (q ? `<div class="muted" style="font-size:13px;margin:0 4px 8px">${plural(lista.length, 'viaje encontrado', 'viajes encontrados')} en todos los años</div>` : '') + lista.slice().reverse().map(v => {
     const n = diasEntre(v.fechaInicio, v.fechaFin) + 1;
     let chip = '', cls = '';
     if (v.fechaInicio <= HOY && HOY <= v.fechaFin) chip = '<span class="chip ahora">Ahora</span>';
@@ -2153,7 +2229,7 @@ function renderViajes() {
         <div class="viaje-t">${esc(v.ciudadDestino ? v.ciudadDestino + ', ' + v.pais : v.pais)}</div>
         <div class="viaje-s">${esc(nombreCliente(v))} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${marcaDocs(v)}</div>${chipsImputar(v, false)}${proxVueloTxt(v)}
       </div>${chip}</div>`;
-  }).join('') : `<div class="card vacio">Sin viajes en ${S.año}</div>`;
+  }).join('') : `<div class="card vacio">${q ? 'No hay viajes con eso' : 'Sin viajes en ' + S.año}</div>`;
 }
 
 // ---- Formulario ----
@@ -2177,6 +2253,11 @@ function abrirFormulario(viaje, ini, fin) {
   $('#fIni').value = viaje?.fechaInicio || ini || '';
   $('#fFin').value = viaje?.fechaFin || fin || ini || '';
   $('#formEliminar').style.display = viaje ? 'block' : 'none';
+  // Datos del viaje (los que se rellenan con el correo): en el mismo formulario
+  const info = (viaje && viaje.info) || {};
+  $('#fFicha').innerHTML = `<div class="h-title" style="margin:14px 2px 6px">Datos del viaje</div>
+    ${CAMPOS_FICHA.map(([k, ic, t]) => `<div class="campo"><label>${ic} ${t}</label>${k === 'sap' || k === 'eta' ? `<input id="fi_${k}" value="${esc(info[k] || '')}" autocomplete="off">` : `<textarea id="fi_${k}" rows="${k === 'contactos' ? 4 : 3}" style="width:100%;font-size:16px;border:none;background:none;color:var(--text);resize:vertical">${esc(info[k] || '')}</textarea>`}</div>`).join('')}
+    <div class="muted" style="font-size:12px;margin:-4px 2px 10px">Se rellenan solos al importar el correo de la gestora.</div>`;
   actualizarDuracion();
   $('#modalViaje').classList.add('on');
 }
@@ -2302,6 +2383,10 @@ function guardarFormulario2(cliente, planta) {
               ...(planta ? { planta } : {}),
               ...(osV ? { os: osV } : {}), ...(idV ? { idViaje: idV } : {}),
               fechaCreacion: S.editando?.fechaCreacion || new Date().toISOString() };
+  // Datos del viaje del formulario (se conserva el texto del correo guardado)
+  const info = { ...(previo.info || {}) };
+  CAMPOS_FICHA.forEach(([k]) => { const el = $('#fi_' + k); if (!el) return; const x = el.value.trim(); if (x) info[k] = x; else delete info[k]; });
+  if (Object.keys(info).length) v.info = info; else delete v.info;
   const i = S.viajes.findIndex(x => x.id === v.id);
   if (i >= 0) S.viajes[i] = v; else S.viajes.push(v);
   const nuevo = !S.editando;
@@ -2395,7 +2480,7 @@ async function subirArchivos(viajeId, files, extra) {
         lote.set(N.FB.doc(N.db, ...base, 'partes', 'p' + i), { i, d: b64.slice(i * DOC_TROZO, (i + 1) * DOC_TROZO) });
         enviar(lote);
       }
-      const meta = { id, viaje: viajeId, nombre: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString(), ...(hu ? { huella: hu } : {}), ...(extra || {}) };
+      const meta = { id, viaje: viajeId, nombre: f.name, original: f.name, tipo: f.type || 'application/pdf', tam: f.size, partes: n, creado: new Date().toISOString(), ...(hu ? { huella: hu } : {}), ...(extra || {}) };
       const lote = N.FB.writeBatch(N.db);
       lote.set(N.FB.doc(N.db, ...base), meta);
       enviar(lote);
@@ -2459,7 +2544,7 @@ async function renombrarDoc(d) {
   const actual = ext ? d.nombre.slice(0, -ext.length) : d.nombre;
   const nuevo = await pedirTexto('Nombre del documento', actual);
   if (!nuevo || nuevo === actual) return;
-  const meta = { ...d, nombre: nuevo + ext };
+  const meta = { ...d, nombre: nuevo + ext, original: d.original || d.nombre };
   const lote = N.FB.writeBatch(N.db);
   lote.set(N.FB.doc(N.db, 'usuarios', N.uid, 'docs', d.id), meta);
   enviar(lote);
@@ -2906,10 +2991,13 @@ async function pareceLogo(f) {
   } catch (e) { return false; }
 }
 // Lo que desmarcas a mano se recuerda: la próxima vez ese adjunto ya sale desmarcado (y al revés)
+const descartados = () => [...new Set([...((S.aju && S.aju.descartados) || []), ...(leer('docs-descartados') || [])])];
 function recordarLogos(it) {
-  let l = leer('docs-descartados') || [];
+  let l = descartados();
+  const antes = JSON.stringify(l);
   it.filter(x => x.tocado && x.huella).forEach(x => { l = l.filter(y => y !== x.huella); if (!x.on) l.push(x.huella); });
-  escribir('docs-descartados', l.slice(-100));
+  l = l.slice(-200);
+  if (JSON.stringify(l) !== antes || (leer('docs-descartados') || []).length) { S.aju = { ...S.aju, descartados: l }; escribir('docs-descartados', []); guardar(); }
 }
 // ¿Ya está guardado en Mis documentos o en otro viaje? (por huella; en los antiguos, por nombre si no es genérico)
 function docYaGuardado(a, viajeId) {
@@ -2917,7 +3005,10 @@ function docYaGuardado(a, viajeId) {
   const generico = /^(image|imagen|img|adjunto|attachment|scan)[-_ ]?\d*$/.test(nom(a.file.name));
   // Iguales, o uno empieza como el otro ("… para viajeros" / "… para viajerosas (4)") si es un nombre largo
   const parecidos = (x, y) => x === y || (Math.min(x.length, y.length) >= 15 && (x.startsWith(y) || y.startsWith(x)));
-  return (S.docs || []).find(d => d.viaje !== viajeId && ((a.huella && d.huella === a.huella) || (!d.huella && !generico && parecidos(nom(d.nombre), nom(a.file.name)))));
+  const docs = S.docs || [];
+  return docs.find(d => a.huella && d.huella === a.huella)
+    || docs.find(d => d.viaje === viajeId && d.nombre === a.file.name && d.tam === a.file.size)
+    || (!generico && docs.find(d => !d.huella && [d.original, d.nombre].filter(Boolean).some(n => parecidos(nom(n), nom(a.file.name)))));
 }
 // Todo lo encontrado, como lista de casillas (marcadas salvo lo que parezca el logotipo de la firma)
 function hallazgosCorreo(v, ds) {
@@ -2972,15 +3063,17 @@ function hallazgosCorreo(v, ds) {
   if (r.cliente && r.cliente !== info.cliente) add('Datos del viaje', '🏭 Dirección del cliente', esc(r.cliente.split('\n').join(' · ')), x => x.info.cliente = r.cliente);
   if (r.contactos && r.contactos !== info.contactos) add('Datos del viaje', '☎️ Contactos', esc(r.contactos.split('\n').join(' · ')), x => x.info.contactos = r.contactos);
   if (r.correo && r.correo.length > 80 && r.correo !== info.correo) add('Datos del viaje', '✉️ Guardar el texto del correo', 'para leerlo en la ficha, también sin conexión', x => x.info.correo = r.correo);
-  const yaDocs = new Set(docsDe(v.id).map(d => d.nombre + '|' + d.tam)), vd = new Set();
+  const yaDocs = new Set(docsDe(v.id).map(d => d.nombre + '|' + d.tam)), vd = new Set(), desc = descartados();
   ds.forEach(d => {
     d.adjuntos.forEach(a => {
-      const k = a.file.name + '|' + a.file.size; if (yaDocs.has(k) || vd.has(k)) return; vd.add(k);
+      const k = (a.huella || a.file.name + '|' + a.file.size); if (vd.has(k)) return; vd.add(k);
       const img = a.file.type.startsWith('image/');
       if (img && a.inline && a.file.size < 25000) return;
       const otro = docYaGuardado(a, v.id), vo = otro && otro.viaje !== MIOS && S.viajes.find(y => y.id === otro.viaje);
-      const descartado = a.huella && (leer('docs-descartados') || []).includes(a.huella);
-      const nota = otro ? (otro.viaje === MIOS ? ' · ya está en Mis documentos' : ` · ya lo tienes en el viaje ${vo ? 'de ' + esc(vo.ciudadDestino || vo.pais) : 'anterior'}`)
+      if (otro && otro.viaje === v.id) return;   // ya está en este viaje: no se propone
+      const descartado = a.huella && desc.includes(a.huella);
+      const como = otro && otro.nombre !== a.file.name ? ` como «${esc(otro.nombre)}»` : '';
+      const nota = otro ? (otro.viaje === MIOS ? ` · ya lo tienes en Mis documentos${como}` : ` · ya lo tienes en el viaje ${vo ? 'de ' + esc(vo.ciudadDestino || vo.pais) : 'anterior'}${como}`)
         : a.logo ? ' · parece el logotipo de la firma' : descartado ? ' · lo desmarcaste la otra vez' : a.inline ? ' · imagen dentro del correo' : '';
       add('Documentos', `${img ? '🖼️' : '📄'} ${esc(a.file.name)}`, `${tamTxt(a.file.size)}${nota}`, null, !(otro || a.logo || descartado), { file: a.file, thumb: img ? URL.createObjectURL(a.file) : '', huella: a.huella, paraMios: otro ? undefined : false });
     });
@@ -3211,7 +3304,7 @@ function formDialogo(tit, campos, extraBtn) {
   return new Promise(res => {
     $('#dlgTxt').innerHTML = `<b>${tit}</b>`;
     $('#dlgBtns').innerHTML = `<div style="text-align:left">${campos.map(c => c.tipo === 'check' ? `<label class="hr-chk"><input type="checkbox" id="fd_${c.k}"${c.v ? ' checked' : ''}> ${c.t}</label>` :
-      `<div class="campo"><label>${c.t}</label>${c.tipo === 'select' ? `<select id="fd_${c.k}">${c.ops.map(o => `<option value="${esc(o[0])}"${o[0] === c.v ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select>` : `<input id="fd_${c.k}" type="${c.tipo || 'text'}" value="${esc(c.v || '')}"${c.ph ? ` placeholder="${esc(c.ph)}"` : ''}>`}</div>`).join('')}</div>
+      `<div class="campo"><label>${c.t}</label>${c.tipo === 'area' ? `<textarea id="fd_${c.k}" rows="8" style="width:100%;font-size:15px;border:1px solid var(--line);border-radius:10px;padding:8px;background:var(--soft);color:var(--text)">${esc(c.v || '')}</textarea>` : c.tipo === 'select' ? `<select id="fd_${c.k}">${c.ops.map(o => `<option value="${esc(o[0])}"${o[0] === c.v ? ' selected' : ''}>${esc(o[1])}</option>`).join('')}</select>` : `<input id="fd_${c.k}" type="${c.tipo || 'text'}" value="${esc(c.v || '')}"${c.ph ? ` placeholder="${esc(c.ph)}"` : ''}>`}</div>`).join('')}</div>
       <button class="btn primario" data-ok="1">Guardar</button>${extraBtn ? `<button class="btn secundario" data-extra="1">${extraBtn}</button>` : ''}<button class="btn secundario" data-no="1">Cancelar</button>`;
     const d = $('#dialogo'); d.classList.add('on');
     const fin = r => { d.classList.remove('on'); d.onclick = null; res(r); };
@@ -3325,7 +3418,7 @@ async function activarBloqueo() {
     return toast('Este dispositivo no permite Face ID / huella aquí');
   try {
     const cred = await navigator.credentials.create({ publicKey: {
-      challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Calendario Torres', id: location.hostname },
+      challenge: crypto.getRandomValues(new Uint8Array(32)), rp: { name: 'Mis viajes', id: location.hostname },
       user: { id: crypto.getRandomValues(new Uint8Array(16)), name: 'Mis documentos', displayName: 'Mis documentos' },
       pubKeyCredParams: [{ type: 'public-key', alg: -7 }, { type: 'public-key', alg: -257 }],
       authenticatorSelection: { authenticatorAttachment: 'platform', userVerification: 'required', residentKey: 'discouraged' }, timeout: 60000 } });
@@ -3348,7 +3441,7 @@ async function quitarBloqueo() {
   if ((await preguntar('¿Quitar el Face ID de Mis documentos en este dispositivo?', [{ t: 'Quitar', cls: 'peligro' }, { t: 'Cancelar' }])) !== 0) return;
   localStorage.removeItem(claveBloqueo()); toast('Bloqueo quitado'); renderMisDocs();
 }
-document.addEventListener('visibilitychange', () => { if (document.hidden) { N.desbloqueoHasta = 0; if (S.tab === 'via' && S.modoVia === 'docs') { S.persEdit = false; renderMisDocs(); } } });
+document.addEventListener('visibilitychange', () => { if (document.hidden) { N.desbloqueoHasta = 0; if (S.tab === 'mas' && S.sub === 'docs') { S.persEdit = false; renderMisDocs(); } } });
 
 function filaDoc(d, conAcciones) {
   const sub = [d.privado ? '🔒 Privado' : '', ambitoTxt(d), d.hasta ? 'hasta ' + fechaES(d.hasta) : '', N.docsLocal.has(d.id) ? '✓ sin conexión' : '☁️ en la nube'].filter(Boolean).join(' · ');
@@ -3640,7 +3733,7 @@ function htmlAntesFicha(v) {
     ${htmlAntesLista(v, true)}
     <div class="antes-add"><input id="antesNuevo" placeholder="Añadir solo para este viaje"><button class="pill-btn" id="antesAñadir">＋</button></div>
     <button class="btn secundario" id="antesAviso" style="margin-top:10px">📅 Avisarme el último día (a las ${horaAntes()})</button>
-    <div class="muted" style="font-size:12px;margin-top:4px">Crea un evento con alarma en el calendario del móvil o del PC. La lista fija se cambia en Ajustes.</div></div>`;
+    <div class="muted" style="font-size:12px;margin-top:4px">Crea un evento con alarma en el calendario del móvil o del PC. La lista fija se cambia en Más → Antes de irme.</div></div>`;
 }
 async function editarUltimoDia(v) {
   const r = await formDialogo('🎒 Último día en fábrica', [{ k: 'd', t: 'Día', tipo: 'date', v: ultimoDiaFabrica(v) || v.fechaFin }], v.antes && v.antes.ultimo ? 'Volver a la propuesta' : '');
@@ -3655,7 +3748,7 @@ function avisoAntesIcs(v) {
   const ini = deLocal(`${d}T${horaAntes()}`, tzDestino(v)), u = t => new Date(t).toISOString().replace(/[-:]/g, '').slice(0, 15) + 'Z';
   const e = x => x.replace(/\\/g, '\\\\').replace(/[;,]/g, m => '\\' + m).replace(/\n/g, '\\n');
   const desc = itemsAntes(v).map(x => '☐ ' + x.t).join('\n');
-  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Calendario Torres//ES', 'BEGIN:VEVENT', `UID:antes-${v.id}-${d}@calendario-torres`, `DTSTAMP:${u(Date.now())}`,
+  const ics = ['BEGIN:VCALENDAR', 'VERSION:2.0', 'PRODID:-//Mis viajes//ES', 'BEGIN:VEVENT', `UID:antes-${v.id}-${d}@calendario-torres`, `DTSTAMP:${u(Date.now())}`,
     `DTSTART:${u(ini)}`, `DTEND:${u(ini + 30 * 60000)}`, `SUMMARY:${e('🎒 Último día en fábrica: recoger todo')}`, `DESCRIPTION:${e(desc)}`,
     'BEGIN:VALARM', 'ACTION:DISPLAY', `DESCRIPTION:${e('Recoger todo antes de irte')}`, 'TRIGGER:PT0M', 'END:VALARM', 'END:VEVENT', 'END:VCALENDAR'].join('\r\n');
   const ios = /iPhone|iPad|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
@@ -3674,7 +3767,7 @@ function pintarAntesAju() {
   const el = $('#antesCard'); if (!el) return;
   el.innerHTML = listaAntes().map((t, i) => `<div class="antes-f"><span style="flex:1">${esc(t)}</span><button class="sheet-x" data-antes-fija-quitar="${i}">✕</button></div>`).join('')
     + `<div class="antes-add"><input id="antesFijaNueva" placeholder="Añadir a la lista fija"><button class="pill-btn" id="antesFijaAñadir">＋</button></div>
-    <div class="campo" style="margin:10px 0 0"><label>Hora del aviso (hora del país del viaje)</label><input id="antesHora" type="time" value="${horaAntes()}"></div>
+    <div class="campo" style="margin:10px 0 0"><label>Hora del aviso (hora del país del viaje)</label><select id="antesHora" style="width:100%;font-size:16px;padding:8px 0;border:none;background:none;color:var(--text)">${Array.from({ length: 48 }, (_, i) => `${dos(Math.floor(i / 2))}:${i % 2 ? '30' : '00'}`).concat(horaAntes()).filter((x, i, a) => a.indexOf(x) === i).sort().map(x => `<option${x === horaAntes() ? ' selected' : ''}>${x}</option>`).join('')}</select></div>
     <div class="muted" style="font-size:12px;margin-top:6px">Sale en todos los viajes. El último día en fábrica aparece en la tarjeta de Hoy para ir marcando, y en cada viaje puedes añadir cosas sueltas.</div>`;
 }
 function iniciarAntes() {
@@ -3699,7 +3792,7 @@ function renderDetalle() {
   if (!v) return cerrarDetalle();
   const info = v.info || {}, docs = docsDe(v.id), n = diasEntre(v.fechaInicio, v.fechaFin) + 1;
   const tab = S.detTab || 'r';
-  let h = `<div class="modal-head"><button class="pill-btn" id="detCerrar">Cerrar</button><h2>${bandera(v.pais)} ${esc(v.ciudadDestino || v.pais)}</h2><button class="pill-btn" id="detEditar">✏️ Editar viaje</button></div>
+  let h = `<div class="modal-head"><button class="pill-btn" id="detCerrar">Cerrar</button><h2>${bandera(v.pais)} ${esc(v.ciudadDestino || v.pais)}</h2><button class="pill-btn" id="detEditar">✏️ Editar</button></div>
     <div class="det-sub">${esc(nombreCliente(v))} · ${rangoTxt(v.fechaInicio, v.fechaFin)} · ${plural(n, 'día')}${v.nota ? '<br>' + esc(v.nota) : ''}</div>${chipsImputar(v, true)}`;
 
   if (S.fichaEdit) {
@@ -3739,9 +3832,9 @@ function renderDetalle() {
     if (av.length) h += `<div class="card aviso-card">${av.map(a => `<div>⚠️ ${a}</div>`).join('')}</div>`;
     h += htmlAntesFicha(v);
     const filas = CAMPOS_FICHA.filter(([k]) => info[k]).map(([k, ic, t]) => `<div class="ficha-f"><div class="ic">${ic}</div><div style="flex:1;min-width:0"><div class="k">${t}</div><div class="v">${k === 'contactos' ? telLinks(info[k]) : esc(info[k])}</div>${k === 'cliente' ? `<div style="margin-top:3px">${mapaLink(info[k])}</div>` : ''}</div></div>`).join('');
-    h += `<button class="btn secundario" id="fiImportar" style="margin:10px 0 0">📥 Importar correo de la gestora</button><div class="muted" style="font-size:12px;text-align:center;margin:4px 0 0">.eml, .msg o PDF · en el PC también puedes arrastrarlo aquí desde Outlook</div>`;
-    h += `<div class="det-sec"><span>Datos del viaje</span><button class="pill-btn" id="fiEditar">${filas || info.correo ? '✏️ Editar · pegar correo' : '＋ Pegar correo'}</button></div>
-      <div class="card">${filas || '<div class="muted" style="font-size:14px">Pega el correo de la gestora y se rellenan solos el cliente, la orden SAP, los teléfonos y el hotel. También puedes escribir tus notas.</div>'}</div>`;
+    h += `<button class="btn secundario" id="fiImportar" style="margin:10px 0 0">📥 Importar correo de la gestora</button><div class="muted" style="font-size:12px;text-align:center;margin:4px 0 0">.eml, .msg o PDF, o pega el texto · en el PC también puedes arrastrarlo aquí desde Outlook</div>`;
+    h += `<div class="det-sec"><span>Datos del viaje</span></div>
+      <div class="card">${filas || '<div class="muted" style="font-size:14px">Importa el correo de la gestora y se rellenan solos la dirección del cliente, la orden SAP, los teléfonos y el hotel. Para escribirlos tú o añadir notas: ✏️ Editar.</div>'}</div>`;
     if (info.correo) h += `<div class="card"><details><summary style="cursor:pointer;font-weight:600;font-size:14px;color:var(--accent)">✉️ Ver correo de la gestora</summary><div class="correo-txt">${esc(info.correo)}</div></details></div>`;
   } else if (tab === 'h') {
     h += htmlHoras(v);
@@ -3778,7 +3871,7 @@ function guardarFicha() {
 
 function iniciarDetalle() {
   const box = $('#detalleBox');
-  box.addEventListener('click', e => {
+  box.addEventListener('click', async e => {
     const t = e.target;
     const v = S.viajes.find(x => x.id === S.detalle);
     if (t.id === 'detCerrar') return cerrarDetalle();
@@ -3798,7 +3891,12 @@ function iniciarDetalle() {
       if (r.hotel) { N.hotelCorreo = r.hotel; n++; }
       return toast(n ? `✨ ${n} ${n === 1 ? 'dato encontrado' : 'datos encontrados'}${r.hotel ? ' (hotel incluido)' : ''}: revisa y guarda` : 'No he encontrado datos conocidos; escríbelos a mano');
     }
-    if (t.id === 'fiImportar') { N.subirA = 'correo'; return $('#fileDocs').click(); }
+    if (t.id === 'fiImportar') {
+      const i = await preguntar('📥 Importar correo de la gestora', [{ t: '📂 Elegir el archivo (.eml, .msg o PDF)', cls: 'primario' }, { t: '📋 Pegar el texto del correo' }, { t: 'Cancelar' }]);
+      if (i === 0) { N.subirA = 'correo'; return $('#fileDocs').click(); }
+      if (i === 1) { const r = await formDialogo('📋 Pega el correo', [{ k: 'tx', t: 'El asunto en la primera línea y luego el texto', tipo: 'area', v: '' }]); if (r && r.tx && r.tx.length > 20) return importarCorreos(v.id, [r.tx]); if (r) toast('Pega primero el correo'); }
+      return;
+    }
     const hrT = t.closest('[data-hr-tramo]'); if (hrT) return editarTramo(v, hrT.dataset.hrTramo);
     const hrD = t.closest('[data-hr-dia]'); if (hrD) { S.hrDia = S.hrDia === hrD.dataset.hrDia ? null : hrD.dataset.hrDia; return render(); }
     if (S.hrDia && t.closest('.hr-ed-dia')) {
@@ -3829,7 +3927,7 @@ function iniciarDetalle() {
     const rn = t.closest('[data-doc-renombrar]'); if (rn) { e.stopPropagation(); return renombrarDoc(S.docs.find(d => d.id === rn.dataset.docRenombrar)); }
     const b = t.closest('[data-doc-borrar]'); if (b) { e.stopPropagation(); return borrarDoc(S.docs.find(d => d.id === b.dataset.docBorrar)); }
     const a = t.closest('[data-doc-abrir]'); if (a) return abrirDocumento(S.docs.find(d => d.id === a.dataset.docAbrir));
-    if (t.id === 'irMisDocs') { cerrarDetalle(); S.modoVia = 'docs'; return irTab('via'); }
+    if (t.id === 'irMisDocs') { cerrarDetalle(); return irMas('docs'); }
   });
   $('#modalDetalle').addEventListener('click', e => { if (e.target.id === 'modalDetalle' && !S.fichaEdit) cerrarDetalle(); });
   $('#fileDocs').onchange = async e => {
@@ -4052,7 +4150,8 @@ function elegirAño(alElegir) {
     : [actual, ...conViajes, ...[...S.vac].map(s => +s.slice(0,4)), ...conEmpresa])].sort((a, b) => b - a);
   $('#dlgTxt').innerHTML = '<b>Elige año</b>';
   $('#dlgBtns').innerHTML = `<div class="años-grid">${años.map(a => `<button data-año-sel="${a}" class="${a === S.año ? 'on' : ''} ${conViajes.has(a) ? 'con' : ''}">${a}</button>`).join('')}</div>
-    <button class="btn secundario" data-año-sel="hoy">📍 Ir a hoy</button>`;
+    <button class="btn secundario" data-año-sel="hoy">📍 Ir a hoy</button>
+    ${alElegir === renderCal && !S.editEmp ? `<button class="btn secundario" data-año-sel="editar">✏️ Editar festivos y puentes de ${S.año}</button>` : ''}`;
   const d = $('#dialogo');
   d.classList.add('on');
   d.onclick = e => {
@@ -4060,6 +4159,7 @@ function elegirAño(alElegir) {
     if (b || e.target === d) {
       d.classList.remove('on'); d.onclick = null;
       if (!b) return;
+      if (b.dataset.añoSel === 'editar') return empezarEdicion(S.año);
       if (b.dataset.añoSel === 'hoy') { S.año = actual; S.mes = +HOY.slice(5,7) - 1; }
       else S.año = +b.dataset.añoSel;
       S.sel = null; alElegir();
@@ -4149,6 +4249,7 @@ function toast(t, ms = 2000) { const el = $('#toast'); el.textContent = t; el.cl
 
 function irTab(t) {
   if (t !== 'cal') { S.editEmp = null; S.reservar = false; }
+  if (t !== 'mas') S.sub = null;
   S.tab = t; S.sel = null;
   document.querySelectorAll('.tab').forEach(x => x.classList.toggle('on', x.id === 'tab-' + t));
   document.querySelectorAll('.tabbar button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
@@ -4158,8 +4259,8 @@ function render() {
   if (S.tab === 'cal') renderCal();
   if (S.tab === 'via') renderViajes();
   if (S.tab === 'vac') renderVacaciones();
-  if (S.tab === 'aju') renderAjustes();
-  if (S.tab === 'map') renderMapa();
+  if (S.tab === 'est') renderEst();
+  if (S.tab === 'mas') renderMas();
   renderSheet();
   if (S.detalle && !S.fichaEdit) renderDetalle();
 }
@@ -4170,13 +4271,15 @@ function moverMes(n) {
 }
 
 function eventos() {
-  document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => irTab(b.dataset.tab));
+  document.querySelectorAll('.tabbar button').forEach(b => b.onclick = () => { if (b.dataset.tab === 'mas') S.sub = null; irTab(b.dataset.tab); });
   document.querySelectorAll('[data-año]').forEach(b => b.onclick = () => { S.año += +b.dataset.año; render(); });
   $('#btnPrev').onclick = () => moverMes(-1);
   $('#btnNext').onclick = () => moverMes(1);
   $('#btnVista').onclick = () => { S.vista = S.vista === 'mes' ? 'año' : 'mes'; S.sel = null; renderCal(); };
   $('#mesTitulo').onclick = () => elegirAño(renderCal);
   $('#viaTitulo').onclick = () => elegirAño(renderViajes);
+  $('#estTitulo').onclick = () => elegirAño(renderEst);
+  $('#viaBuscar').addEventListener('input', e => { S.buscaVia = e.target.value; renderViajes(); });
   $('#mapaWrap').addEventListener('scroll', () => { if (!N.moviendoMapa) leerCentroMapa(); }, { passive: true });
   $('#vacTitulo').onclick = () => { const y = S.año; S.año = S.añoVac; elegirAño(() => { S.añoVac = S.año; S.año = y; renderVacaciones(); }); };
   // Cambios en campos de horas y bolsa (se guardan al salir del campo)
@@ -4198,18 +4301,22 @@ function eventos() {
     const dia = e.target.closest('.c[data-d]'); if (dia) return tocarDia(dia.dataset.d);
     const mes = e.target.closest('.ymes'); if (mes) { S.mes = +mes.dataset.mes; S.vista = 'mes'; return renderCal(); }
     const vj = e.target.closest('[data-viaje]'); if (vj && !e.target.closest('#modalDetalle')) return abrirDetalle(vj.dataset.viaje);
-    const ir = e.target.closest('[data-ir]'); if (ir) return irTab(ir.dataset.ir);
+    const ir = e.target.closest('[data-ir]'); if (ir) { const x = ir.dataset.ir; if (x === 'map' || x === 'hist') return irEst(x); if (x.startsWith('mas:')) return irMas(x.slice(4)); return irTab(x); }
+    const ht = e.target.closest('[data-hoy-toggle]'); if (ht && !e.target.closest('[data-viaje],[data-hoy-horas],[data-antes-ok],label,u,.chip-cp')) { S.hoyAbierta = !S.hoyAbierta; escribir('hoy-abierta', S.hoyAbierta); return renderHoy(); }
+    const mm = e.target.closest('[data-mas]'); if (mm) return irMas(mm.dataset.mas);
+    if (e.target.closest('[data-mas-volver]')) { S.sub = null; S.persEdit = false; renderMas(); return window.scrollTo(0, 0); }
+    const es = e.target.closest('#segEst [data-est]'); if (es) return irEst(es.dataset.est);
+    const ce = e.target.closest('[data-cal-editar]'); if (ce) return empezarEdicion(+ce.dataset.calEditar);
     const et = e.target.closest('[data-etipo]'); if (et) { S.editEmp.tipo = et.dataset.etipo; return renderEditBar(); }
     if (e.target.id === 'editListo') { S.editEmp = null; S.vista = 'año'; toast('✅ Calendario de empresa guardado'); return renderCal(); }
     const ee = e.target.closest('[data-emp-edit]'); if (ee) return empezarEdicion(+ee.dataset.empEdit);
     if (e.target.id === 'btnAñadirAño') return añadirAño();
-    const md = e.target.closest('#segVia [data-modo]'); if (md) { S.modoVia = md.dataset.modo; return renderViajes(); }
     const hy = e.target.closest('[data-hoy-horas]'); if (hy) { abrirDetalle(hy.dataset.hoyHoras); S.detTab = 'h'; S.hrDia = hy.dataset.dia; renderDetalle(); setTimeout(() => document.querySelector('.pt-dia.ab')?.scrollIntoView({ block: 'center' }), 50); return; }
     const rk = e.target.closest('[data-rank]'); if (rk && !e.target.closest('#dialogo')) return abrirRanking(rk.dataset.rank);
     const rc = e.target.closest('[data-rec-cliente]'); if (rc) { const c = rc.dataset.recCliente, pl = rc.dataset.recPlanta; return pl ? listaCliente(c + ' ' + pl, S.viajes.filter(v => v.cliente === c && v.planta === pl)) : listaCliente(c); }
-    const ia = e.target.closest('[data-ir-año]'); if (ia) { S.año = +ia.dataset.irAño; S.modoVia = 'año'; renderViajes(); return window.scrollTo(0, 0); }
+    const ia = e.target.closest('[data-ir-año]'); if (ia) { S.año = +ia.dataset.irAño; irEst('año'); return window.scrollTo(0, 0); }
     const vp = e.target.closest('[data-ver-pais]');
-    if (vp) { S.paisSel = vp.dataset.verPais; if (S.tab !== 'map') irTab('map'); else renderMapa(); centrarEnPais(S.paisSel); return setTimeout(() => $('#mapaWrap').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
+    if (vp) { S.paisSel = vp.dataset.verPais; irEst('map'); centrarEnPais(S.paisSel); return setTimeout(() => $('#mapaWrap').scrollIntoView({ behavior: 'smooth', block: 'start' }), 50); }
     const pth = e.target.closest('path[data-iso]');
     if (pth) { const n = NOMBRE_DE_ISO[pth.dataset.iso]; if (n) { S.paisSel = n; renderMapa(); } return; }
     if (e.target.id === 'panelX') { S.paisSel = null; return renderMapa(); }
@@ -4230,7 +4337,7 @@ function eventos() {
     if (eb) {
       const a = +eb.dataset.empBorrar;
       return preguntar(`¿Borrar el calendario de empresa ${a}?`, [{ t: 'Borrar', cls: 'peligro' }, { t: 'Cancelar' }])
-        .then(i => { if (i === 0) { delete S.emp[a]; delete cacheEmp[a]; guardar(); renderAjustes(); toast('Calendario borrado'); } });
+        .then(i => { if (i === 0) { delete S.emp[a]; delete cacheEmp[a]; guardar(); render(); toast('Calendario borrado'); } });
     }
     const er = e.target.closest('[data-emp-reset]');
     if (er) {
@@ -4244,7 +4351,7 @@ function eventos() {
     if (e.target.id === 'bolsaEditar') { S.bolsaEdit = true; return renderVacaciones(); }
     if (e.target.id === 'bolsaListo') { S.bolsaEdit = false; S.bolsaAbierta = true; toast('✅ Bolsa guardada'); return renderVacaciones(); }
     if (e.target.closest('#bolsaCard')) { S.bolsaAbierta = !S.bolsaAbierta; return renderVacaciones(); }
-    if (e.target.id === 'irAyuda' || e.target.closest('[data-abrir-ayuda]')) return abrirAyuda();
+    if (e.target.closest('[data-abrir-ayuda]')) return abrirAyuda();
     const cb = e.target.closest('[data-crear-bolsa]');
     if (cb) {
       const a = +cb.dataset.crearBolsa, ant = bolsa(a - 1);

@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v10.2, v10.3…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.0, v11.1…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -53,8 +53,20 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 
 **Icono y nombre (v10.2)**
 - Icono elegido tras muchas pruebas: fondo gris medio (#6B7280), hoja de calendario blanca **centrada** con cabecera naranja (#F97316), días como puntos grises y un día marcado en naranja con un avión blanco dentro. Nada sobresale de la hoja: le molestaba que el dibujo quedara descentrado. Descartó el «17» morado y rosa, fondos azules y verdes, y el avión saliendo fuera.
-- Nombre bajo el icono: «Mi calendario» (antes «Calendario», que se confundía con el de Apple). El nombre completo sigue siendo «Calendario Torres de Elorz».
+- La app se llama **«Mis viajes»** en todas partes: bajo el icono, título, pestaña del navegador, pantallas de carga y entrada, barra lateral del PC, Face ID y evento .ics. Mikel quiere un solo nombre, coherente en toda la app. Lo interno (proyecto de Firebase, repo, `tipo` del backup) no se cambia.
 - `apple-touch-icon.png` e `icon-maskable-512.png` van a sangre (sin esquinas redondeadas): el sistema las recorta.
+
+**Estructura (v11.0)**
+- Pestañas, en este orden: **Calendario · Viajes · Vacaciones · Estadísticas · Más**. Viajes va antes que Vacaciones porque entra más a los viajes.
+- El **Calendario es la pantalla principal**: lo que más mira es el año con sus viajes. La tarjeta de Hoy va arriba como **franja**: en el móvil recogida en una línea (se abre al tocarla y se recuerda), en el PC siempre abierta a la derecha. No hay pestaña «Hoy».
+- **Viajes**: solo la lista del año, un único ＋ y un buscador que busca en todos los años.
+- **Estadísticas**: «Por año», «Histórico» y «Mapa» juntos (antes estaban repartidos entre Viajes y Mapa).
+- **Más**: menú en bloques (Mis cosas: Mis documentos · Gestión: Calendario de empresa, Clientes, Antes de irme · App: Ajustes, Copia de seguridad, Ayuda), cada cosa en su pantalla. Ajustes era un cajón de sastre.
+- El calendario de empresa también se edita desde el Calendario: tocando el año («✏️ Editar festivos y puentes») o con el aviso de un año sin calendario («Marcar festivos y puentes»). Le costó encontrarlo.
+- **Una sola forma de editar un viaje**: «✏️ Editar» en la ficha abre el formulario con todo (país, fechas, cliente, OS, ID, nota corta y los datos del viaje: dirección, eTA, SAP, contactos, notas). El correo se mete con «📥 Importar correo», que deja elegir archivo o pegar el texto.
+- Pantalla de entrada con el último email usado en ese dispositivo: se equivocó de email (entra con el de Gmail, no con el de Hotmail).
+- Horas en 24 h (la hora del aviso es un desplegable, no `type=time`, que en algunos sitios sale con AM/PM).
+- Importar correo: un adjunto ya guardado se reconoce por la **huella** (también en el mismo viaje, porque las fotos se guardan reducidas y el tamaño cambia) y, en los antiguos sin huella, por el nombre o el nombre original (`original`, que se conserva al renombrar). Lo ya guardado en ese viaje no se propone; lo de otro viaje o Mis documentos sale desmarcado diciendo «ya lo tienes … como «nombre»». Lo que desmarca se recuerda en la nube (`S.aju.descartados`), para el móvil y el PC.
 
 **iPhone**
 - Los PDF se dibujan con PDF.js porque el visor del iPhone solo enseña la primera página.
