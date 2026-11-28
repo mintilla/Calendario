@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v10.1, v10.2…).
+- **Versión:** sube `const VERSION` en `index.html` (v10.2, v10.3…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -50,6 +50,11 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Tras actualizarse sale arriba «✨ App actualizada · vX (dd/mm hh:mm)» si cambió el BUILD (aunque no cambie el número): sin él, la recarga parece un parpadeo sin motivo.
 - El service worker nunca sirve `version.json` ni las peticiones con `?t=` desde la caché: si no, la comprobación del `index.html` nuevo recibía la copia vieja y al volver a la app no se actualizaba hasta cerrarla y abrirla.
 - `HOY` es `let` y se recalcula al volver a la app, con el foco y cada minuto (`refrescarHoy`): la app puede quedarse abierta varios días (PC) o volver de segundo plano (iPhone).
+
+**Icono y nombre (v10.2)**
+- Icono elegido tras muchas pruebas: fondo gris medio (#6B7280), hoja de calendario blanca **centrada** con cabecera naranja (#F97316), días como puntos grises y un día marcado en naranja con un avión blanco dentro. Nada sobresale de la hoja: le molestaba que el dibujo quedara descentrado. Descartó el «17» morado y rosa, fondos azules y verdes, y el avión saliendo fuera.
+- Nombre bajo el icono: «Mi calendario» (antes «Calendario», que se confundía con el de Apple). El nombre completo sigue siendo «Calendario Torres de Elorz».
+- `apple-touch-icon.png` e `icon-maskable-512.png` van a sangre (sin esquinas redondeadas): el sistema las recorta.
 
 **iPhone**
 - Los PDF se dibujan con PDF.js porque el visor del iPhone solo enseña la primera página.
@@ -105,7 +110,6 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Ese día la lista sale arriba en la tarjeta de Hoy. Una web en el iPhone no puede mandar notificaciones a una hora sin servidor de pago, por eso el aviso es un evento .ics con alarma (botón «Avisarme el último día», hora en Ajustes, por defecto 14:00 hora del país).
 
 ## 4. Pendiente
-- Icono de la app: el actual («17» morado y rosa) no le dice nada. Vio propuestas (calendario con avión en la esquina, varios fondos) y ninguna le convenció del todo; retomarlo cuando quiera.
 - Del repaso de nov 2026, sin hacer: si la nube rechaza un cambio, reintentarlo en vez de darlo por subido; guardar Ajustes por campos (ahora se guardan enteros y en dos dispositivos sin conexión gana el último); «próximo vuelo» compara la hora del aeropuerto con la del dispositivo; quitar el importador viejo sin usar (`importarEml`, `importarIcs`). Exportar no incluye documentos (informado).
 - Probar en su iPhone el botón «📅 Avisarme el último día» (.ics por data: URL).
 - PIN propio de la app, a nivel de cuenta, para Mis documentos en cualquier dispositivo. En el PC del trabajo seguramente no hay Windows Hello.
