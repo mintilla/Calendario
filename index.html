@@ -302,6 +302,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .seg{display:flex;background:color-mix(in srgb,var(--text) 9%,var(--bg));border:1px solid color-mix(in srgb,var(--text) 10%,transparent);border-radius:12px;padding:3px;margin-bottom:12px}
 .seg button{flex:1;padding:8px;border-radius:9px;font-size:14px;font-weight:600;color:color-mix(in srgb,var(--text) 65%,transparent)}
 .seg button.on{background:var(--card);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.18)}
+#detTabs button{white-space:nowrap;padding:8px 4px;flex:auto}
 .mes-titulo.tocable{cursor:pointer}
 .mes-titulo.tocable::after{content:'▾';display:inline-flex;align-items:center;justify-content:center;width:26px;height:26px;border-radius:13px;background:color-mix(in srgb,var(--accent) 16%,transparent);color:var(--accent);font-size:15px;margin-left:8px;vertical-align:middle;position:relative;top:-2px}
 .años-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;max-height:50vh;overflow-y:auto;margin:10px 0 4px}
@@ -1044,8 +1045,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v11.6';
-const BUILD = '2026-11-28T05:28:35'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.7';
+const BUILD = '2026-11-28T05:54:07'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -3622,7 +3623,7 @@ function lineasRes(x) {
     default: return [esc(r.nombre || 'Reserva'), [r.hora, sh(r.dir)].filter(Boolean).map(esc).join(' · ')];
   }
 }
-function detalleRes(x) {
+function detalleRes(x, v) {
   const r = x.r || {}, f = x.f || {}, out = [];
   const cp = (t, val) => val ? `${t} <span class="cp" data-copiar="${esc(val)}">${esc(val)}</span>` : '';
   if (x.tipo === 'vuelo') {
@@ -3632,6 +3633,7 @@ function detalleRes(x) {
     if (f.num) out.push(`<a class="cp" href="https://www.google.com/search?q=${encodeURIComponent(f.num)}+flight+status" target="_blank" rel="noopener">🔎 Ver estado del vuelo ↗</a>`);
   } else {
     if (r.dir) out.push(`<span style="white-space:pre-line">${esc(r.dir)}</span><br>${mapaLink(r.dir)}`);
+    else if (r.nombre && !['coche', 'traslado', 'tren'].includes(x.tipo)) out.push(mapaLink(r.nombre + ', ' + (v?.pais || '')));
     if (r.dirFin) out.push(`Devolución: <span style="white-space:pre-line">${esc(r.dirFin)}</span><br>${mapaLink(r.dirFin)}`);
     if (x.tipo === 'traslado' && (r.de || r.a)) out.push(`${esc(r.de || '')} → ${esc(r.a || '')}`);
     if (x.tipo === 'coche' && r.fecha) out.push(`Recogida ${diaCorto(r.fecha)}${r.hora ? ' ' + r.hora : ''}${r.fechaFin ? ` · devolución ${diaCorto(r.fechaFin)}${r.horaFin ? ' ' + r.horaFin : ''}` : ''}`);
@@ -3654,7 +3656,7 @@ function htmlReservas(v) {
     let [t1, t2] = lineasRes(x); const abierto = S.resAbierta === x.k;
     if (x.f && sinCuadrar.has(x.f)) t2 = `<span class="res-camb">⏳ Ya no cuadra con las fechas del viaje</span>${t2 ? ' · ' + t2 : ''}`;
     if (x.f && x.f.cambiado) { t1 = `<s>${t1}</s>`; t2 = `<span class="res-camb">Cambiado el ${+x.f.cambiado.slice(8)}/${+x.f.cambiado.slice(5, 7)}</span>${t2 ? ' · <s>' + t2 + '</s>' : ''}`; }
-    h += `<div class="res-f" data-res="${x.k}"><div class="ic">${TIPOS_RES[x.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="t">${t1}</div>${t2 ? `<div class="s">${t2}</div>` : ''}${abierto ? `<div class="res-det">${detalleRes(x)}</div>` : ''}</div><div class="muted" style="font-size:16px">${abierto ? '⌃' : '›'}</div></div>`;
+    h += `<div class="res-f" data-res="${x.k}"><div class="ic">${TIPOS_RES[x.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="t">${t1}</div>${t2 ? `<div class="s">${t2}</div>` : ''}${abierto ? `<div class="res-det">${detalleRes(x, v)}</div>` : ''}</div><div class="muted" style="font-size:16px">${abierto ? '⌃' : '›'}</div></div>`;
   });
   if (dia !== null) h += '</div>';
   if (!it.length) h += '<div class="card"><div class="muted" style="font-size:14px">Sin reservas. Sube el correo de la agencia (.eml) en <b>Docs</b> y los vuelos se añaden solos, o añádelas a mano.</div></div>';
@@ -3812,7 +3814,7 @@ function renderDetalle() {
   }
   const nRes = (v.vuelos || []).length + (v.reservas || []).length;
   const generales = misDocs().filter(d => aplicaA(d, v));
-  h += `<div class="seg" id="detTabs" style="margin-top:4px"><button data-dtab="r" class="${tab === 'r' ? 'on' : ''}">Resumen</button><button data-dtab="v" class="${tab === 'v' ? 'on' : ''}">Reservas${nRes ? ' ' + nRes : ''}</button>${tieneHoras(v) ? `<button data-dtab="h" class="${tab === 'h' ? 'on' : ''}">Horas</button>` : ''}<button data-dtab="d" class="${tab === 'd' ? 'on' : ''}">Docs${docs.length + generales.length ? ' ' + (docs.length + generales.length) : ''}</button></div>`;
+  h += `<div class="seg" id="detTabs" style="margin-top:4px"><button data-dtab="r" class="${tab === 'r' ? 'on' : ''}">Resumen</button><button data-dtab="v" class="${tab === 'v' ? 'on' : ''}">Reservas${nRes ? ' (' + nRes + ')' : ''}</button>${tieneHoras(v) ? `<button data-dtab="h" class="${tab === 'h' ? 'on' : ''}">Horas</button>` : ''}<button data-dtab="d" class="${tab === 'd' ? 'on' : ''}">Docs${docs.length + generales.length ? ' (' + (docs.length + generales.length) + ')' : ''}</button></div>`;
 
   if (tab === 'r') {
     const ahora = ahoraIso();
@@ -3828,7 +3830,7 @@ function renderDetalle() {
     const hoyRes = (v.reservas || []).filter(r => r.tipo !== 'hotel' && r.fecha === HOY);
     if (hotel || hoyRes.length) {
       h += '<div class="card">';
-      if (hotel) h += `<div class="ficha-f"><div class="ic">🏨</div><div style="flex:1;min-width:0"><div class="k">Hotel${hotel.fecha <= HOY && (!hotel.fechaFin || hotel.fechaFin >= HOY) ? ' ahora' : ''}${hotel.fecha && hotel.fechaFin ? ' · ' + diaCorto(hotel.fecha) + ' → ' + diaCorto(hotel.fechaFin) : ''}</div><div class="v">${esc(hotel.nombre || 'Hotel')}</div>${hotel.dir ? `<div class="v" style="font-size:13px;color:var(--muted)">${esc(hotel.dir)}</div><div style="margin-top:3px">${mapaLink((hotel.nombre || '') + '\n' + hotel.dir)}</div>` : ''}${hotel.tel ? `<div style="margin-top:3px">☎️ ${telLinks(hotel.tel)}</div>` : ''}</div></div>`;
+      if (hotel) h += `<div class="ficha-f"><div class="ic">🏨</div><div style="flex:1;min-width:0"><div class="k">Hotel${hotel.fecha <= HOY && (!hotel.fechaFin || hotel.fechaFin >= HOY) ? ' ahora' : ''}${hotel.fecha && hotel.fechaFin ? ' · ' + diaCorto(hotel.fecha) + ' → ' + diaCorto(hotel.fechaFin) : ''}</div><div class="v">${esc(hotel.nombre || 'Hotel')}</div>${hotel.dir ? `<div class="v" style="font-size:13px;color:var(--muted)">${esc(hotel.dir)}</div><div style="margin-top:3px">${mapaLink((hotel.nombre || '') + '\n' + hotel.dir)}</div>` : ''}${!hotel.dir && hotel.nombre ? `<div style="margin-top:3px">${mapaLink(hotel.nombre + ', ' + (v.pais || ''))}</div>` : ''}${hotel.tel ? `<div style="margin-top:3px">☎️ ${telLinks(hotel.tel)}</div>` : ''}</div></div>`;
       hoyRes.forEach(r => { const [t1, t2] = lineasRes({ tipo: r.tipo, r }); h += `<div class="ficha-f" data-dtab="v" style="cursor:pointer"><div class="ic">${TIPOS_RES[r.tipo]?.ic || '📌'}</div><div style="flex:1;min-width:0"><div class="k">Hoy</div><div class="v">${t1}</div>${t2 ? `<div class="v" style="font-size:13px;color:var(--muted)">${t2}</div>` : ''}</div></div>`; });
       h += '</div>';
     }
