@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.5, v11.6…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.6, v11.7…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -59,6 +59,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 **Estructura (v11.0)**
 - Pestañas, en este orden: **Calendario · Viajes · Vacaciones · Estadísticas · Más**. Viajes va antes que Vacaciones porque entra más a los viajes.
 - El **Calendario es la pantalla principal** y en el móvil el año tiene que verse **entero sin hacer scroll** (le pone muy nervioso). Nada encima del calendario: ni la tarjeta de Hoy ni una franja (se probó en v11.0 y lo descartó). Hoy es un botón junto al título, con el degradado morado de la tarjeta y dos líneas (bandera, «Hoy», 🎒 pendientes; debajo próximo vuelo, horas de hoy o próximo viaje), que abre una hoja; en el PC la tarjeta va a la derecha. En el móvil la vista de año no se estira ni desplaza la página (`body.en-cal`): con scroll, iOS difumina el título bajo la barra de arriba. No hay pestaña «Hoy».
+- La tarjeta de Hoy va en este orden: **ficha del viaje** (botón blanco, bien visible) → vuelo si es hoy o mañana → «Antes de irte» → horas de hoy → ID/OS → vuelo más adelante, al final y discreto.
 - La tarjeta de Hoy lleva **solo lo útil**: próximo vuelo, «Antes de irte», horas de hoy, ID/OS para copiar y la ficha (sin viaje: el próximo viaje). Fuera, porque no le aportan nada: «Vuelves en X días», «Próximo descanso largo», «Vacaciones: te quedan…».
 - **Viajes**: solo la lista del año, un único ＋ y un buscador que busca en todos los años.
 - **Estadísticas**: «Por año», «Histórico» y «Mapa» juntos (antes estaban repartidos entre Viajes y Mapa).

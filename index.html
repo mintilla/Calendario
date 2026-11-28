@@ -143,6 +143,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hoy-estado{font-size:22px;font-weight:700;margin:4px 0 12px;line-height:1.2}
 .hoy-lineas{display:flex;flex-direction:column;gap:8px}
 .hoy-linea{background:rgba(255,255,255,.16);border-radius:12px;padding:9px 11px;font-size:13px;line-height:1.35}
+.hoy-ficha{width:100%;display:flex;justify-content:space-between;align-items:center;background:#fff;color:#5b3fd6;border-radius:12px;padding:12px 14px;font-size:15px;font-weight:700;margin:0 0 10px;text-align:left}
+.hoy-discreto{background:rgba(255,255,255,.10);border-radius:12px;padding:8px 11px;font-size:12.5px;opacity:.9}
 .btn-hoy{font-size:14px;font-weight:700;letter-spacing:0;padding:6px 12px;line-height:1.25;text-align:right;color:#fff;border-radius:12px;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ec 100%);max-width:62%}
 .btn-hoy small{display:block;font-size:12px;font-weight:500;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #modalHoy .hoy-card{margin:0;box-shadow:none}
@@ -1042,8 +1044,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v11.5';
-const BUILD = '2026-11-28T05:25:23'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.6';
+const BUILD = '2026-11-28T05:28:35'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -1473,29 +1475,34 @@ function renderHoy() {
   else if (tipo(HOY)) estado = { festivo:'🎉 Festivo', puente:'🌉 Puente', previo:'⏰ Previo 6h', vacacional:'🏢 Vacacional de empresa' }[tipo(HOY)];
   else estado = '🛠️ Día laborable';
 
+  // Orden: ficha (botón blanco) → vuelo si es hoy o mañana → antes de irte → horas de hoy → imputar → vuelo más adelante (discreto)
   const lineas = [];
-  if (vjHoy.length) {
-    const v = vjHoy[0], q = diasEntre(HOY, v.fechaFin);
-    lineas.push(`<span data-viaje="${v.id}" style="cursor:pointer;display:block">📎 <b>Ficha y documentos</b> del viaje ›</span>`);
-    if (tieneHoras(v)) { const dh = aLocal(Date.now(), tzDestino(v)).slice(0, 10), oh = ((v.horas && v.horas.dias) || {})[dh], hh = oh ? horasDia(oh) : (esDiaFestivo(dh) ? 0 : horario(v).h);
-      lineas.push(`<span data-hoy-horas="${v.id}" data-dia="${dh}" style="cursor:pointer;display:block">⏱️ Hoy: <b>${oh && oh.libre ? 'libre' : nTxt(hh)}</b> de trabajo · <u>cambiar</u></span>`); }
-    const ud = ultimoDiaFabrica(v), dLoc = aLocal(Date.now(), tzDestino(v)).slice(0, 10);
-    if (ud && ud === dLoc) lineas.unshift(`<div class="antes-hoy"><div style="font-weight:700;margin-bottom:4px">🎒 Último día en fábrica · antes de irte</div>${htmlAntesLista(v, false)}</div>`);
-    const ci = chipsImputar(v, true); if (ci) lineas.push(`<div style="font-size:12px;opacity:.85">Para imputar y gastos (toca para copiar)</div>${ci}`);
-  }
+  let ficha = '';
   const ahora = `${HOY}T${dos(new Date().getHours())}:${dos(new Date().getMinutes())}`;
   const vueloProx = S.viajes.flatMap(v => vuelosUtiles(v).map(f => ({ ...f, vid: v.id }))).filter(f => f.sal && f.sal >= ahora && f.sal.slice(0, 10) <= sumar(HOY, 3)).sort((a, b) => a.sal.localeCompare(b.sal))[0];
+  let lineaVuelo = '', vueloUrgente = false;
   if (vueloProx) {
-    const q = diasEntre(HOY, vueloProx.sal.slice(0, 10));
-    lineas.unshift(`<span data-viaje="${vueloProx.vid}" style="cursor:pointer;display:block">✈️ Vuelo <b>${esc(vueloProx.num || '')}</b> ${q === 0 ? '<b>hoy</b>' : q === 1 ? '<b>mañana</b>' : enDias(q)} a las <b>${vueloProx.sal.slice(11, 16)}</b> · ${esc(vueloProx.de || '')} → ${esc(vueloProx.a || '')}${vueloProx.asiento ? ' · 💺 ' + esc(vueloProx.asiento.split(' ')[0]) : ''}</span>`);
+    const q = diasEntre(HOY, vueloProx.sal.slice(0, 10)); vueloUrgente = q <= 1;
+    lineaVuelo = `<span data-viaje="${vueloProx.vid}" style="cursor:pointer;display:block">✈️ Vuelo <b>${esc(vueloProx.num || '')}</b> ${q === 0 ? '<b>hoy</b>' : q === 1 ? '<b>mañana</b>' : diaCorto(vueloProx.sal.slice(0, 10))} a las <b>${vueloProx.sal.slice(11, 16)}</b> · ${esc(vueloProx.de || '')} → ${esc(vueloProx.a || '')}${vueloProx.asiento ? ` · 💺 ${esc(vueloProx.asiento)}` : ''}</span>`;
   }
+  if (vueloUrgente) lineas.push(lineaVuelo);
+  if (vjHoy.length) {
+    const v = vjHoy[0];
+    ficha = `<button class="hoy-ficha" data-viaje="${v.id}"><span>📎 Ficha y documentos del viaje</span><span>›</span></button>`;
+    const ud = ultimoDiaFabrica(v), dLoc = aLocal(Date.now(), tzDestino(v)).slice(0, 10);
+    if (ud && ud === dLoc) lineas.push(`<div class="antes-hoy"><div style="font-weight:700;margin-bottom:4px">🎒 Último día en fábrica · antes de irte</div>${htmlAntesLista(v, false)}</div>`);
+    if (tieneHoras(v)) { const oh = ((v.horas && v.horas.dias) || {})[dLoc], hh = oh ? horasDia(oh) : (esDiaFestivo(dLoc) ? 0 : horario(v).h);
+      lineas.push(`<span data-hoy-horas="${v.id}" data-dia="${dLoc}" style="cursor:pointer;display:block">⏱️ Hoy: <b>${oh && oh.libre ? 'libre' : nTxt(hh)}</b> de trabajo · <u>cambiar</u></span>`); }
+    const ci = chipsImputar(v, true); if (ci) lineas.push(`<div style="font-size:12px;opacity:.85">Para imputar y gastos (toca para copiar)</div>${ci}`);
+  }
+  if (vueloProx && !vueloUrgente) lineas.push(`<div class="hoy-discreto">${lineaVuelo}</div>`);
   // Sin viaje en curso: el próximo viaje
   const prox = S.viajes.filter(v => v.fechaInicio > HOY).sort((a, b) => a.fechaInicio.localeCompare(b.fechaInicio))[0];
   if (!vjHoy.length && prox) lineas.push(`<span data-viaje="${prox.id}" style="cursor:pointer;display:block">✈️ Próximo viaje: <b>${bandera(prox.pais)} ${esc(prox.ciudadDestino || prox.pais)}</b> ${enDias(diasEntre(HOY, prox.fechaInicio))} ›</span>`);
   if (!lineas.length) lineas.push('Nada pendiente para hoy');
   const html = `<div class="hoy-fecha">Hoy · ${fechaLarga(HOY)}</div>
-    <div class="hoy-estado">${estado}</div>
-    <div class="hoy-lineas">${lineas.map(l => `<div class="hoy-linea">${l}</div>`).join('')}</div>`;
+    <div class="hoy-estado">${estado}</div>${ficha}
+    <div class="hoy-lineas">${lineas.map(l => l.startsWith('<div class="hoy-discreto">') ? l : `<div class="hoy-linea">${l}</div>`).join('')}</div>`;
   $('#hoyCard').innerHTML = html;
   $('#hoyModalCuerpo').innerHTML = html;
   // Botón «Hoy» junto al título (móvil): la bandera si estás de viaje y 🎒 si ese día toca recoger
