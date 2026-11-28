@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.3, v11.4…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.4, v11.5…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -71,6 +71,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 
 **iPhone**
 - Barra de la hora: `status-bar-style` «default» (nunca black-translucent) y `theme-color` igual que el fondo de la página (#f2f2f7 / #000 en oscuro). Con el morado de antes, iOS 26 mezclaba el color y el título se veía difuminado (en la app de la Sociedad se arregló igual).
+- El título de cada pantalla (`.tab-titulo`) es fijo arriba (sticky) con el fondo de la página: al desplazarse, el contenido pasa por debajo y no se ve difuminado bajo la barra de la hora. Vale para todas las pantallas, no solo el Calendario.
 - Los PDF se dibujan con PDF.js porque el visor del iPhone solo enseña la primera página.
 - Las fotos se reducen a 2000 px: un QR o un pasaporte se siguen leyendo.
 - Los documentos se guardan troceados en Firestore, sin Firebase Storage. Se sube primero los trozos y al final la ficha, para que no aparezca un documento a medias.

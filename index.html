@@ -98,6 +98,8 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .visor iframe,.visor img{flex:1;width:100%;border:none;background:#fff;object-fit:contain}
 .clip{font-size:12px;color:var(--muted);margin-left:6px}
 .tab-titulo{font-size:30px;font-weight:800;margin:2px 4px 10px;display:flex;justify-content:space-between;align-items:center;letter-spacing:-.3px}
+/* Título fijo arriba con el fondo de la página: lo que se desplaza pasa por debajo y no queda borroso bajo la barra de la hora (iOS 26) */
+.tab-titulo{position:sticky;top:0;z-index:40;background:var(--bg);margin:-20px -12px 10px;padding:20px 16px 10px}
 .res-dia{font-size:12px;font-weight:600;color:var(--muted);margin:14px 6px 6px}
 .res-f{display:flex;gap:10px;align-items:flex-start;padding:11px 0;border-bottom:1px solid var(--line);cursor:pointer}
 .res-f:last-child{border-bottom:none}
@@ -222,7 +224,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #calCard.llena #calCuerpo{flex:1;display:flex}
 #calCard.llena .ygrid{flex:1;align-content:space-between}
 /* En el móvil el año va compacto (sin estirar) y la página no se desplaza: el título no queda bajo la barra del iPhone */
-@media (max-width:999px){ #calCard.llena{min-height:0} #calCard.llena .ygrid{align-content:start} body.en-cal{padding-bottom:calc(62px + env(safe-area-inset-bottom))} }
+@media (max-width:999px){ #calCard.llena{min-height:0} #calCard.llena .ygrid{align-content:start} body.en-cal{padding-bottom:calc(58px + env(safe-area-inset-bottom))} }
 .ymini i.hoy{box-shadow:inset 0 0 0 1.5px var(--accent);color:var(--accent);font-weight:800}
 .ymini i.hoy.v,.ymini i.hoy.p,.ymini i.hoy.b,.ymini i.hoy.o,.ymini i.hoy.g{color:#fff;box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--text)}
 .ymini i.hoy.f{color:var(--text);box-shadow:0 0 0 1.5px var(--text)}
@@ -505,6 +507,7 @@ input,select,textarea{font-size:16px !important}
 /* ===== PANTALLA ANCHA (PC) ===== */
 @media (min-width:1000px){
   body{max-width:none;margin:0;padding:28px 36px 40px 256px}
+  .tab-titulo{margin:-28px -4px 10px;padding:28px 4px 10px}
   .tab.on{max-width:1120px;margin:0 auto}
   #tab-vac.on{max-width:760px}
   .modal-box{max-height:min(88vh,820px)}
@@ -1037,8 +1040,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v11.3';
-const BUILD = '2026-11-28T03:47:16'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.4';
+const BUILD = '2026-11-28T03:50:49'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
