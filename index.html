@@ -12,7 +12,8 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Mis viajes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="theme-color" content="#6c5ce7">
+<meta name="theme-color" content="#f2f2f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
 <style>
 :root{
   --bg:#f2f2f7; --card:#ffffff; --text:#1c1c1e; --muted:#8e8e93; --line:#e5e5ea; --soft:#f2f2f7;
@@ -35,10 +36,12 @@
 }
 *{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 html,body{background:var(--bg)}
+/* iPhone: la zona de la hora toma el color de la página (antes el morado de theme-color se mezclaba y difuminaba el título) */
+html{overscroll-behavior-y:none}
 body{
   font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','Segoe UI',Arial,sans-serif;
   color:var(--text);-webkit-font-smoothing:antialiased;
-  padding:12px 12px calc(96px + env(safe-area-inset-bottom));
+  padding:20px 12px calc(96px + env(safe-area-inset-bottom));
   max-width:640px;margin:0 auto;
 }
 button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
@@ -138,7 +141,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 .hoy-estado{font-size:22px;font-weight:700;margin:4px 0 12px;line-height:1.2}
 .hoy-lineas{display:flex;flex-direction:column;gap:8px}
 .hoy-linea{background:rgba(255,255,255,.16);border-radius:12px;padding:9px 11px;font-size:13px;line-height:1.35}
-.btn-hoy{font-size:14px;font-weight:700;letter-spacing:0;padding:6px 12px;line-height:1.25;text-align:right;color:#fff;border-radius:12px;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ec 100%);box-shadow:0 4px 12px rgba(108,92,231,.35);max-width:62%}
+.btn-hoy{font-size:14px;font-weight:700;letter-spacing:0;padding:6px 12px;line-height:1.25;text-align:right;color:#fff;border-radius:12px;background:linear-gradient(135deg,#6c5ce7 0%,#8e44ec 100%);max-width:62%}
 .btn-hoy small{display:block;font-size:12px;font-weight:500;opacity:.92;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 #modalHoy .hoy-card{margin:0;box-shadow:none}
 @media (max-width:999px){ #hoyCard{display:none!important} }
@@ -219,7 +222,7 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 #calCard.llena #calCuerpo{flex:1;display:flex}
 #calCard.llena .ygrid{flex:1;align-content:space-between}
 /* En el móvil el año va compacto (sin estirar) y la página no se desplaza: el título no queda bajo la barra del iPhone */
-@media (max-width:999px){ #calCard.llena{min-height:0} #calCard.llena .ygrid{align-content:start} body.en-cal{padding-bottom:calc(72px + env(safe-area-inset-bottom))} }
+@media (max-width:999px){ #calCard.llena{min-height:0} #calCard.llena .ygrid{align-content:start} body.en-cal{padding-bottom:calc(62px + env(safe-area-inset-bottom))} }
 .ymini i.hoy{box-shadow:inset 0 0 0 1.5px var(--accent);color:var(--accent);font-weight:800}
 .ymini i.hoy.v,.ymini i.hoy.p,.ymini i.hoy.b,.ymini i.hoy.o,.ymini i.hoy.g{color:#fff;box-shadow:inset 0 0 0 1.5px #fff,0 0 0 1.5px var(--text)}
 .ymini i.hoy.f{color:var(--text);box-shadow:0 0 0 1.5px var(--text)}
@@ -1034,8 +1037,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v11.2';
-const BUILD = '2026-11-28T03:42:15'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.3';
+const BUILD = '2026-11-28T03:47:16'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 

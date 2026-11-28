@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.2, v11.3…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.3, v11.4…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -70,6 +70,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Importar correo: un adjunto ya guardado se reconoce por la **huella** (también en el mismo viaje, porque las fotos se guardan reducidas y el tamaño cambia) y, en los antiguos sin huella, por el nombre o el nombre original (`original`, que se conserva al renombrar). Lo ya guardado en ese viaje no se propone; lo de otro viaje o Mis documentos sale desmarcado diciendo «ya lo tienes … como «nombre»». Lo que desmarca se recuerda en la nube (`S.aju.descartados`), para el móvil y el PC.
 
 **iPhone**
+- Barra de la hora: `status-bar-style` «default» (nunca black-translucent) y `theme-color` igual que el fondo de la página (#f2f2f7 / #000 en oscuro). Con el morado de antes, iOS 26 mezclaba el color y el título se veía difuminado (en la app de la Sociedad se arregló igual).
 - Los PDF se dibujan con PDF.js porque el visor del iPhone solo enseña la primera página.
 - Las fotos se reducen a 2000 px: un QR o un pasaporte se siguen leyendo.
 - Los documentos se guardan troceados en Firestore, sin Firebase Storage. Se sube primero los trozos y al final la ficha, para que no aparezca un documento a medias.
