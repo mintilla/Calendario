@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.4, v11.5…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.5, v11.6…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -64,7 +64,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - **Estadísticas**: «Por año», «Histórico» y «Mapa» juntos (antes estaban repartidos entre Viajes y Mapa).
 - **Más**: menú en bloques (Mis cosas: Mis documentos · Gestión: Calendario de empresa, Clientes, Antes de irme · App: Ajustes, Copia de seguridad, Ayuda), cada cosa en su pantalla. Ajustes era un cajón de sastre.
 - El calendario de empresa también se edita desde el Calendario: tocando el año («✏️ Editar festivos y puentes») o con el aviso de un año sin calendario («Marcar festivos y puentes»). Le costó encontrarlo.
-- **Una sola forma de editar un viaje**: «✏️ Editar» en la ficha abre el formulario con todo (país, fechas, cliente, OS, ID, nota corta y los datos del viaje: dirección, eTA, SAP, contactos, notas). El correo se mete con «📥 Importar correo», que deja elegir archivo o pegar el texto.
+- **Una sola forma de editar un viaje**: «✏️ Editar» en la ficha abre el formulario con todo (país, fechas, cliente, OS, ID, nota corta y los datos del viaje: dirección, eTA, SAP, contactos, notas). El correo se mete con «📥 Importar correo», que deja elegir archivo o pegar el texto. El formulario tiene que ser sencillo: al crear un viaje no salen los datos del viaje (se rellenan al importar) y al editar van recogidos en «Más datos del viaje ›». La lista «Tus países» solo sale al tocar el buscador de países.
 - Pantalla de entrada con el último email usado en ese dispositivo: se equivocó de email (entra con el de Gmail, no con el de Hotmail).
 - Horas en 24 h (la hora del aviso es un desplegable, no `type=time`, que en algunos sitios sale con AM/PM).
 - Importar correo: un adjunto ya guardado se reconoce por la **huella** (también en el mismo viaje, porque las fotos se guardan reducidas y el tamaño cambia) y, en los antiguos sin huella, por el nombre o el nombre original (`original`, que se conserva al renombrar). Lo ya guardado en ese viaje no se propone; lo de otro viaje o Mis documentos sale desmarcado diciendo «ya lo tienes … como «nombre»». Lo que desmarca se recuerda en la nube (`S.aju.descartados`), para el móvil y el PC.

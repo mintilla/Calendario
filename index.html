@@ -149,7 +149,9 @@ button{font:inherit;color:inherit;background:none;border:none;cursor:pointer}
 @media (max-width:999px){ #hoyCard{display:none!important} }
 .buscar{width:100%;font-size:16px;padding:10px 12px;border-radius:12px;border:1px solid var(--line);background:var(--card);color:var(--text);margin:0 0 10px}
 .atras{font-size:28px;line-height:1;color:var(--accent);padding:0 6px 0 0;font-weight:400}
-.mas-menu{padding:2px 14px}.mas-menu .rec-f{cursor:pointer}
+.mas-menu{padding:2px 14px}
+.mas-datos{margin:12px 0 10px}.mas-datos>summary{cursor:pointer;font-weight:700;font-size:15px;padding:10px 4px;list-style:none}
+.mas-datos>summary::after{content:' ›'}.mas-datos[open]>summary::after{content:' ⌄'}.mas-menu .rec-f{cursor:pointer}
 #tab-mas .tab-titulo{font-size:26px}
 .hoy-linea b{font-weight:700}
 .barra{height:6px;background:rgba(255,255,255,.25);border-radius:3px;margin-top:6px;overflow:hidden}
@@ -594,7 +596,7 @@ input,select,textarea{font-size:16px !important}
 
 <!-- ===================== VIAJES ===================== -->
 <section class="tab" id="tab-via">
-  <div class="tab-titulo">Viajes<button class="icon-btn nuevo-viaje" title="Nuevo viaje" aria-label="Nuevo viaje" style="background:var(--accent);color:#fff;font-size:24px">＋</button></div>
+  <div class="tab-titulo">Viajes<button class="icon-btn nuevo-viaje" title="Nuevo viaje" aria-label="Nuevo viaje" style="background:var(--accent)"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2v12M2 8h12" stroke="#fff" stroke-width="2.4" stroke-linecap="round"/></svg></button></div>
   <div class="mes-nav" style="margin-top:4px">
     <div class="mes-titulo tocable" id="viaTitulo"></div>
     <div class="nav-btns">
@@ -1040,8 +1042,8 @@ const FIREBASE_CONFIG = {
   messagingSenderId: "956310371790",
   appId: "1:956310371790:web:2cb05af9eabb1d92113f9f"
 };
-const VERSION = 'v11.4';
-const BUILD = '2026-11-28T03:50:49'; // lo rellena publicar.sh en cada publicación
+const VERSION = 'v11.5';
+const BUILD = '2026-11-28T05:25:23'; // lo rellena publicar.sh en cada publicación
 const N = { docsLocal: new Set(), FB: null, db: null, auth: null, uid: null, email: '', subs: [], llegado: {}, servidor: {}, pendiente: {}, sembrado: false,
             sync: { via: new Map(), vac: new Set(), horas: '{}', emp: {}, aju: '{}' } };
 
@@ -2246,9 +2248,10 @@ function abrirFormulario(viaje, ini, fin) {
   $('#formEliminar').style.display = viaje ? 'block' : 'none';
   // Datos del viaje (los que se rellenan con el correo): en el mismo formulario
   const info = (viaje && viaje.info) || {};
-  $('#fFicha').innerHTML = `<div class="h-title" style="margin:14px 2px 6px">Datos del viaje</div>
+  // Al crear un viaje no salen (se rellenan al importar el correo); al editar, recogidos
+  $('#fFicha').innerHTML = !viaje ? '' : `<details class="mas-datos"><summary>Más datos del viaje <span class="muted" style="font-weight:500">· dirección, SAP, contactos, notas</span></summary>
     ${CAMPOS_FICHA.map(([k, ic, t]) => `<div class="campo"><label>${ic} ${t}</label>${k === 'sap' || k === 'eta' ? `<input id="fi_${k}" value="${esc(info[k] || '')}" autocomplete="off">` : `<textarea id="fi_${k}" rows="${k === 'contactos' ? 4 : 3}" style="width:100%;font-size:16px;border:none;background:none;color:var(--text);resize:vertical">${esc(info[k] || '')}</textarea>`}</div>`).join('')}
-    <div class="muted" style="font-size:12px;margin:-4px 2px 10px">Se rellenan solos al importar el correo de la gestora.</div>`;
+    <div class="muted" style="font-size:12px;margin:-4px 2px 10px">Se rellenan solos al importar el correo de la gestora.</div></details>`;
   actualizarDuracion();
   $('#modalViaje').classList.add('on');
 }
@@ -2321,6 +2324,8 @@ function renderListaPaises() {
   const q = sinAcentos($('#fPaisBuscar').value.trim());
   const op = p => `<button type="button" class="pais-op" data-pais="${esc(p)}"><span class="fl">${bandera(p)}</span>${esc(p)}</button>`;
   if (!q) {
+    // «Tus países» solo al tocar el buscador
+    if (document.activeElement !== $('#fPaisBuscar')) { el.innerHTML = ''; return; }
     const frec = S.paisesFrecuentes || [];
     el.innerHTML = frec.length ? `<div class="pais-sec">Tus países</div>${frec.map(op).join('')}` : '';
     return;
@@ -4416,6 +4421,8 @@ function eventos() {
   document.querySelectorAll('.nuevo-viaje').forEach(b => b.onclick = () => abrirFormulario(null));
   $('#formCancelar').onclick = cerrarFormulario;
   $('#fPaisBuscar').oninput = renderListaPaises;
+  $('#fPaisBuscar').onfocus = renderListaPaises;
+  $('#fPaisBuscar').onblur = () => setTimeout(() => { if (!$('#fPaisBuscar').value.trim()) renderListaPaises(); }, 250);
   $('#fPaisLista').onclick = e => { const b = e.target.closest('[data-pais]'); if (b) elegirPais(b.dataset.pais); };
   $('#fPaisElegido').onclick = () => { elegirPais(''); $('#fPaisBuscar').focus(); };
   $('#formGuardar').onclick = guardarFormulario;
