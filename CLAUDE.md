@@ -21,7 +21,7 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
   - `sw.js` es el service worker.
   - `version.json` guarda el identificador de la versión publicada.
   - `pdfjs/` es el visor de PDF.
-- **Versión:** sube `const VERSION` en `index.html` (v11.0, v11.1…).
+- **Versión:** sube `const VERSION` en `index.html` (v11.1, v11.2…).
 - **Publicar:** `./publicar.sh "mensaje"`. El script hace esto:
   - pone el mismo `BUILD`, que es la fecha y hora de Madrid, en `index.html`, `sw.js` y `version.json`;
   - hace el commit;
@@ -58,7 +58,8 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 
 **Estructura (v11.0)**
 - Pestañas, en este orden: **Calendario · Viajes · Vacaciones · Estadísticas · Más**. Viajes va antes que Vacaciones porque entra más a los viajes.
-- El **Calendario es la pantalla principal**: lo que más mira es el año con sus viajes. La tarjeta de Hoy va arriba como **franja**: en el móvil recogida en una línea (se abre al tocarla y se recuerda), en el PC siempre abierta a la derecha. No hay pestaña «Hoy».
+- El **Calendario es la pantalla principal** y en el móvil el año tiene que verse **entero sin hacer scroll** (le pone muy nervioso). Nada encima del calendario: ni la tarjeta de Hoy ni una franja (se probó en v11.0 y lo descartó). Hoy es un botón «Hoy ›» junto al título, que abre una hoja; en el PC la tarjeta va a la derecha. No hay pestaña «Hoy».
+- La tarjeta de Hoy lleva **solo lo útil**: próximo vuelo, «Antes de irte», horas de hoy, ID/OS para copiar y la ficha (sin viaje: el próximo viaje). Fuera, porque no le aportan nada: «Vuelves en X días», «Próximo descanso largo», «Vacaciones: te quedan…».
 - **Viajes**: solo la lista del año, un único ＋ y un buscador que busca en todos los años.
 - **Estadísticas**: «Por año», «Histórico» y «Mapa» juntos (antes estaban repartidos entre Viajes y Mapa).
 - **Más**: menú en bloques (Mis cosas: Mis documentos · Gestión: Calendario de empresa, Clientes, Antes de irme · App: Ajustes, Copia de seguridad, Ayuda), cada cosa en su pantalla. Ajustes era un cajón de sastre.
@@ -110,7 +111,8 @@ App personal de Mikel: calendario laboral de MTorres, vacaciones (bolsa de horas
 - Cada hora va al día en que ocurre, con el reloj del país de salida.
 - Desde la hora 17 siempre es extra. Las 8 primeras son extra si el día es fin de semana o festivo, o si con el trabajo de ese día se pasa de 8 h.
 - Zona horaria del destino: la que él elija (`v.horas.tz`), si no la del **aeropuerto de llegada de la ida** (`TZ_AERO`, sobre todo EE. UU., Canadá, México, Brasil, Australia: viaja mucho a EE. UU. y no todo es hora de Nueva York), y si no la del país (`TZ_PAIS`, todos los países de la lista tienen zona).
-- El trabajo en destino va en hora local. Los días en destino se apuntan **en horas trabajadas** (−½, +½, atajos), no con inicio y fin.
+- El trabajo en destino va en hora local. Los días en destino se apuntan **en horas trabajadas** (−½, +½, atajos y una casilla para escribir el número exacto: 6,5 o 6:20), no con inicio y fin.
+- La ida y la vuelta propuestas desde los vuelos son solo una propuesta: cada tarjeta lleva un botón visible «✏️ Cambiar horas» para poner las reales (p. ej. vuelo a las 02:10 y él sale 2 h antes, no 3).
 - La ida y la vuelta se proponen desde los vuelos con márgenes editables en Ajustes. Él sale de casa mucho antes, normalmente vuela desde Bilbao.
 - No se ficha en la app: ya ficha en SAP.
 - Solo cuentan los vuelos vigentes que **cuadran con las fechas del viaje**: el primer vuelo de ida a ±1 día del inicio y la llegada del último de vuelta a ±1 día del final. Si cambia la fecha del viaje y el vuelo viejo ya no cuadra, no se usa: los días en destino llegan hasta la nueva fecha y la Vuelta sale «pendiente del vuelo nuevo». El vuelo viejo tampoco sale como «próximo vuelo».
